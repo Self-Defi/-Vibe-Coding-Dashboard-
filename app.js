@@ -1,6 +1,18 @@
 /* Vibe Coding Dashboard
    - Stage 3: generate copy/paste static repo files (no approval gate)
    - Stage 4+5: auto-generate SOT PDFs + snapshot (based on industry templates)
+
+   Fixes in this version:
+   1) Stage 4/5 not populating due to renderSOTPreview crash:
+      - corrected wrong variable reference (s -> sot)
+      - corrected timeToUnderstand path
+      - added safe guards for missing arrays/objects
+   2) Industry pill double-prefix ("Industry: Industry: X"):
+      - pass raw industry name into setPills()
+   3) Extra safety:
+      - ensure INDUSTRIES exists before init
+      - basic guards for missing SOT shapes
+      - optional autoTable existence check before PDF 2/3/4
 */
 
 let currentFiles = {};
@@ -10,10 +22,23 @@ let currentStage5 = "";
 
 const $ = (id) => document.getElementById(id);
 
+function assertGlobals() {
+  if (typeof window.INDUSTRIES === "undefined") {
+    throw new Error("INDUSTRIES is not defined. Ensure templates.js loads before app.js and exports window.INDUSTRIES.");
+  }
+}
+
 function initIndustries() {
   const sel = $("industrySelect");
   sel.innerHTML = "";
-  Object.keys(INDUSTRIES).forEach((name) => {
+
+  const names = Object.keys(INDUSTRIES || {});
+  if (!names.length) {
+    sel.innerHTML = "<option value=''>No industries loaded</option>";
+    return;
+  }
+
+  names.forEach((name) => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
@@ -21,22 +46,29 @@ function initIndustries() {
   });
 
   sel.addEventListener("change", () => {
-    const ind = INDUSTRIES[sel.value];
-    $("industryPill").textContent = `Industry: ${sel.value}`;
-    $("artifactSelect").value = ind.defaultArtifact || "dashboard";
+    const selectedName = sel.value;
+    const ind = INDUSTRIES[selectedName];
+    $("industryPill").textContent = `Industry: ${selectedName}`;
+    $("artifactSelect").value = (ind && ind.defaultArtifact) || "dashboard";
   });
 
-  sel.value = "Supply Chain";
+  // Prefer Supply Chain if present, otherwise first key
+  const defaultName = names.includes("Supply Chain") ? "Supply Chain" : names[0];
+  sel.value = defaultName;
   sel.dispatchEvent(new Event("change"));
 }
 
 function autofill() {
   const industryName = $("industrySelect").value;
-  const ex = INDUSTRIES[industryName].example;
-  $("oneSentence").value = ex.oneSentence;
-  $("constraint").value = ex.constraint;
-  $("output").value = ex.output;
-  $("realityTest").value = ex.realityTest;
+  const ind = INDUSTRIES[industryName];
+  const ex = ind?.example;
+
+  if (!ex) return;
+
+  $("oneSentence").value = ex.oneSentence || "";
+  $("constraint").value = ex.constraint || "";
+  $("output").value = ex.output || "";
+  $("realityTest").value = ex.realityTest || "";
 }
 
 function validateExternalization() {
@@ -46,7 +78,7 @@ function validateExternalization() {
     $("output").value.trim(),
     $("realityTest").value.trim()
   ];
-  return fields.every(v => v.length >= 10);
+  return fields.every((v) => v.length >= 10);
 }
 
 function setPills({ phase, industry, proof, sot }) {
@@ -144,43 +176,55 @@ function makeStage5Snapshot(industryName, artifactType, ext) {
     `Reality test: ${ext.realityTest}`,
     "",
     "WHAT EXISTS NOW",
-    ...exists.map(x => `- ${x}`),
+    ...exists.map((x) => `- ${x}`),
     "",
     "GENERATED PROOF FILES",
-    ...proofPaths.map(p => `- ${p}`),
+    ...proofPaths.map((p) => `- ${p}`),
     "",
     "NEXT ACTIONS",
-    ...nextActions.map(x => `- ${x}`)
+    ...nextActions.map((x) => `- ${x}`)
   ].join("\n");
 }
 
+/* ---------- Stage 4 preview (FIXED) ---------- */
 function renderSOTPreview(sot) {
   const lines = [];
   lines.push("STAGE 4 — SOURCE OF TRUTH (AUTO-GENERATED)");
   lines.push("");
+
+  const def = sot?.definition || {};
+  const data = sot?.data || {};
+  const flow = sot?.workflow || {};
+  const cons = sot?.constraints || {};
+
   lines.push("PDF 1 — Definition");
-  lines.push(`- Problem: ${sot.definition.problem}`);
-  lines.push(`- Primary user: ${sot.definition.primaryUser}`);
-  lines.push(`- Secondary users: ${sot.definition.secondaryUsers}`);
-  lines.push(`- Artifact: ${sot.definition.artifactType}`);
-  lines.push(`- Description: ${sot.definition.description}`);
-  lines.push(`- Time-to-understand: ${s.timeToUnderstand}`);
+  lines.push(`- Problem: ${def.problem || "—"}`);
+  lines.push(`- Primary user: ${def.primaryUser || "—"}`);
+  lines.push(`- Secondary users: ${def.secondaryUsers || "—"}`);
+  lines.push(`- Artifact: ${def.artifactType || "—"}`);
+  lines.push(`- Description: ${def.description || "—"}`);
+  lines.push(`- Time-to-understand: ${def.timeToUnderstand || "—"}`);
   lines.push("");
+
   lines.push("PDF 2 — Data");
-  lines.push(`- Required fields: ${sot.data.requiredFields.length}`);
-  lines.push(`- Sources: ${sot.data.sources.length}`);
-  lines.push(`- Validity rules: ${sot.data.validityRules.length}`);
+  lines.push(`- Required fields: ${(data.requiredFields || []).length}`);
+  lines.push(`- Sources: ${(data.sources || []).length}`);
+  lines.push(`- Validity rules: ${(data.validityRules || []).length}`);
   lines.push("");
+
   lines.push("PDF 3 — Workflow");
-  lines.push(`- States: ${sot.workflow.states.length}`);
-  lines.push(`- Triggers: ${sot.workflow.triggers.length}`);
+  lines.push(`- States: ${(flow.states || []).length}`);
+  lines.push(`- Triggers: ${(flow.triggers || []).length}`);
   lines.push("");
+
   lines.push("PDF 4 — Constraints");
-  lines.push(`- Non-goals: ${sot.constraints.nonGoals.length}`);
+  lines.push(`- Ops constraints: ${(cons.ops || []).length}`);
+  lines.push(`- Non-goals: ${(cons.nonGoals || []).length}`);
+
   $("sotPreview").textContent = lines.join("\n");
 }
 
-// PDF generation aligned to your Stage 4 format  [oai_citation:3‡Vibe-Coding_Stage-4_Source-of-Truth.pdf](sediment://file_00000000188471f59f49177ac523a57b)
+/* ---------- PDF generation ---------- */
 function pdfTitle(doc, title, subtitle) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
@@ -188,6 +232,14 @@ function pdfTitle(doc, title, subtitle) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.text(subtitle, 14, 26);
+}
+
+function ensureAutoTable(doc) {
+  if (typeof doc.autoTable !== "function") {
+    alert("PDF table plugin (autoTable) not loaded. Check the jspdf-autotable script tag in index.html.");
+    return false;
+  }
+  return true;
 }
 
 function generatePDF1(def) {
@@ -199,26 +251,28 @@ function generatePDF1(def) {
   doc.setFontSize(12);
   doc.text("Problem Statement (Locked)", 14, 56);
   doc.setFontSize(10);
-  doc.text(def.problem, 14, 72, { maxWidth: 580 });
+  doc.text(def.problem || "—", 14, 72, { maxWidth: 580 });
 
   doc.setFontSize(12);
   doc.text("Intended User", 14, 112);
   doc.setFontSize(10);
-  doc.text(`Primary: ${def.primaryUser}`, 14, 128);
-  doc.text(`Secondary: ${def.secondaryUsers}`, 14, 144);
+  doc.text(`Primary: ${def.primaryUser || "—"}`, 14, 128);
+  doc.text(`Secondary: ${def.secondaryUsers || "—"}`, 14, 144);
 
   doc.setFontSize(12);
   doc.text("Output Definition", 14, 180);
   doc.setFontSize(10);
-  doc.text(`Artifact Type: ${def.artifactType}`, 14, 196);
-  doc.text(`Description: ${def.description}`, 14, 212, { maxWidth: 580 });
-  doc.text(`Time-to-Understand: ${def.timeToUnderstand}`, 14, 238);
+  doc.text(`Artifact Type: ${def.artifactType || "—"}`, 14, 196);
+  doc.text(`Description: ${def.description || "—"}`, 14, 212, { maxWidth: 580 });
+  doc.text(`Time-to-Understand: ${def.timeToUnderstand || "—"}`, 14, 238);
 
   doc.setFontSize(12);
   doc.text("Definition of Done", 14, 270);
   doc.setFontSize(10);
   const startY = 288;
-  def.doneCriteria.forEach((c, i) => doc.text(`• ${c}`, 18, startY + (i * 14), { maxWidth: 575 }));
+  (def.doneCriteria || []).forEach((c, i) =>
+    doc.text(`• ${c}`, 18, startY + i * 14, { maxWidth: 575 })
+  );
 
   doc.save("SOT_PDF1_Definition.pdf");
 }
@@ -227,6 +281,8 @@ function generatePDF2(data) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
 
+  if (!ensureAutoTable(doc)) return;
+
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 2 — Data");
 
   doc.setFontSize(12);
@@ -234,7 +290,7 @@ function generatePDF2(data) {
   doc.autoTable({
     startY: 68,
     head: [["Field Name", "Description", "Required"]],
-    body: data.requiredFields,
+    body: data.requiredFields || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -245,7 +301,7 @@ function generatePDF2(data) {
   doc.autoTable({
     startY: y + 12,
     head: [["Field", "Source System", "Owner", "Refresh Cadence"]],
-    body: data.sources,
+    body: data.sources || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -254,7 +310,9 @@ function generatePDF2(data) {
   doc.setFontSize(12);
   doc.text("Data Validity Rules", 14, y);
   doc.setFontSize(10);
-  data.validityRules.forEach((r, i) => doc.text(`• ${r}`, 18, y + 18 + (i * 14), { maxWidth: 575 }));
+  (data.validityRules || []).forEach((r, i) =>
+    doc.text(`• ${r}`, 18, y + 18 + i * 14, { maxWidth: 575 })
+  );
 
   doc.save("SOT_PDF2_Data.pdf");
 }
@@ -263,6 +321,8 @@ function generatePDF3(flow) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
 
+  if (!ensureAutoTable(doc)) return;
+
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 3 — Workflow");
 
   doc.setFontSize(12);
@@ -270,7 +330,7 @@ function generatePDF3(flow) {
   doc.autoTable({
     startY: 68,
     head: [["State", "Description"]],
-    body: flow.states,
+    body: flow.states || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -281,7 +341,7 @@ function generatePDF3(flow) {
   doc.autoTable({
     startY: y + 12,
     head: [["Trigger", "Condition", "Action"]],
-    body: flow.triggers,
+    body: flow.triggers || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -292,7 +352,7 @@ function generatePDF3(flow) {
   doc.autoTable({
     startY: y + 12,
     head: [["Stage", "Owner", "Escalation Path"]],
-    body: flow.ownership,
+    body: flow.ownership || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -304,6 +364,8 @@ function generatePDF4(cons) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
 
+  if (!ensureAutoTable(doc)) return;
+
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 4 — Constraints");
 
   doc.setFontSize(12);
@@ -311,7 +373,7 @@ function generatePDF4(cons) {
   doc.autoTable({
     startY: 68,
     head: [["Constraint Type", "Details"]],
-    body: cons.ops,
+    body: cons.ops || [],
     theme: "grid",
     styles: { fontSize: 9 }
   });
@@ -320,7 +382,9 @@ function generatePDF4(cons) {
   doc.setFontSize(12);
   doc.text("Explicit Non-Goals", 14, y);
   doc.setFontSize(10);
-  cons.nonGoals.forEach((ng, i) => doc.text(`• ${ng}`, 18, y + 18 + (i * 14), { maxWidth: 575 }));
+  (cons.nonGoals || []).forEach((ng, i) =>
+    doc.text(`• ${ng}`, 18, y + 18 + i * 14, { maxWidth: 575 })
+  );
 
   doc.setFontSize(10);
   doc.text("Sign-off is optional in this dashboard flow (auto-generated).", 14, 740);
@@ -328,13 +392,15 @@ function generatePDF4(cons) {
   doc.save("SOT_PDF4_Constraints.pdf");
 }
 
+/* ---------- URL verify ---------- */
 async function verifyUrl(url) {
   $("verifyResult").textContent = "Checking…";
   try {
     const res = await fetch(url, { method: "GET", mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    const looksLike = html.toLowerCase().includes("proof v1") || html.toLowerCase().includes("vibe");
+    const looksLike =
+      html.toLowerCase().includes("proof v1") || html.toLowerCase().includes("vibe");
     $("verifyResult").textContent = looksLike
       ? "✅ URL reachable. Page content looks like a proof page."
       : "✅ URL reachable. (Content signature not detected — still ok.)";
@@ -343,10 +409,16 @@ async function verifyUrl(url) {
   }
 }
 
+/* ---------- Main generation ---------- */
 function generateAll() {
   const industryName = $("industrySelect").value;
   const industry = INDUSTRIES[industryName];
   const artifactType = $("artifactSelect").value;
+
+  if (!industry) {
+    alert("Industry template not found. Check templates.js INDUSTRIES definitions.");
+    return;
+  }
 
   if (!validateExternalization()) {
     alert("Fill all four Externalization fields first (One Sentence / Constraint / Output / Reality Test).");
@@ -354,12 +426,17 @@ function generateAll() {
   }
 
   // Stage 3: generate repo files immediately (no approval gate)
-  currentFiles = industry.proofRepo();
+  currentFiles = (typeof industry.proofRepo === "function") ? industry.proofRepo() : {};
   renderFiles(currentFiles);
-  $("btnDownloadAll").disabled = false;
+  $("btnDownloadAll").disabled = Object.keys(currentFiles).length === 0;
 
   // Auto-generate Stage 4 (SOT) + Stage 5
-  currentSOT = industry.sotDefaults();
+  currentSOT = (typeof industry.sotDefaults === "function") ? industry.sotDefaults() : null;
+  if (!currentSOT) {
+    alert("Stage 4 failed: sotDefaults() did not return a SOT object for this industry.");
+    return;
+  }
+
   renderSOTPreview(currentSOT);
 
   const ext = {
@@ -381,12 +458,11 @@ function generateAll() {
 
   setPills({
     phase: "3–5",
-    industry: `Industry: ${industryName}`,
+    industry: industryName, // ✅ no double "Industry:"
     proof: "Proof: Generated",
     sot: "SOT: Generated"
   });
 
-  // Also update pills
   $("proofPill").classList.add("good");
   $("sotPill").classList.add("good");
 }
@@ -400,12 +476,13 @@ function wireUI() {
   $("btnDownload").onclick = downloadCurrentFile;
   $("btnDownloadAll").onclick = downloadAllFiles;
 
-  $("btnPDF1").onclick = () => generatePDF1(currentSOT.definition);
-  $("btnPDF2").onclick = () => generatePDF2(currentSOT.data);
-  $("btnPDF3").onclick = () => generatePDF3(currentSOT.workflow);
-  $("btnPDF4").onclick = () => generatePDF4(currentSOT.constraints);
+  $("btnPDF1").onclick = () => generatePDF1(currentSOT?.definition || {});
+  $("btnPDF2").onclick = () => generatePDF2(currentSOT?.data || {});
+  $("btnPDF3").onclick = () => generatePDF3(currentSOT?.workflow || {});
+  $("btnPDF4").onclick = () => generatePDF4(currentSOT?.constraints || {});
 
-  $("btnDownloadStage5").onclick = () => downloadTextFile("Stage5_Snapshot.txt", currentStage5);
+  $("btnDownloadStage5").onclick = () =>
+    downloadTextFile("Stage5_Snapshot.txt", currentStage5 || "");
 
   $("btnVerify").onclick = () => {
     const url = $("proofUrl").value.trim();
@@ -414,9 +491,20 @@ function wireUI() {
   };
 }
 
-(function main(){
-  initIndustries();
-  wireUI();
-  autofill();
-  setPills({ phase: "1–2", industry: `Industry: ${$("industrySelect").value}`, proof: "Proof: Not generated", sot: "SOT: Not generated" });
+(function main() {
+  try {
+    assertGlobals();
+    initIndustries();
+    wireUI();
+    autofill();
+    setPills({
+      phase: "1–2",
+      industry: $("industrySelect").value,
+      proof: "Proof: Not generated",
+      sot: "SOT: Not generated"
+    });
+  } catch (e) {
+    console.error(e);
+    alert(e.message);
+  }
 })();
