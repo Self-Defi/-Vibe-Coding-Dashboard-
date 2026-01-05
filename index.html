@@ -3,143 +3,191 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vibe Coding — Thought → Proof → Infrastructure</title>
+  <title>Vibe Coding — Build Proof Fast</title>
   <link rel="stylesheet" href="styles.css" />
+
   <!-- PDF generator (no build tools) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
+
 <body>
-  <header class="top">
+  <!-- Top bar -->
+  <header class="topbar">
     <div class="brand">
+      <div class="brandMark" aria-hidden="true"></div>
       <div class="brandText">
-        <h1>Vibe Coding</h1>
-        <p class="muted">Externalize → Generate Proof → Auto-lock Source of Truth</p>
+        <div class="brandTitle">Vibe Coding</div>
+        <div class="brandSub">Turn a thought into a working proof in minutes.</div>
       </div>
     </div>
 
-    <div class="pillRow">
+    <!-- Status pills (kept for your logic, but visually subtle) -->
+    <div class="statusPills" aria-label="status">
       <span class="pill" id="phasePill">Phase: 1–2</span>
       <span class="pill" id="industryPill">Industry: —</span>
-      <span class="pill good" id="proofPill">Proof: Not generated</span>
-      <span class="pill" id="sotPill">SOT: Not generated</span>
+      <span class="pill" id="proofPill">Proof: Not generated</span>
+      <span class="pill" id="sotPill">Docs: Not generated</span>
     </div>
   </header>
 
-  <main class="grid">
-    <!-- LEFT: Input + generation -->
-    <section class="card">
-      <h2>Phase 1–2: Externalized Thought</h2>
-      <p class="muted">Pick an industry. Fill the 4-line externalization. Then generate your proof repo and SOT.</p>
-
-      <div class="row">
-        <label>Industry</label>
-        <select id="industrySelect"></select>
-      </div>
-
-      <div class="row">
-        <label>Artifact Type</label>
-        <select id="artifactSelect">
-          <option value="dashboard">Dashboard</option>
-          <option value="alert">Alert Digest</option>
-          <option value="workflow">Workflow Tracker</option>
-          <option value="report">Report</option>
-        </select>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="row">
-        <label>One Sentence</label>
-        <textarea id="oneSentence" rows="2" placeholder='I want to build ______ for ______ so they can ______.'></textarea>
-      </div>
-
-      <div class="row">
-        <label>Constraint</label>
-        <textarea id="constraint" rows="2" placeholder='I will build the first proof in ___ hours using ___ tools.'></textarea>
-      </div>
-
-      <div class="row">
-        <label>Output</label>
-        <textarea id="output" rows="2" placeholder='The proof is done when it produces ____.'></textarea>
-      </div>
-
-      <div class="row">
-        <label>Reality Test</label>
-        <textarea id="realityTest" rows="2" placeholder='A stranger can understand it in under 60 seconds.'></textarea>
-      </div>
-
-      <div class="row inline">
-        <button class="btn" id="btnAutofill">Autofill Example</button>
-        <button class="btn primary" id="btnGenerate">Generate Stage 3 + Stage 4/5</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <h3>Optional: Proof URL (verification later)</h3>
-      <p class="muted">Not required. Paste a GitHub Pages URL to validate availability.</p>
-      <div class="row inline">
-        <input id="proofUrl" type="url" placeholder="https://username.github.io/repo/" />
-        <button class="btn" id="btnVerify">Verify URL</button>
-      </div>
-      <div id="verifyResult" class="muted"></div>
+  <main class="wrap">
+    <!-- HERO -->
+    <section class="hero">
+      <h1>Build a real proof page from one sentence.</h1>
+      <p class="heroSub">
+        Pick an industry (optional), describe the idea, hit <b>Build My Proof</b>.
+        Files + docs generate automatically behind the scenes.
+      </p>
     </section>
 
-    <!-- RIGHT: Outputs -->
-    <section class="card">
-      <h2>Outputs</h2>
-      <p class="muted">Stage 3 repo files + Stage 4 Source-of-Truth PDFs + Stage 5 snapshot.</p>
-
-      <div class="subcard">
-        <div class="subhead">
-          <h3>Stage 3 — Copy/Paste Repo Files</h3>
-          <div class="subactions">
-            <button class="btn" id="btnDownloadAll" disabled>Download all files</button>
-          </div>
+    <!-- MAIN 2-COLUMN -->
+    <section class="layout">
+      <!-- LEFT: Simple builder -->
+      <section class="card">
+        <div class="cardHead">
+          <h2>Describe it</h2>
+          <p class="muted">Keep it simple. You can refine later.</p>
         </div>
-        <div id="filesList" class="files"></div>
-        <div id="fileViewer" class="viewer hidden">
-          <div class="viewerTop">
-            <div class="viewerTitle" id="viewerTitle">—</div>
-            <div class="viewerActions">
-              <button class="btn" id="btnCopy">Copy</button>
-              <button class="btn" id="btnDownload">Download</button>
-              <button class="btn" id="btnClose">Close</button>
+
+        <div class="field">
+          <label for="industrySelect">Industry</label>
+          <select id="industrySelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="artifactSelect">Type</label>
+          <select id="artifactSelect">
+            <option value="dashboard">Dashboard</option>
+            <option value="alert">Alert Digest</option>
+            <option value="workflow">Workflow Tracker</option>
+            <option value="report">Report</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="oneSentence">One sentence</label>
+          <textarea id="oneSentence" rows="2" placeholder="I want to build ______ for ______ so they can ______."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="output">What does ‘done’ produce?</label>
+          <textarea id="output" rows="2" placeholder="The proof is done when it produces _____."></textarea>
+        </div>
+
+        <!-- Hidden (still required by your validator, but now visually tucked into Advanced) -->
+        <details class="advanced">
+          <summary>Advanced (optional)</summary>
+
+          <div class="advancedInner">
+            <div class="field">
+              <label for="constraint">Constraint</label>
+              <textarea id="constraint" rows="2" placeholder="I will build the first proof in ___ hours using ___ tools."></textarea>
+            </div>
+
+            <div class="field">
+              <label for="realityTest">Reality test</label>
+              <textarea id="realityTest" rows="2" placeholder="A stranger can understand it in under 60 seconds."></textarea>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+              <label for="proofUrl">Proof URL (optional verification)</label>
+              <div class="inline">
+                <input id="proofUrl" type="url" placeholder="https://username.github.io/repo/" />
+                <button class="btn ghost" id="btnVerify" type="button">Verify</button>
+              </div>
+              <div id="verifyResult" class="muted small"></div>
             </div>
           </div>
-          <pre id="viewerCode"></pre>
-        </div>
-      </div>
+        </details>
 
-      <div class="subcard">
-        <div class="subhead">
-          <h3>Stage 4 — Source of Truth PDFs</h3>
-          <div class="subactions">
-            <button class="btn" id="btnPDF1" disabled>PDF 1 (Definition)</button>
-            <button class="btn" id="btnPDF2" disabled>PDF 2 (Data)</button>
-            <button class="btn" id="btnPDF3" disabled>PDF 3 (Workflow)</button>
-            <button class="btn" id="btnPDF4" disabled>PDF 4 (Constraints)</button>
+        <div class="actions">
+          <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
+          <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
+        </div>
+
+        <p class="hint">
+          Everything generates locally in your browser. Nothing is uploaded.
+        </p>
+      </section>
+
+      <!-- RIGHT: Results -->
+      <section class="card">
+        <div class="cardHead">
+          <h2>Results</h2>
+          <p class="muted">Your repo files + docs + snapshot.</p>
+        </div>
+
+        <!-- Stage 3 (kept IDs for your app.js) -->
+        <div class="block">
+          <div class="blockHead">
+            <div>
+              <h3>Repo files</h3>
+              <p class="muted small">Copy/paste into a new GitHub repo.</p>
+            </div>
+            <button class="btn ghost" id="btnDownloadAll" disabled type="button">Download all</button>
+          </div>
+
+          <div id="filesList" class="chips"></div>
+
+          <div id="fileViewer" class="viewer hidden" role="dialog" aria-modal="true">
+            <div class="viewerTop">
+              <div class="viewerTitle" id="viewerTitle">—</div>
+              <div class="viewerActions">
+                <button class="btn ghost" id="btnCopy" type="button">Copy</button>
+                <button class="btn ghost" id="btnDownload" type="button">Download</button>
+                <button class="btn ghost" id="btnClose" type="button">Close</button>
+              </div>
+            </div>
+            <pre id="viewerCode"></pre>
           </div>
         </div>
-        <p class="muted">Generated automatically using your Stage 4 format.</p>
-        <div id="sotPreview" class="monoBox"></div>
-      </div>
 
-      <div class="subcard">
-        <div class="subhead">
-          <h3>Stage 5 — What exists now + Next actions</h3>
-          <div class="subactions">
-            <button class="btn" id="btnDownloadStage5" disabled>Download Stage 5</button>
+        <!-- Docs (Stage 4) now hidden behind a collapsible -->
+        <details class="advanced" id="docsDrawer">
+          <summary>Download docs</summary>
+          <div class="advancedInner">
+            <div class="blockHead" style="margin-top:6px">
+              <div>
+                <h3>Docs</h3>
+                <p class="muted small">Auto-generated PDFs (Definition / Data / Workflow / Constraints).</p>
+              </div>
+            </div>
+
+            <div class="btnRow">
+              <button class="btn ghost" id="btnPDF1" disabled type="button">Definition PDF</button>
+              <button class="btn ghost" id="btnPDF2" disabled type="button">Data PDF</button>
+              <button class="btn ghost" id="btnPDF3" disabled type="button">Workflow PDF</button>
+              <button class="btn ghost" id="btnPDF4" disabled type="button">Constraints PDF</button>
+            </div>
+
+            <div id="sotPreview" class="monoBox"></div>
           </div>
+        </details>
+
+        <!-- Snapshot (Stage 5) now hidden behind a collapsible -->
+        <details class="advanced" id="snapshotDrawer">
+          <summary>Export plan</summary>
+          <div class="advancedInner">
+            <div class="blockHead" style="margin-top:6px">
+              <div>
+                <h3>Snapshot</h3>
+                <p class="muted small">What exists now + next actions.</p>
+              </div>
+              <button class="btn ghost" id="btnDownloadStage5" disabled type="button">Download</button>
+            </div>
+            <div id="stage5" class="monoBox"></div>
+          </div>
+        </details>
+
+        <div class="footerNote">
+          Default execution: <b>Static GitHub Pages</b>. Proof first. Docs auto-generate next.
         </div>
-        <div id="stage5" class="monoBox"></div>
-      </div>
+      </section>
     </section>
   </main>
-
-  <footer class="foot">
-    Default execution layer: <b>Static GitHub Pages</b>. Proof first. Canonical truth auto-generated next.
-  </footer>
 
   <script src="templates.js"></script>
   <script src="app.js"></script>
