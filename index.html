@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <!-- Status pills -->
+    <!-- Status pills (kept for app.js logic; visually subtle via CSS) -->
     <div class="statusPills" aria-label="status">
       <span class="pill" id="phasePill">Phase: 1–2</span>
       <span class="pill" id="industryPill">Industry: —</span>
@@ -52,12 +52,12 @@
 
         <div class="field">
           <label for="industrySelect">Industry</label>
-          <select id="industrySelect"></select>
+          <select id="industrySelect" aria-label="Industry"></select>
         </div>
 
         <div class="field">
           <label for="artifactSelect">Type</label>
-          <select id="artifactSelect">
+          <select id="artifactSelect" aria-label="Type">
             <option value="dashboard">Dashboard</option>
             <option value="alert">Alert Digest</option>
             <option value="workflow">Workflow Tracker</option>
@@ -75,7 +75,7 @@
           <textarea id="output" rows="2" placeholder="The proof is done when it produces _____."></textarea>
         </div>
 
-        <!-- Advanced (hidden/locked by app.js) -->
+        <!-- Advanced (auto-filled + locked by app.js; stays optional) -->
         <details class="advanced" id="advancedDrawer">
           <summary>Advanced (optional)</summary>
           <div class="advancedInner">
@@ -91,6 +91,7 @@
 
             <div class="divider"></div>
 
+            <!-- Optional verification (kept, but not required) -->
             <div class="field">
               <label for="proofUrl">Proof URL (optional verification)</label>
               <div class="inline">
@@ -113,21 +114,31 @@
       <!-- RIGHT -->
       <section class="card">
         <div class="cardHead">
-          <h2>Results</h2>
-          <p class="muted">Your repo files + docs + snapshot.</p>
+          <h2>Output</h2>
+          <p class="muted">Your proof files + PDFs + next steps.</p>
+        </div>
+
+        <!-- Calm empty-state (auto-hidden once files exist) -->
+        <div class="block" id="emptyState">
+          <div class="blockHead">
+            <div>
+              <h3>Nothing generated yet</h3>
+              <p class="muted small">Click <b>Build My Proof</b> to generate files and docs automatically.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Stage 3 -->
-        <div class="block">
+        <div class="block" id="stage3Block">
           <div class="blockHead">
             <div>
-              <h3>Repo files</h3>
-              <p class="muted small">Copy/paste into a new GitHub repo.</p>
+              <h3>Your Proof Files</h3>
+              <p class="muted small">Download or open a file to copy/paste into a repo.</p>
             </div>
             <button class="btn ghost" id="btnDownloadAll" disabled type="button">Download all</button>
           </div>
 
-          <div id="filesList" class="chips"></div>
+          <div id="filesList" class="chips" aria-label="Generated files"></div>
 
           <!-- Viewer -->
           <div id="fileViewer" class="viewer hidden" role="dialog" aria-modal="true">
@@ -136,6 +147,7 @@
               <div class="viewerActions">
                 <button class="btn ghost" id="btnCopy" type="button">Copy</button>
                 <button class="btn ghost" id="btnDownload" type="button">Download</button>
+                <!-- IMPORTANT: only ONE refresh button (no duplicate IDs) -->
                 <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
                 <button class="btn ghost" id="btnClose" type="button">Close</button>
               </div>
@@ -146,20 +158,20 @@
 
         <!-- Docs (Stage 4) -->
         <details class="advanced" id="docsDrawer">
-          <summary>Download docs</summary>
+          <summary>Download PDFs</summary>
           <div class="advancedInner">
             <div class="blockHead" style="margin-top:6px">
               <div>
-                <h3>Docs</h3>
-                <p class="muted small">Auto-generated PDFs (Definition / Data / Workflow / Constraints).</p>
+                <h3>Proof PDFs</h3>
+                <p class="muted small">Definition / Data / Workflow / Constraints.</p>
               </div>
             </div>
 
             <div class="btnRow">
-              <button class="btn ghost" id="btnPDF1" disabled type="button">Definition PDF</button>
-              <button class="btn ghost" id="btnPDF2" disabled type="button">Data PDF</button>
-              <button class="btn ghost" id="btnPDF3" disabled type="button">Workflow PDF</button>
-              <button class="btn ghost" id="btnPDF4" disabled type="button">Constraints PDF</button>
+              <button class="btn ghost" id="btnPDF1" disabled type="button">Definition</button>
+              <button class="btn ghost" id="btnPDF2" disabled type="button">Data</button>
+              <button class="btn ghost" id="btnPDF3" disabled type="button">Workflow</button>
+              <button class="btn ghost" id="btnPDF4" disabled type="button">Constraints</button>
             </div>
 
             <div id="sotPreview" class="monoBox"></div>
@@ -168,12 +180,12 @@
 
         <!-- Snapshot (Stage 5) -->
         <details class="advanced" id="snapshotDrawer">
-          <summary>Export plan</summary>
+          <summary>Next steps</summary>
           <div class="advancedInner">
             <div class="blockHead" style="margin-top:6px">
               <div>
-                <h3>Snapshot</h3>
-                <p class="muted small">What exists now + next actions.</p>
+                <h3>Plan Export</h3>
+                <p class="muted small">What exists now + exactly what to do next.</p>
               </div>
               <button class="btn ghost" id="btnDownloadStage5" disabled type="button">Download</button>
             </div>
@@ -189,7 +201,27 @@
   </main>
 
   <!-- IMPORTANT: templates must load before app -->
-  <script defer src="templates.js"></script>
-  <script defer src="app.js"></script>
+  <script src="templates.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Optional: simple UI helper to hide empty state when files exist -->
+  <script>
+    // This is UI-only; your generation logic stays in app.js.
+    // It watches for chips being added and hides the empty block.
+    (() => {
+      const list = document.getElementById('filesList');
+      const empty = document.getElementById('emptyState');
+      if (!list || !empty) return;
+
+      const update = () => {
+        const hasFiles = list.children && list.children.length > 0;
+        empty.style.display = hasFiles ? 'none' : '';
+      };
+
+      const mo = new MutationObserver(update);
+      mo.observe(list, { childList: true, subtree: false });
+      update();
+    })();
+  </script>
 </body>
 </html>
