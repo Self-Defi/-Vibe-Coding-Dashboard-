@@ -1,16 +1,12 @@
-/* app.js — Vibe Coding Dashboard (Stage 1–5)
-   - Stage 3: generate copy/paste static repo files (no approval gate)
-   - Stage 4+5: auto-generate SOT PDFs + snapshot (based on industry templates)
+/* app.js — Vibe Coding Dashboard (Generator)
+   - Stage 3: generates copy/paste static repo files
+   - Stage 4: generates Source-of-Truth objects + PDF exporters
+   - Stage 5: generates "what exists now + next actions" snapshot
 
-   Fixes in this version:
-   1) "No Options" issue:
-      - DO NOT check window.INDUSTRIES (const INDUSTRIES isn't guaranteed on window)
-      - check global lexical INDUSTRIES instead (typeof INDUSTRIES)
-      - robust boot (wait for DOM + retry if templates not ready yet)
-   2) Stage 4/5 not populating:
-      - renderSOTPreview had wrong var refs / missing guards (fixed)
-   3) PDF buttons:
-      - autoTable guard with user-facing error if plugin missing
+   Key fixes:
+   ✅ Do NOT require window.INDUSTRIES (templates.js uses `const INDUSTRIES`, not window export)
+   ✅ Fix Stage 4 preview crash (was referencing `s.timeToUnderstand` instead of `def.timeToUnderstand`)
+   ✅ Add guards so missing arrays/objects never crash the app
 */
 
 let currentFiles = {};
@@ -20,15 +16,18 @@ let currentStage5 = "";
 
 const $ = (id) => document.getElementById(id);
 
-function requireIndustries() {
-  // IMPORTANT: don't use window.INDUSTRIES here.
-  // templates.js defines `const INDUSTRIES = {...}` which is accessible as `INDUSTRIES`,
-  // but not guaranteed to be a property on `window`.
-  if (typeof INDUSTRIES === "undefined" || !INDUSTRIES || !Object.keys(INDUSTRIES).length) {
-    throw new Error(
-      "Industry templates not loaded. Make sure templates.js loads BEFORE app.js (and both are in repo root)."
-    );
-  }
+function showInitError(msg) {
+  console.error(msg);
+  const el = $("verifyResult");
+  if (el) el.textContent = `❌ App error: ${msg}`;
+  // keep alert because on iOS you might not see console
+  alert(msg);
+}
+
+function industriesAvailable() {
+  // IMPORTANT: templates.js defines `const INDUSTRIES = {...}` (global binding)
+  // That means `INDUSTRIES` exists, but `window.INDUSTRIES` may be undefined.
+  return (typeof INDUSTRIES !== "undefined") && INDUSTRIES && Object.keys(INDUSTRIES).length > 0;
 }
 
 function initIndustries() {
@@ -37,35 +36,38 @@ function initIndustries() {
 
   sel.innerHTML = "";
 
-  const names = Object.keys(INDUSTRIES);
-  if (!names.length) {
+  if (!industriesAvailable()) {
     sel.innerHTML = "<option value=''>No industries loaded</option>";
+    $("industryPill").textContent = "Industry: —";
     return;
   }
 
-  for (const name of names) {
+  const names = Object.keys(INDUSTRIES);
+  names.forEach((name) => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
     sel.appendChild(opt);
-  }
+  });
 
   sel.addEventListener("change", () => {
     const selectedName = sel.value;
     const ind = INDUSTRIES[selectedName];
-    if ($("industryPill")) $("industryPill").textContent = `Industry: ${selectedName}`;
-    if ($("artifactSelect")) $("artifactSelect").value = (ind && ind.defaultArtifact) || "dashboard";
+    $("industryPill").textContent = `Industry: ${selectedName}`;
+    $("artifactSelect").value = (ind && ind.defaultArtifact) || "dashboard";
   });
 
-  // Prefer Supply Chain if present, else first key
+  // Default selection
   const defaultName = names.includes("Supply Chain") ? "Supply Chain" : names[0];
   sel.value = defaultName;
   sel.dispatchEvent(new Event("change"));
 }
 
 function autofill() {
-  const industryName = $("industrySelect")?.value;
-  const ind = industryName ? INDUSTRIES[industryName] : null;
+  if (!industriesAvailable()) return;
+
+  const industryName = $("industrySelect").value;
+  const ind = INDUSTRIES[industryName];
   const ex = ind?.example;
   if (!ex) return;
 
@@ -77,25 +79,23 @@ function autofill() {
 
 function validateExternalization() {
   const fields = [
-    $("oneSentence")?.value?.trim() || "",
-    $("constraint")?.value?.trim() || "",
-    $("output")?.value?.trim() || "",
-    $("realityTest")?.value?.trim() || ""
+    $("oneSentence").value.trim(),
+    $("constraint").value.trim(),
+    $("output").value.trim(),
+    $("realityTest").value.trim()
   ];
   return fields.every((v) => v.length >= 10);
 }
 
 function setPills({ phase, industry, proof, sot }) {
-  if (phase && $("phasePill")) $("phasePill").textContent = `Phase: ${phase}`;
-  if (industry && $("industryPill")) $("industryPill").textContent = `Industry: ${industry}`;
-  if (proof && $("proofPill")) $("proofPill").textContent = proof;
-  if (sot && $("sotPill")) $("sotPill").textContent = sot;
+  if (phase) $("phasePill").textContent = `Phase: ${phase}`;
+  if (industry) $("industryPill").textContent = `Industry: ${industry}`;
+  if (proof) $("proofPill").textContent = proof;
+  if (sot) $("sotPill").textContent = sot;
 }
 
 function renderFiles(files) {
   const list = $("filesList");
-  if (!list) return;
-
   list.innerHTML = "";
   Object.keys(files).forEach((path) => {
     const chip = document.createElement("div");
@@ -108,26 +108,21 @@ function renderFiles(files) {
 
 function openViewer(path) {
   currentViewFile = path;
-  if ($("viewerTitle")) $("viewerTitle").textContent = path;
-  if ($("viewerCode")) $("viewerCode").textContent = currentFiles[path] ?? "";
-  $("fileViewer")?.classList.remove("hidden");
+  $("viewerTitle").textContent = path;
+  $("viewerCode").textContent = currentFiles[path];
+  $("fileViewer").classList.remove("hidden");
 }
 
 function closeViewer() {
-  $("fileViewer")?.classList.add("hidden");
+  $("fileViewer").classList.add("hidden");
   currentViewFile = null;
 }
 
 async function copyViewer() {
   if (!currentViewFile) return;
-  try {
-    await navigator.clipboard.writeText(currentFiles[currentViewFile] ?? "");
-    $("btnCopy").textContent = "Copied";
-    setTimeout(() => ($("btnCopy").textContent = "Copy"), 900);
-  } catch (e) {
-    console.error(e);
-    alert("Clipboard copy failed on this browser. Use manual select/copy.");
-  }
+  await navigator.clipboard.writeText(currentFiles[currentViewFile]);
+  $("btnCopy").textContent = "Copied";
+  setTimeout(() => ($("btnCopy").textContent = "Copy"), 900);
 }
 
 function downloadTextFile(filename, content) {
@@ -145,14 +140,13 @@ function downloadTextFile(filename, content) {
 function downloadCurrentFile() {
   if (!currentViewFile) return;
   const name = currentViewFile.split("/").pop();
-  downloadTextFile(name, currentFiles[currentViewFile] ?? "");
+  downloadTextFile(name, currentFiles[currentViewFile]);
 }
 
 function downloadAllFiles() {
-  // No zip to keep it static/no deps: download one by one.
   Object.entries(currentFiles).forEach(([path, content]) => {
     const safeName = path.replaceAll("/", "__");
-    downloadTextFile(safeName, content ?? "");
+    downloadTextFile(safeName, content);
   });
 }
 
@@ -199,14 +193,14 @@ function makeStage5Snapshot(industryName, artifactType, ext) {
 
 /* ---------- Stage 4 preview (SAFE) ---------- */
 function renderSOTPreview(sot) {
-  const lines = [];
-  lines.push("STAGE 4 — SOURCE OF TRUTH (AUTO-GENERATED)");
-  lines.push("");
-
   const def = sot?.definition || {};
   const data = sot?.data || {};
   const flow = sot?.workflow || {};
   const cons = sot?.constraints || {};
+
+  const lines = [];
+  lines.push("STAGE 4 — SOURCE OF TRUTH (AUTO-GENERATED)");
+  lines.push("");
 
   lines.push("PDF 1 — Definition");
   lines.push(`- Problem: ${def.problem || "—"}`);
@@ -232,7 +226,7 @@ function renderSOTPreview(sot) {
   lines.push(`- Ops constraints: ${(cons.ops || []).length}`);
   lines.push(`- Non-goals: ${(cons.nonGoals || []).length}`);
 
-  if ($("sotPreview")) $("sotPreview").textContent = lines.join("\n");
+  $("sotPreview").textContent = lines.join("\n");
 }
 
 /* ---------- PDF generation ---------- */
@@ -245,13 +239,9 @@ function pdfTitle(doc, title, subtitle) {
   doc.text(subtitle, 14, 26);
 }
 
-function ensurePDFLibs(doc) {
-  if (!window.jspdf || typeof window.jspdf?.jsPDF !== "function") {
-    alert("jsPDF not loaded. Check the jsPDF script tag in index.html.");
-    return false;
-  }
+function ensureAutoTable(doc) {
   if (typeof doc.autoTable !== "function") {
-    alert("autoTable not loaded. Check the jspdf-autotable script tag in index.html.");
+    alert("PDF table plugin (autoTable) not loaded. Check jspdf-autotable script tag in index.html.");
     return false;
   }
   return true;
@@ -295,7 +285,7 @@ function generatePDF1(def) {
 function generatePDF2(data) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
-  if (!ensurePDFLibs(doc)) return;
+  if (!ensureAutoTable(doc)) return;
 
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 2 — Data");
 
@@ -334,7 +324,7 @@ function generatePDF2(data) {
 function generatePDF3(flow) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
-  if (!ensurePDFLibs(doc)) return;
+  if (!ensureAutoTable(doc)) return;
 
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 3 — Workflow");
 
@@ -376,7 +366,7 @@ function generatePDF3(flow) {
 function generatePDF4(cons) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "letter" });
-  if (!ensurePDFLibs(doc)) return;
+  if (!ensureAutoTable(doc)) return;
 
   pdfTitle(doc, "Vibe Coding", "Stage 4 — Source of Truth | PDF 4 — Constraints");
 
@@ -423,6 +413,11 @@ async function verifyUrl(url) {
 
 /* ---------- Main generation ---------- */
 function generateAll() {
+  if (!industriesAvailable()) {
+    alert("Industries not loaded. Confirm templates.js is present and loaded before app.js.");
+    return;
+  }
+
   const industryName = $("industrySelect").value;
   const industry = INDUSTRIES[industryName];
   const artifactType = $("artifactSelect").value;
@@ -440,12 +435,12 @@ function generateAll() {
   // Stage 3
   currentFiles = (typeof industry.proofRepo === "function") ? industry.proofRepo() : {};
   renderFiles(currentFiles);
-  if ($("btnDownloadAll")) $("btnDownloadAll").disabled = Object.keys(currentFiles).length === 0;
+  $("btnDownloadAll").disabled = Object.keys(currentFiles).length === 0;
 
   // Stage 4
   currentSOT = (typeof industry.sotDefaults === "function") ? industry.sotDefaults() : null;
   if (!currentSOT) {
-    alert("Stage 4 failed: sotDefaults() did not return a SOT object for this industry.");
+    alert("Stage 4 failed: sotDefaults() did not return an object.");
     return;
   }
   renderSOTPreview(currentSOT);
@@ -459,14 +454,14 @@ function generateAll() {
   };
 
   currentStage5 = makeStage5Snapshot(industryName, artifactType, ext);
-  if ($("stage5")) $("stage5").textContent = currentStage5;
-  if ($("btnDownloadStage5")) $("btnDownloadStage5").disabled = false;
+  $("stage5").textContent = currentStage5;
+  $("btnDownloadStage5").disabled = false;
 
   // Enable PDF buttons
-  if ($("btnPDF1")) $("btnPDF1").disabled = false;
-  if ($("btnPDF2")) $("btnPDF2").disabled = false;
-  if ($("btnPDF3")) $("btnPDF3").disabled = false;
-  if ($("btnPDF4")) $("btnPDF4").disabled = false;
+  $("btnPDF1").disabled = false;
+  $("btnPDF2").disabled = false;
+  $("btnPDF3").disabled = false;
+  $("btnPDF4").disabled = false;
 
   setPills({
     phase: "3–5",
@@ -475,8 +470,8 @@ function generateAll() {
     sot: "SOT: Generated"
   });
 
-  $("proofPill")?.classList.add("good");
-  $("sotPill")?.classList.add("good");
+  $("proofPill").classList.add("good");
+  $("sotPill").classList.add("good");
 }
 
 function wireUI() {
@@ -503,11 +498,9 @@ function wireUI() {
   };
 }
 
-/* ---------- Robust boot ---------- */
-function boot(triesLeft = 10) {
+(function main() {
   try {
-    requireIndustries();
-    initIndustries();
+    initIndustries();   // must succeed for options to exist
     wireUI();
     autofill();
     setPills({
@@ -517,19 +510,6 @@ function boot(triesLeft = 10) {
       sot: "SOT: Not generated"
     });
   } catch (e) {
-    console.error(e);
-    // If templates.js is slow/cached weirdly, retry a few times
-    if (triesLeft > 0) {
-      setTimeout(() => boot(triesLeft - 1), 120);
-      return;
-    }
-    alert(e.message);
+    showInitError(e.message || String(e));
   }
-}
-
-// Run after DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => boot());
-} else {
-  boot();
-}
+})();
