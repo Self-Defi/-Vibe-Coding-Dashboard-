@@ -1330,3 +1330,6 @@ const INDUSTRIES = {
     })
   }
 };
+window.__TEMPLATES_READY__ = true;
+window.INDUSTRIES = INDUSTRIES;
+console.log("templates.js loaded:", Object.keys(window.INDUSTRIES || {}).length, "industries");
