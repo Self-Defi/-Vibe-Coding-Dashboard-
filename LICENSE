@@ -1,0 +1,91 @@
+VIBE CODING LICENSE
+
+Version: v0.9-proof-stable
+
+Copyright © 2026
+All rights reserved.
+
+⸻
+
+1. Grant of Permission
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to view, study, copy, and modify the Software for personal, educational, or internal use, subject to the limitations below.
+
+This license permits:
+	•	Learning from the code and architecture
+	•	Adapting ideas for personal or internal projects
+	•	Forking for non-commercial experimentation
+	•	Using the Software as a reference implementation
+
+⸻
+
+2. Restrictions
+
+2.1 Branding, Identity, and Attribution
+
+This license does NOT grant permission to use:
+	•	Vibe Coding logos
+	•	Visual identity assets
+	•	Branding elements
+	•	UI/UX design language that is uniquely identifiable
+	•	Marketing copy or brand positioning
+	•	Proprietary process documentation describing the Vibe Coding methodology
+
+in any manner that implies:
+	•	Endorsement
+	•	Affiliation
+	•	Sponsorship
+	•	Authorship by the copyright holder
+
+Use of the phrase “vibe coding” as a general descriptive term is not restricted by this license.
+
+⸻
+
+2.2 Commercial Use
+
+You may not:
+	•	Sell this Software or derivatives as a product
+	•	Offer it as a paid service
+	•	Repackage it as a SaaS or platform
+	•	Use it as the core of a competing commercial offering
+
+without explicit written permission from the copyright holder.
+
+⸻
+
+2.3 Derivative Works
+
+Derivative works must:
+	•	Remove all Vibe Coding branding and logos
+	•	Use clearly distinct naming and visual identity
+	•	Not claim lineage, equivalence, or compatibility with Vibe Coding
+
+⸻
+
+3. Scraping and Redistribution
+
+You acknowledge that this Software is delivered via static web hosting and may be technically accessible.
+
+However:
+	•	Automated scraping for the purpose of cloning, mirroring, or reselling the Software or its process design is not permitted
+	•	Redistribution must comply with all restrictions in this license
+
+⸻
+
+4. No Warranty
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+⸻
+
+5. Termination
+
+Any violation of this license automatically terminates the permissions granted herein.
+
+⸻
+
+6. Contact
+
+For commercial licensing, branding permissions, or partnership inquiries, contact the copyright holder.
