@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="styles.css" />
 
   <!-- PDF generator (no build tools) -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
 </head>
 
 <body>
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <!-- Status pills (kept for your logic, but visually subtle) -->
+    <!-- Status pills -->
     <div class="statusPills" aria-label="status">
       <span class="pill" id="phasePill">Phase: 1–2</span>
       <span class="pill" id="industryPill">Industry: —</span>
@@ -43,7 +43,7 @@
 
     <!-- MAIN 2-COLUMN -->
     <section class="layout">
-      <!-- LEFT: Simple builder -->
+      <!-- LEFT -->
       <section class="card">
         <div class="cardHead">
           <h2>Describe it</h2>
@@ -75,10 +75,9 @@
           <textarea id="output" rows="2" placeholder="The proof is done when it produces _____."></textarea>
         </div>
 
-        <!-- Hidden (still required by your validator, but now visually tucked into Advanced) -->
-        <details class="advanced">
+        <!-- Advanced (hidden/locked by app.js) -->
+        <details class="advanced" id="advancedDrawer">
           <summary>Advanced (optional)</summary>
-
           <div class="advancedInner">
             <div class="field">
               <label for="constraint">Constraint</label>
@@ -108,19 +107,17 @@
           <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
         </div>
 
-        <p class="hint">
-          Everything generates locally in your browser. Nothing is uploaded.
-        </p>
+        <p class="hint">Everything generates locally in your browser. Nothing is uploaded.</p>
       </section>
 
-      <!-- RIGHT: Results -->
+      <!-- RIGHT -->
       <section class="card">
         <div class="cardHead">
           <h2>Results</h2>
           <p class="muted">Your repo files + docs + snapshot.</p>
         </div>
 
-        <!-- Stage 3 (kept IDs for your app.js) -->
+        <!-- Stage 3 -->
         <div class="block">
           <div class="blockHead">
             <div>
@@ -132,21 +129,22 @@
 
           <div id="filesList" class="chips"></div>
 
+          <!-- Viewer -->
           <div id="fileViewer" class="viewer hidden" role="dialog" aria-modal="true">
             <div class="viewerTop">
               <div class="viewerTitle" id="viewerTitle">—</div>
               <div class="viewerActions">
-  <button class="btn ghost" id="btnCopy" type="button">Copy</button>
-  <button class="btn ghost" id="btnDownload" type="button">Download</button>
-  <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
-  <button class="btn ghost" id="btnClose" type="button">Close</button>
-  <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
-</div>
+                <button class="btn ghost" id="btnCopy" type="button">Copy</button>
+                <button class="btn ghost" id="btnDownload" type="button">Download</button>
+                <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
+                <button class="btn ghost" id="btnClose" type="button">Close</button>
+              </div>
+            </div>
             <pre id="viewerCode"></pre>
           </div>
         </div>
 
-        <!-- Docs (Stage 4) now hidden behind a collapsible -->
+        <!-- Docs (Stage 4) -->
         <details class="advanced" id="docsDrawer">
           <summary>Download docs</summary>
           <div class="advancedInner">
@@ -168,7 +166,7 @@
           </div>
         </details>
 
-        <!-- Snapshot (Stage 5) now hidden behind a collapsible -->
+        <!-- Snapshot (Stage 5) -->
         <details class="advanced" id="snapshotDrawer">
           <summary>Export plan</summary>
           <div class="advancedInner">
@@ -190,7 +188,8 @@
     </section>
   </main>
 
-  <script src="templates.js"></script>
-  <script src="app.js"></script>
+  <!-- IMPORTANT: templates must load before app -->
+  <script defer src="templates.js"></script>
+  <script defer src="app.js"></script>
 </body>
 </html>
