@@ -1,14 +1,18 @@
 /* app.js — Vibe Coding Dashboard (Option 1 UI)
-   Goals:
-   - Keep everything “behind the scenes” as much as possible
-   - Industry dropdown MUST always populate (even if script load order hiccups)
-   - Advanced fields (constraint + reality test) auto-filled + locked (not user-editable)
-   - Add a Refresh button (works if the button exists in HTML)
-
-   Works with your existing templates.js INDUSTRIES registry.
+   Adds:
+   - Save Proof → local JSON download
+   - Load Proof → restore from JSON file
+   - Clear → wipe UI + storage
+   - Auto-resume from localStorage (pure client-side)
 */
 
 (() => {
+  // -----------------------------
+  // Session config
+  // -----------------------------
+  const SESSION_VERSION = 1;
+  const SESSION_KEY = "vc_proof_session_v1";
+
   // -----------------------------
   // State
   // -----------------------------
@@ -39,7 +43,7 @@
   const setValue = (id, value) => {
     const el = $(id);
     if (!el) return;
-    el.value = value;
+    el.value = value ?? "";
   };
 
   const safeDisable = (el, disabled = true) => {
@@ -52,304 +56,23 @@
     el.style.display = "none";
   };
 
-     // -----------------------------
-  // Full Proof Session (Save/Load + Resume)
-  // -----------------------------
-  const STORAGE_KEY = "vibeCoding.fullProof.v1";
-  const PROOF_VERSION = 1;
-
   const setStatus = (msg) => {
     const el = $("proofStatus");
-    if (el) el.textContent = msg;
+    if (!el) return;
+    el.textContent = msg || "";
   };
-
-  const downloadJson = (filename, obj) => {
-    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const safeText = (id) => ($(id)?.textContent ?? "");
-  const safeVal = (id) => ($(id)?.value ?? "");
-
-  function collectFullProofSession() {
-    return {
-      version: PROOF_VERSION,
-      savedAt: new Date().toISOString(),
-
-      // Inputs
-      form: {
-        industry: safeVal("industrySelect"),
-        artifactType: safeVal("artifactSelect"),
-        oneSentence: safeVal("oneSentence"),
-        output: safeVal("output"),
-        constraint: safeVal("constraint"),
-        realityTest: safeVal("realityTest"),
-        proofUrl: safeVal("proofUrl")
-      },
-
-      // Pills
-      pills: {
-        phasePill: safeText("phasePill"),
-        industryPill: safeText("industryPill"),
-        proofPill: safeText("proofPill"),
-        sotPill: safeText("sotPill")
-      },
-
-      // Internal generated state (FULL)
-      generated: {
-        currentFiles,
-        currentViewFile,
-        currentSOT,
-        currentStage5
-      }
-    };
-  }
-
-  function restoreFullProofSession(session) {
-    if (!session || typeof session !== "object") throw new Error("Invalid session");
-    if (session.version !== PROOF_VERSION) {
-      // Future-proof: allow older versions if you want later.
-      console.warn("Session version mismatch:", session.version);
-    }
-
-    // Always keep advanced locked (your product rule)
-    applyLockedAdvanced();
-
-    // Restore form values
-    const f = session.form || {};
-    setValue("oneSentence", f.oneSentence ?? "");
-    setValue("output", f.output ?? "");
-
-    // We set selects carefully: if industries aren't loaded yet, we set later.
-    const desiredIndustry = f.industry ?? "";
-    const desiredArtifact = f.artifactType ?? "dashboard";
-
-    // Restore internal generated state first
-    const g = session.generated || {};
-    currentFiles = g.currentFiles || {};
-    currentViewFile = g.currentViewFile || null;
-    currentSOT = g.currentSOT || null;
-    currentStage5 = g.currentStage5 || "";
-
-    // Re-render generated UI
-    renderFiles(currentFiles);
-    safeDisable($("btnDownloadAll"), Object.keys(currentFiles).length === 0);
-
-    if (currentSOT) {
-      renderSOTPreview(currentSOT);
-      safeDisable($("btnPDF1"), false);
-      safeDisable($("btnPDF2"), false);
-      safeDisable($("btnPDF3"), false);
-      safeDisable($("btnPDF4"), false);
-    }
-
-    if (currentStage5) {
-      text("stage5", currentStage5);
-      safeDisable($("btnDownloadStage5"), false);
-    }
-
-    // Restore viewer if it was open on a file
-    if (currentViewFile && currentFiles[currentViewFile] != null) {
-      openViewer(currentViewFile);
-    } else {
-      closeViewer();
-    }
-
-    // Restore pills (or compute them if missing)
-    const p = session.pills || {};
-    if (p.phasePill) text("phasePill", p.phasePill);
-    if (p.industryPill) text("industryPill", p.industryPill);
-    if (p.proofPill) text("proofPill", p.proofPill);
-    if (p.sotPill) text("sotPill", p.sotPill);
-
-    // If the session had generated files/docs, mark good
-    if (Object.keys(currentFiles || {}).length) markGood("proofPill");
-    if (currentSOT) markGood("sotPill");
-
-    // Ensure selects match once templates exist
-    const applySelectsIfReady = () => {
-      const sel = $("industrySelect");
-      const artSel = $("artifactSelect");
-      const industries = window.INDUSTRIES;
-
-      if (!sel || !industries || !Object.keys(industries).length) return false;
-
-      // Industry
-      if (desiredIndustry && industries[desiredIndustry]) {
-        sel.value = desiredIndustry;
-      }
-      // Trigger change to update artifact defaults/pills
-      sel.dispatchEvent(new Event("change"));
-
-      // Artifact type
-      if (artSel && desiredArtifact) artSel.value = desiredArtifact;
-
-      return true;
-    };
-
-    // Try now, otherwise retry a bit (same approach as your INDUSTRIES loader)
-    if (!applySelectsIfReady()) {
-      let tries = 0;
-      const maxTries = 60;
-      const tick = () => {
-        tries++;
-        if (applySelectsIfReady()) return;
-        if (tries >= maxTries) return;
-        setTimeout(tick, 50);
-      };
-      tick();
-    }
-  }
-
-  function saveSessionToStorage() {
-    try {
-      const session = collectFullProofSession();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    } catch (e) {
-      console.warn("Autosave failed:", e);
-    }
-  }
-
-  function loadSessionFromStorage() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return false;
-      const session = JSON.parse(raw);
-      restoreFullProofSession(session);
-      return true;
-    } catch (e) {
-      console.warn("Autoload failed:", e);
-      return false;
-    }
-  }
-
-  function clearSession() {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      setStatus("Session cleared.");
-    } catch {}
-  }
-
-  function debounce(fn, wait) {
-    let t;
-    return (...args) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...args), wait);
-    };
-  }
-
-  const autosave = debounce(saveSessionToStorage, 250);
-
-  function wireProofSessionUI() {
-    const btnSave = $maybe(["btnSaveProof"]);
-    const btnLoad = $maybe(["btnLoadProof"]);
-    const btnClear = $maybe(["btnClearProof"]);
-    const fileInput = $maybe(["proofFile"]);
-
-    if (btnSave) {
-      btnSave.onclick = () => {
-        try {
-          const session = collectFullProofSession();
-          const safeIndustry = (session.form?.industry || "proof")
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-|-$/g, "");
-          downloadJson(`vibe-proof-${safeIndustry}-${Date.now()}.json`, session);
-          setStatus("Saved proof JSON.");
-          saveSessionToStorage(); // keep storage in sync
-        } catch (e) {
-          console.error(e);
-          setStatus("Could not save proof.");
-        }
-      };
-    }
-
-    if (btnLoad && fileInput) {
-      btnLoad.onclick = () => fileInput.click();
-
-      fileInput.addEventListener("change", async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        try {
-          const text = await file.text();
-          const session = JSON.parse(text);
-          restoreFullProofSession(session);
-          setStatus("Loaded proof JSON.");
-          saveSessionToStorage();
-        } catch (err) {
-          console.error(err);
-          setStatus("Invalid proof JSON.");
-        } finally {
-          fileInput.value = "";
-        }
-      });
-    }
-
-    if (btnClear) {
-      btnClear.onclick = () => {
-        clearSession();
-
-        // Optional: wipe UI too (simple reset)
-        setValue("oneSentence", "");
-        setValue("output", "");
-        applyLockedAdvanced();
-
-        currentFiles = {};
-        currentViewFile = null;
-        currentSOT = null;
-        currentStage5 = "";
-
-        renderFiles({});
-        closeViewer();
-        text("sotPreview", "");
-        text("stage5", "");
-
-        safeDisable($("btnDownloadAll"), true);
-        safeDisable($("btnPDF1"), true);
-        safeDisable($("btnPDF2"), true);
-        safeDisable($("btnPDF3"), true);
-        safeDisable($("btnPDF4"), true);
-        safeDisable($("btnDownloadStage5"), true);
-
-        setPills({
-          phase: "1–2",
-          industry: "—",
-          proof: "Proof: Not generated",
-          docs: "Docs: Not generated"
-        });
-      };
-    }
-
-    // Autosave on key fields
-    ["industrySelect","artifactSelect","oneSentence","output","proofUrl"].forEach((id) => {
-      const el = $(id);
-      if (!el) return;
-      el.addEventListener("input", autosave);
-      el.addEventListener("change", autosave);
-    });
-
-    // Autosave when viewer file changes or docs/stage5 changes (after generation)
-    // We’ll call saveSessionToStorage() in generateAll().
-  }
 
   // -----------------------------
   // “Behind-the-scenes” defaults
   // -----------------------------
   const LOCKED_DEFAULTS = {
-    constraint: "I will build the first proof in 0.1 hours using static GitHub Pages files and a CSV export.",
-    realityTest: "A stranger can open it and understand the proof in under 60 seconds."
+    constraint:
+      "I will build the first proof in 0.1 hours using static GitHub Pages files and a CSV export.",
+    realityTest:
+      "A stranger can open it and understand the proof in under 60 seconds."
   };
 
   function applyLockedAdvanced() {
-    // Inputs
     const constraintEl = $("constraint");
     const realityEl = $("realityTest");
 
@@ -364,15 +87,11 @@
       realityEl.setAttribute("aria-readonly", "true");
     }
 
-    // If you’re using a <details id="docsDrawer"> for advanced/doc areas:
-    // Keep it collapsed by default (still accessible if you want later).
     const advDrawer = $maybe(["advancedDrawer", "docsDrawer"]);
     if (advDrawer && advDrawer.tagName.toLowerCase() === "details") {
       advDrawer.open = false;
     }
 
-    // Optionally hide the entire advanced section if your HTML wraps it.
-    // If you have a wrapper like <div id="advancedWrap">...</div> this will hide it.
     const advWrap = $maybe(["advancedWrap", "advancedSection"]);
     if (advWrap) safeHide(advWrap);
   }
@@ -381,25 +100,19 @@
   // Validation
   // -----------------------------
   function validateExternalization() {
-    // Option 1 UI may only require:
-    // - oneSentence (required)
-    // - output (required)
-    // Industry optional
     const one = ($("oneSentence")?.value || "").trim();
     const out = ($("output")?.value || "").trim();
-
-    // Keep it simple for conversions
     return one.length >= 10 && out.length >= 10;
   }
 
   // -----------------------------
-  // Pills (optional UI elements)
+  // Pills
   // -----------------------------
   function setPills({ phase, industry, proof, docs }) {
     if (phase) text("phasePill", `Phase: ${phase}`);
     if (industry) text("industryPill", `Industry: ${industry}`);
     if (proof) text("proofPill", proof);
-    if (docs) text("sotPill", docs); // some UIs label this as Docs
+    if (docs) text("sotPill", docs);
   }
 
   function markGood(id) {
@@ -426,7 +139,6 @@
       return;
     }
 
-    // Insert options
     for (const name of names) {
       const opt = document.createElement("option");
       opt.value = name;
@@ -434,11 +146,9 @@
       sel.appendChild(opt);
     }
 
-    // Default selection
     const defaultName = names.includes("Supply Chain") ? "Supply Chain" : names[0];
     sel.value = defaultName;
 
-    // On change: set artifact default if present
     sel.addEventListener("change", () => {
       const indName = sel.value;
       const ind = industriesObj[indName];
@@ -448,33 +158,34 @@
       if (artifactSel) {
         artifactSel.value = (ind && ind.defaultArtifact) || artifactSel.value || "dashboard";
       }
+
+      // autosave selection changes
+      scheduleAutoSave();
     });
 
-    // Trigger one change so pills + artifact default update
     sel.dispatchEvent(new Event("change"));
   }
 
-  function waitForIndustriesThenInit() {
-    // If templates.js loads AFTER app.js (or Safari caches weird), we retry briefly.
-    const maxTries = 60;       // ~3 seconds
+  function waitForIndustriesThenInit(done) {
+    const maxTries = 60;
     const intervalMs = 50;
-
     let tries = 0;
 
     const tick = () => {
       tries++;
-
       const industriesObj = window.INDUSTRIES;
+
       if (industriesObj && Object.keys(industriesObj).length) {
         populateIndustrySelect(industriesObj);
+        done?.();
         return;
       }
 
       if (tries >= maxTries) {
-        // Still not loaded: fail gracefully (no hard crash)
-        console.error("INDUSTRIES not found. Check that templates.js loads before/with app.js.");
-        populateIndustrySelect({}); // shows "No industries loaded"
+        console.error("INDUSTRIES not found. Check templates.js load order.");
+        populateIndustrySelect({});
         text("industryPill", "Industry: —");
+        done?.();
         return;
       }
 
@@ -492,18 +203,22 @@
     const ind = window.INDUSTRIES?.[indName];
     const ex = ind?.example;
 
-    // If industry has an example, use it. Otherwise keep locked defaults.
     if (ex) {
       setValue("oneSentence", ex.oneSentence || "");
       setValue("output", ex.output || "");
     } else {
-      // fallback sample
-      setValue("oneSentence", "I want to build a visibility dashboard so a busy operator can see what’s stuck instantly.");
-      setValue("output", "The proof is done when it generates a working dashboard page + downloadable repo files.");
+      setValue(
+        "oneSentence",
+        "I want to build a visibility dashboard so a busy operator can see what’s stuck instantly."
+      );
+      setValue(
+        "output",
+        "The proof is done when it generates a working dashboard page + downloadable repo files."
+      );
     }
 
-    // Always keep advanced locked
     applyLockedAdvanced();
+    scheduleAutoSave();
   }
 
   // -----------------------------
@@ -553,8 +268,8 @@
     }
   }
 
-  function downloadTextFile(filename, content) {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  function downloadTextFile(filename, content, mime = "text/plain;charset=utf-8") {
+    const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -621,7 +336,7 @@
   }
 
   // -----------------------------
-  // Stage 4 preview (safe)
+  // Stage 4 preview
   // -----------------------------
   function renderSOTPreview(sot) {
     const preview = $("sotPreview");
@@ -658,7 +373,7 @@
   }
 
   // -----------------------------
-  // PDF generation (kept compatible with your current setup)
+  // PDF generation (unchanged)
   // -----------------------------
   function pdfTitle(doc, title, subtitle) {
     doc.setFont("helvetica", "bold");
@@ -704,7 +419,9 @@
     doc.setFontSize(12);
     doc.text("Definition of Done", 14, 270);
     doc.setFontSize(10);
-    (def.doneCriteria || []).forEach((c, i) => doc.text(`• ${c}`, 18, 288 + i * 14, { maxWidth: 575 }));
+    (def.doneCriteria || []).forEach((c, i) =>
+      doc.text(`• ${c}`, 18, 288 + i * 14, { maxWidth: 575 })
+    );
 
     doc.save("SOT_PDF1_Definition.pdf");
   }
@@ -792,7 +509,9 @@
     doc.setFontSize(12);
     doc.text("Non-Goals", 14, y);
     doc.setFontSize(10);
-    (cons.nonGoals || []).forEach((ng, i) => doc.text(`• ${ng}`, 18, y + 18 + i * 14, { maxWidth: 575 }));
+    (cons.nonGoals || []).forEach((ng, i) =>
+      doc.text(`• ${ng}`, 18, y + 18 + i * 14, { maxWidth: 575 })
+    );
 
     doc.save("SOT_PDF4_Constraints.pdf");
   }
@@ -808,11 +527,12 @@
     const artifactType = $("artifactSelect")?.value || "dashboard";
 
     if (!industry) {
-      alert("Industry templates not loaded. Refresh the page. If it persists, check that templates.js is loaded before app.js.");
+      alert(
+        "Industry templates not loaded. Refresh the page. If it persists, check that templates.js loads before app.js."
+      );
       return;
     }
 
-    // Keep advanced locked no matter what
     applyLockedAdvanced();
 
     if (!validateExternalization()) {
@@ -825,7 +545,7 @@
     renderFiles(currentFiles);
     safeDisable($("btnDownloadAll"), Object.keys(currentFiles).length === 0);
 
-    // Stage 4/5
+    // Stage 4
     currentSOT = typeof industry.sotDefaults === "function" ? industry.sotDefaults() : null;
     if (!currentSOT) {
       alert("Docs generation failed: sotDefaults() returned nothing.");
@@ -833,7 +553,7 @@
     }
     renderSOTPreview(currentSOT);
 
-    // Snapshot
+    // Stage 5 snapshot
     const ext = {
       oneSentence: ($("oneSentence")?.value || "").trim(),
       output: ($("output")?.value || "").trim()
@@ -857,16 +577,198 @@
 
     markGood("proofPill");
     markGood("sotPill");
+
+    setStatus("Session updated (auto-saved).");
+    scheduleAutoSave(true);
   }
 
-    saveSessionToStorage();
-    setStatus("Session saved.");
-   
+  // -----------------------------
+  // Session: serialize / restore
+  // -----------------------------
+  function getSessionData() {
+    return {
+      version: SESSION_VERSION,
+      savedAt: new Date().toISOString(),
+      form: {
+        industry: $("industrySelect")?.value || "",
+        artifactType: $("artifactSelect")?.value || "dashboard",
+        oneSentence: $("oneSentence")?.value || "",
+        output: $("output")?.value || ""
+      },
+      generated: {
+        currentFiles,
+        currentSOT,
+        currentStage5
+      },
+      pills: {
+        phase: $("phasePill")?.textContent || "",
+        industry: $("industryPill")?.textContent || "",
+        proof: $("proofPill")?.textContent || "",
+        docs: $("sotPill")?.textContent || ""
+      }
+    };
+  }
+
+  function applySessionData(session) {
+    if (!session || typeof session !== "object") return;
+
+    // Form first
+    if (session.form) {
+      if ($("industrySelect") && session.form.industry) {
+        $("industrySelect").value = session.form.industry;
+        $("industrySelect").dispatchEvent(new Event("change"));
+      }
+      if ($("artifactSelect") && session.form.artifactType) {
+        $("artifactSelect").value = session.form.artifactType;
+      }
+      setValue("oneSentence", session.form.oneSentence || "");
+      setValue("output", session.form.output || "");
+    }
+
+    applyLockedAdvanced();
+
+    // Generated outputs
+    const gen = session.generated || {};
+    currentFiles = gen.currentFiles && typeof gen.currentFiles === "object" ? gen.currentFiles : {};
+    currentSOT = gen.currentSOT && typeof gen.currentSOT === "object" ? gen.currentSOT : null;
+    currentStage5 = typeof gen.currentStage5 === "string" ? gen.currentStage5 : "";
+
+    renderFiles(currentFiles);
+
+    // enable/disable output buttons based on what exists
+    safeDisable($("btnDownloadAll"), !Object.keys(currentFiles || {}).length);
+
+    const hasDocs = !!currentSOT;
+    safeDisable($("btnPDF1"), !hasDocs);
+    safeDisable($("btnPDF2"), !hasDocs);
+    safeDisable($("btnPDF3"), !hasDocs);
+    safeDisable($("btnPDF4"), !hasDocs);
+
+    if (hasDocs) renderSOTPreview(currentSOT);
+
+    text("stage5", currentStage5 || "");
+    safeDisable($("btnDownloadStage5"), !currentStage5);
+
+    // Pills
+    const p = session.pills || {};
+    if (p.phase) text("phasePill", p.phase);
+    if (p.industry) text("industryPill", p.industry);
+    if (p.proof) text("proofPill", p.proof);
+    if (p.docs) text("sotPill", p.docs);
+  }
+
+  function saveSessionToLocalStorage() {
+    try {
+      const payload = JSON.stringify(getSessionData());
+      localStorage.setItem(SESSION_KEY, payload);
+    } catch (e) {
+      // ignore (private mode / quota)
+    }
+  }
+
+  function loadSessionFromLocalStorage() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      const session = JSON.parse(raw);
+      applySessionData(session);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clearSession() {
+    // wipe storage
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch (e) {}
+
+    // wipe state
+    currentFiles = {};
+    currentViewFile = null;
+    currentSOT = null;
+    currentStage5 = "";
+
+    // wipe UI
+    renderFiles({});
+    closeViewer();
+    text("sotPreview", "");
+    text("stage5", "");
+    safeDisable($("btnDownloadAll"), true);
+    safeDisable($("btnPDF1"), true);
+    safeDisable($("btnPDF2"), true);
+    safeDisable($("btnPDF3"), true);
+    safeDisable($("btnPDF4"), true);
+    safeDisable($("btnDownloadStage5"), true);
+
+    setPills({
+      phase: "1–2",
+      industry: "—",
+      proof: "Proof: Not generated",
+      docs: "Docs: Not generated"
+    });
+
+    setStatus("Cleared. No saved session.");
+  }
+
+  // -----------------------------
+  // Save / Load JSON file
+  // -----------------------------
+  function saveSessionToFile() {
+    const data = getSessionData();
+    const pretty = JSON.stringify(data, null, 2);
+    const stamp = new Date().toISOString().replaceAll(":", "-");
+    downloadTextFile(`vibe-proof-session_${stamp}.json`, pretty, "application/json;charset=utf-8");
+    setStatus("Saved proof session to JSON.");
+    saveSessionToLocalStorage(); // keep in sync
+  }
+
+  function triggerLoadSessionFile() {
+    const input = $("proofFile");
+    if (!input) {
+      alert("Missing <input id='proofFile' ...>. Add it under the buttons.");
+      return;
+    }
+    input.value = ""; // allow re-loading same file
+    input.click();
+  }
+
+  function handleSessionFileChosen(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const session = JSON.parse(String(reader.result || ""));
+        applySessionData(session);
+        saveSessionToLocalStorage();
+        setStatus("Loaded proof session.");
+      } catch (e) {
+        alert("That file is not a valid Vibe proof session JSON.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // -----------------------------
+  // Auto-save (debounced)
+  // -----------------------------
+  let autoSaveTimer = null;
+
+  function scheduleAutoSave(immediate = false) {
+    if (immediate) {
+      saveSessionToLocalStorage();
+      return;
+    }
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(saveSessionToLocalStorage, 450);
+  }
+
   // -----------------------------
   // Refresh button behavior
   // -----------------------------
   function hardRefresh() {
-    // Cache-busting reload (GitHub Pages + Safari can cache aggressively)
     const url = new URL(window.location.href);
     url.searchParams.set("_", Date.now().toString());
     window.location.replace(url.toString());
@@ -876,24 +778,29 @@
   // Wire UI
   // -----------------------------
   function wireUI() {
-    // Main CTA buttons (your HTML seems to keep these IDs)
+    // Main CTA buttons
     const btnExample = $maybe(["btnAutofill", "btnExample", "btnUseExample"]);
     const btnBuild = $maybe(["btnGenerate", "btnBuild", "btnBuildProof"]);
 
     if (btnExample) btnExample.onclick = autofillExample;
     if (btnBuild) btnBuild.onclick = generateAll;
 
+    // Inputs auto-save (so “resume session” is real)
+    ["oneSentence", "output", "artifactSelect"].forEach((id) => {
+      const el = $(id);
+      if (el) el.addEventListener("input", () => scheduleAutoSave());
+      if (el) el.addEventListener("change", () => scheduleAutoSave());
+    });
+
     // Viewer buttons
     const btnCopy = $maybe(["btnCopy"]);
     const btnDownload = $maybe(["btnDownload"]);
     const btnClose = $maybe(["btnClose"]);
-    const btnRefresh = $maybe(["btnRefresh", "btnViewerRefresh"]); // if you add it in HTML
+    const btnRefresh = $maybe(["btnRefresh", "btnViewerRefresh", "btnReFresh"]);
 
     if (btnCopy) btnCopy.onclick = copyViewer;
     if (btnDownload) btnDownload.onclick = downloadCurrentFile;
     if (btnClose) btnClose.onclick = closeViewer;
-
-    // 🔥 Refresh button requested
     if (btnRefresh) btnRefresh.onclick = hardRefresh;
 
     // Download all
@@ -916,26 +823,43 @@
     if (btnStage5) {
       btnStage5.onclick = () => downloadTextFile("Stage5_Snapshot.txt", currentStage5 || "");
     }
+
+    // Session buttons
+    const btnSave = $("btnSaveProof");
+    const btnLoad = $("btnLoadProof");
+    const btnClear = $("btnClearProof");
+
+    if (btnSave) btnSave.onclick = saveSessionToFile;
+    if (btnLoad) btnLoad.onclick = triggerLoadSessionFile;
+    if (btnClear) btnClear.onclick = clearSession;
+
+    // File input change
+    const proofFile = $("proofFile");
+    if (proofFile) {
+      proofFile.addEventListener("change", (e) => {
+        const file = e.target?.files?.[0];
+        handleSessionFileChosen(file);
+      });
+    }
   }
 
   // -----------------------------
   // Boot
   // -----------------------------
   function boot() {
-    // Lock advanced immediately
     applyLockedAdvanced();
 
-    // Init selects (robust)
-    waitForIndustriesThenInit();
+    waitForIndustriesThenInit(() => {
+      // After industries are populated, try resume
+      const resumed = loadSessionFromLocalStorage();
+      if (resumed) {
+        setStatus("Resumed last proof session.");
+      } else {
+        setStatus("");
+      }
+    });
 
-    // Wire buttons
     wireUI();
-
-   wireProofSessionUI();
-
-    // Auto-resume if available
-    const restored = loadSessionFromStorage();
-    if (restored) setStatus("Session restored.");
 
     // Default state
     setPills({
@@ -945,7 +869,7 @@
       docs: "Docs: Not generated"
     });
 
-    // Disable outputs until build
+    // Disable outputs until build or load
     safeDisable($("btnDownloadAll"), true);
     safeDisable($("btnPDF1"), true);
     safeDisable($("btnPDF2"), true);
@@ -954,7 +878,6 @@
     safeDisable($("btnDownloadStage5"), true);
   }
 
-  // Run after DOM ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {
