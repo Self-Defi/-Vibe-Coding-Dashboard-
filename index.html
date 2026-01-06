@@ -7,51 +7,38 @@
 
   <link rel="stylesheet" href="./styles.css" />
 
+  <!-- Social -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coding" />
   <meta property="og:title" content="Vibe Coding — Build Prove Deploy" />
   <meta property="og:description" content="Turn a thought into a working solution in minutes." />
   <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
   <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/bg-viben-03.PNG" />
-  <meta property="og:image:secure_url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/bg-viben-03.PNG" />
-  <meta property="og:image:width" content="1024" />
-  <meta property="og:image:height" content="1024" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Vibe Coding — Build Prove Deploy" />
-  <meta name="twitter:description" content="Turn a thought into a working solution in minutes." />
-  <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/bg-viben-03.PNG" />
 
+  <!-- PDFs -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
 </head>
 
 <body>
-  <!-- Landing-style grid overlay -->
   <div class="grid-bg" aria-hidden="true"></div>
 
   <!-- Top bar -->
   <header class="topbar">
     <div class="brand">
-      <img
-        class="brandLogo"
-        src="./vc-logo-transparent.PNG"
-        alt="Vibe Coding logo"
-        onerror="this.style.display='none'; var m=document.querySelector('.brandMark'); if(m){m.style.display='block';}"
-      />
-      <div class="brandMark" aria-hidden="true" style="display:none"></div>
-
+      <img class="brandLogo" src="./vc-logo-transparent.PNG" alt="Vibe Coding logo" />
       <div class="brandText">
         <div class="brandTitle">Vibe Coding</div>
         <div class="brandSub">Turn a thought into a working solution in minutes.</div>
       </div>
     </div>
 
-    <div class="statusPills" aria-label="status">
+    <div class="statusPills">
       <span class="pill" id="phasePill">Phase: 1–2</span>
       <span class="pill" id="industryPill">Industry: —</span>
       <span class="pill" id="proofPill">Proof: Not generated</span>
-      <span class="pill" id="sotPill">Docs: Not generated</span>
     </div>
   </header>
 
@@ -60,7 +47,7 @@
       <h1>Build a real solution from two sentences.</h1>
       <p class="heroSub">
         Pick an industry (optional), describe the idea, hit <b>Build My Proof</b>.
-        Files + docs generate automatically behind the scenes.
+        Files generate automatically behind the scenes.
       </p>
     </section>
 
@@ -89,51 +76,29 @@
 
         <div class="field">
           <label for="oneSentence">One sentence</label>
-          <textarea id="oneSentence" rows="2" placeholder="I want to build ______ for ______ so they can ______."></textarea>
+          <textarea id="oneSentence" rows="2"
+            placeholder="I want to build ______ for ______ so they can ______."></textarea>
         </div>
 
         <div class="field">
           <label for="output">What does ‘done’ produce?</label>
-          <textarea id="output" rows="2" placeholder="The proof is done when it produces _____."></textarea>
+          <textarea id="output" rows="2"
+            placeholder="The proof is done when it produces _____."></textarea>
         </div>
 
-        <details class="advanced" id="advancedDrawer">
-          <summary>Advanced (optional)</summary>
-          <div class="advancedInner">
-            <div class="field">
-              <label for="constraint">Constraint</label>
-              <textarea id="constraint" rows="2" placeholder="I will build the first proof in ___ hours using ___ tools."></textarea>
-            </div>
-
-            <div class="field">
-              <label for="realityTest">Reality test</label>
-              <textarea id="realityTest" rows="2" placeholder="A stranger can understand it in under 60 seconds."></textarea>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="field">
-              <label for="proofUrl">Proof URL (optional verification)</label>
-              <div class="inline">
-                <input id="proofUrl" type="url" placeholder="https://username.github.io/repo/" />
-                <button class="btn ghost" id="btnVerify" type="button">Verify</button>
-              </div>
-              <div id="verifyResult" class="muted small"></div>
-            </div>
-          </div>
-        </details>
-
         <div class="actions">
-  <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
-  <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
+          <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
+          <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
+        </div>
 
-<p class="hint">Everything generates locally in your browser. Nothing is uploaded.</p>
+        <p class="hint">Everything runs locally in your browser. Nothing is uploaded.</p>
+      </section>
 
       <!-- RIGHT -->
       <section class="card">
         <div class="cardHead">
           <h2>Results</h2>
-          <p class="muted">Your repo files + docs + snapshot.</p>
+          <p class="muted">Your repo files.</p>
         </div>
 
         <div class="block">
@@ -142,7 +107,9 @@
               <h3>Repo files</h3>
               <p class="muted small">Copy/paste into a new GitHub repo.</p>
             </div>
-            <button class="btn ghost" id="btnDownloadAll" disabled type="button">Download all</button>
+            <button class="btn ghost" id="btnDownloadAll" disabled type="button">
+              Download all
+            </button>
           </div>
 
           <div id="filesList" class="chips"></div>
@@ -151,58 +118,19 @@
             <div class="viewerTop">
               <div class="viewerTitle" id="viewerTitle">—</div>
               <div class="viewerActions">
-                <button class="btn ghost" id="btnCopy" type="button">Copy</button>
-                <button class="btn ghost" id="btnDownload" type="button">Download</button>
-                <button class="btn ghost" id="btnRefresh" type="button">Refresh</button>
-                <button class="btn ghost" id="btnClose" type="button">Close</button>
+                <button class="btn ghost" id="btnCopy">Copy</button>
+                <button class="btn ghost" id="btnDownload">Download</button>
+                <button class="btn ghost" id="btnClose">Close</button>
               </div>
             </div>
             <pre id="viewerCode"></pre>
           </div>
         </div>
 
-        <details class="advanced" id="docsDrawer">
-          <summary>Download docs</summary>
-          <div class="advancedInner">
-            <div class="blockHead" style="margin-top:6px">
-              <div>
-                <h3>Docs</h3>
-                <p class="muted small">Auto-generated PDFs (Definition / Data / Workflow / Constraints).</p>
-              </div>
-            </div>
-
-            <div class="btnRow">
-              <button class="btn ghost" id="btnPDF1" disabled type="button">Definition PDF</button>
-              <button class="btn ghost" id="btnPDF2" disabled type="button">Data PDF</button>
-              <button class="btn ghost" id="btnPDF3" disabled type="button">Workflow PDF</button>
-              <button class="btn ghost" id="btnPDF4" disabled type="button">Constraints PDF</button>
-            </div>
-
-            <div id="sotPreview" class="monoBox"></div>
-          </div>
-        </details>
-
-        <details class="advanced" id="snapshotDrawer">
-          <summary>Export plan</summary>
-          <div class="advancedInner">
-            <div class="blockHead" style="margin-top:6px">
-              <div>
-                <h3>Snapshot</h3>
-                <p class="muted small">What exists now + next actions.</p>
-              </div>
-              <button class="btn ghost" id="btnDownloadStage5" disabled type="button">Download</button>
-            </div>
-            <div id="stage5" class="monoBox"></div>
-          </div>
-        </details>
-
-        <div class="footerNote">
-          <footer class="footerNote">
-            © 2026 Vibe Coding · Source-Available License · 
-            <br />
-            Powered by <b>Self-Defi</b> — Digital Infrasture Architect
-          </footer>
-        </div>
+        <footer class="footerNote">
+          © 2026 Vibe Coding<br />
+          Powered by <b>Self-Defi</b> — Digital Infrastructure Architect
+        </footer>
       </section>
     </section>
   </main>
