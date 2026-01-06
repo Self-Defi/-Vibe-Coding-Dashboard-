@@ -2,6 +2,8 @@
   --bg0:#070b14;
   --bg1:#0b1220;
 
+  --grid: rgba(255,255,255,0.04);
+
   --card: rgba(255,255,255,.06);
   --card2: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.10);
@@ -12,8 +14,8 @@
   --shadow: 0 18px 60px rgba(0,0,0,.45);
   --radius: 18px;
 
-  --primary: rgba(139,92,246,.95);
-  --primary2: rgba(99,102,241,.95);
+  /* Landing accent */
+  --accent: #d9468d;
 
   --soft: rgba(255,255,255,.035);
   --soft2: rgba(255,255,255,.055);
@@ -27,11 +29,35 @@ body{
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color: var(--text);
   background-color: var(--bg0);
+
+  /* Match landing: calm, centered gradient (no purple/blue glow) */
   background:
-    radial-gradient(1200px 700px at 15% 8%, rgba(139,92,246,.28), transparent 55%),
-    radial-gradient(1200px 700px at 85% 30%, rgba(59,130,246,.18), transparent 55%),
-    linear-gradient(180deg, rgba(255,255,255,.03), transparent 22%),
+    radial-gradient(1200px 700px at 50% 12%, var(--bg1) 0%, var(--bg0) 68%),
+    linear-gradient(180deg, rgba(255,255,255,.02), transparent 40%),
     var(--bg0);
+}
+
+/* Subtle accent vignette like landing */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events:none;
+  z-index:0;
+  background: radial-gradient(900px 520px at 50% 14%, rgba(217,70,141,0.08), transparent 70%);
+}
+
+/* Subtle grid overlay like landing */
+.grid-bg{
+  position: fixed;
+  inset: 0;
+  pointer-events:none;
+  z-index:0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.55;
 }
 
 /* =========================
@@ -46,9 +72,12 @@ body{
   justify-content:space-between;
   gap:14px;
   padding:14px 16px;
+
   border-bottom:1px solid var(--border);
   background: rgba(7,11,20,.72);
+
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .brand{
@@ -58,13 +87,13 @@ body{
   min-width:220px;
 }
 
-/* Fallback placeholder (keeps old HTML working) */
+/* Fallback placeholder */
 .brandMark{
   width:34px; height:34px;
   border-radius:12px;
   background:
     radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.22), transparent 60%),
-    linear-gradient(135deg, rgba(139,92,246,.95), rgba(59,130,246,.70));
+    linear-gradient(135deg, rgba(217,70,141,.95), rgba(217,70,141,.55));
   box-shadow: 0 12px 32px rgba(0,0,0,.30);
   flex-shrink:0;
 }
@@ -88,7 +117,7 @@ body{
   margin-top:2px;
 }
 
-/* Status pills (subtle) */
+/* Status pills */
 .statusPills{
   display:flex;
   flex-wrap:wrap;
@@ -109,6 +138,8 @@ body{
    Layout
 ========================= */
 .wrap{
+  position: relative;
+  z-index: 1;
   max-width:1120px;
   margin:0 auto;
   padding:22px 16px 34px;
@@ -144,11 +175,12 @@ body{
 
 .card{
   border:1px solid rgba(255,255,255,.09);
-  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.045));
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.045));
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:14px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .cardHead{
@@ -185,8 +217,8 @@ select, input, textarea{
 textarea{ resize:vertical; min-height:54px; }
 
 select:focus, input:focus, textarea:focus{
-  border-color:rgba(139,92,246,.55);
-  box-shadow:0 0 0 4px rgba(139,92,246,.12);
+  border-color: rgba(217,70,141,0.55);
+  box-shadow: 0 0 0 4px rgba(217,70,141,0.12);
 }
 
 .inline{
@@ -216,15 +248,15 @@ select:focus, input:focus, textarea:focus{
   cursor:pointer;
   font-weight:700;
   letter-spacing:.1px;
-  transition:transform .06s ease, filter .12s ease, background .12s ease;
+  transition:transform .06s ease, filter .12s ease, background .12s ease, border-color .12s ease;
 }
 .btn:hover{ background:rgba(255,255,255,.09); }
 .btn:active{ transform:translateY(1px); }
 .btn:disabled{ opacity:.5; cursor:not-allowed; }
 
 .btn.primary{
-  border-color:rgba(139,92,246,.55);
-  background:linear-gradient(135deg, var(--primary), var(--primary2));
+  border-color: rgba(217,70,141,0.55);
+  background: linear-gradient(135deg, rgba(217,70,141,.95), rgba(217,70,141,.65));
 }
 .btn.primary:hover{ filter:brightness(1.06); }
 
@@ -286,7 +318,7 @@ select:focus, input:focus, textarea:focus{
 }
 .fileChip:hover{
   background:rgba(255,255,255,.06);
-  border-color:rgba(139,92,246,.35);
+  border-color: rgba(217,70,141,0.35);
 }
 
 /* Viewer */
@@ -387,165 +419,4 @@ pre{
   .brandLogo{ width:34px; height:34px; }
   .viewerTitle{ max-width:52%; }
   pre{ font-size:11.5px; }
-}
-
-/* ==== VIBE CODING SHELL (match landing) ==== */
-:root{
-  --bg:#070b14;
-  --bg-soft:#0b1220;
-  --grid:rgba(255,255,255,0.04);
-  --text:rgba(255,255,255,0.92);
-  --muted:rgba(255,255,255,0.65);
-  --accent:#d9468d;
-
-  --card: rgba(255,255,255,0.04);
-  --card2: rgba(255,255,255,0.06);
-  --border: rgba(255,255,255,0.10);
-}
-
-html,body{
-  height:100%;
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-body{
-  min-height:100vh;
-  background:
-    radial-gradient(1200px 700px at 50% 12%, var(--bg-soft) 0%, var(--bg) 68%),
-    linear-gradient(180deg, rgba(255,255,255,0.02), transparent 40%);
-}
-
-body::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  pointer-events:none;
-  z-index:0;
-  background: radial-gradient(900px 520px at 50% 14%, rgba(217,70,141,0.08), transparent 70%);
-}
-
-.grid-bg{
-  position: fixed;
-  inset: 0;
-  pointer-events:none;
-  z-index:0;
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 44px 44px;
-  opacity: 0.55;
-}
-
-.vc-nav{
-  position: relative;
-  z-index:1;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding: 20px 22px;
-}
-
-.vc-brand{
-  font-weight:650;
-  letter-spacing:.3px;
-  opacity:.95;
-}
-
-.vc-shell{
-  position: relative;
-  z-index:1;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 22px 18px 90px;
-}
-
-.vc-title{
-  margin: 18px 0 6px;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  line-height: 1.2;
-}
-
-.vc-sub{
-  margin: 0 0 18px;
-  color: var(--muted);
-}
-
-.vc-card{
-  background: linear-gradient(180deg, var(--card2), var(--card));
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.35);
-}
-
-.vc-grid{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-@media (min-width: 900px){
-  .vc-grid{
-    grid-template-columns: 1.1fr .9fr;
-    gap: 16px;
-  }
-}
-
-.vc-footer{
-  position: relative;
-  z-index:1;
-  padding: 22px 16px 30px;
-  text-align:center;
-  font-size:.85rem;
-  color: rgba(255,255,255,0.55);
-}
-
-/* Buttons */
-.vc-btn{
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-weight: 650;
-  border: 1px solid transparent;
-  cursor: pointer;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  text-decoration:none;
-  transition: transform .18s ease, filter .18s ease, border-color .18s ease;
-}
-
-.vc-btn.primary{
-  background: var(--accent);
-  color: #fff;
-}
-
-.vc-btn.primary:hover{ transform: translateY(-1px); filter: brightness(1.05); }
-
-.vc-btn.ghost{
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
-  border-color: rgba(255,255,255,0.20);
-}
-
-.vc-btn.ghost:hover{ border-color: var(--accent); transform: translateY(-1px); }
-
-/* Inputs */
-.vc-input, .vc-select, .vc-textarea{
-  width: 100%;
-  padding: 12px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  outline: none;
-}
-
-.vc-textarea{ min-height: 110px; resize: vertical; }
-
-.vc-input:focus, .vc-select:focus, .vc-textarea:focus{
-  border-color: rgba(217,70,141,0.55);
-  box-shadow: 0 0 0 3px rgba(217,70,141,0.12);
 }
