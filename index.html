@@ -124,12 +124,19 @@
         </details>
 
         <div class="actions">
-          <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
-          <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
-        </div>
+  <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
+  <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
 
-        <p class="hint">Everything generates locally in your browser. Nothing is uploaded.</p>
-      </section>
+  <!-- Session controls -->
+  <button class="btn ghost" id="btnSaveProof" type="button">Save Proof</button>
+  <button class="btn ghost" id="btnLoadProof" type="button">Load Proof</button>
+  <button class="btn ghost" id="btnClearProof" type="button">Clear</button>
+</div>
+
+<input id="proofFile" type="file" accept="application/json" hidden />
+<p class="hint" id="proofStatus"></p>
+
+<p class="hint">Everything generates locally in your browser. Nothing is uploaded.</p>
 
       <!-- RIGHT -->
       <section class="card">
