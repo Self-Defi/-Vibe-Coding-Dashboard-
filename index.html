@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vibe Coding — Build Prove Deploy</title>
 
-  <!-- IMPORTANT: keep CSS relative + explicit -->
   <link rel="stylesheet" href="./styles.css" />
 
-  <!-- Social / SMS link preview (thumbnail in root) -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coding" />
   <meta property="og:title" content="Vibe Coding — Build Prove Deploy" />
@@ -24,23 +22,23 @@
   <meta name="twitter:description" content="Turn a thought into a working solution in minutes." />
   <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/bg-viben-03.PNG" />
 
-  <!-- PDF generator (no build tools) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
 </head>
 
 <body>
+  <!-- Landing-style grid overlay -->
+  <div class="grid-bg" aria-hidden="true"></div>
+
   <!-- Top bar -->
   <header class="topbar">
     <div class="brand">
-      <!-- LOGO (store vc-logo-transparent.PNG in repo root) -->
       <img
         class="brandLogo"
         src="./vc-logo-transparent.PNG"
         alt="Vibe Coding logo"
         onerror="this.style.display='none'; var m=document.querySelector('.brandMark'); if(m){m.style.display='block';}"
       />
-      <!-- Fallback if logo missing -->
       <div class="brandMark" aria-hidden="true" style="display:none"></div>
 
       <div class="brandText">
@@ -49,7 +47,6 @@
       </div>
     </div>
 
-    <!-- Status pills -->
     <div class="statusPills" aria-label="status">
       <span class="pill" id="phasePill">Phase: 1–2</span>
       <span class="pill" id="industryPill">Industry: —</span>
@@ -59,7 +56,6 @@
   </header>
 
   <main class="wrap">
-    <!-- HERO -->
     <section class="hero">
       <h1>Build a real solution from one sentence.</h1>
       <p class="heroSub">
@@ -68,7 +64,6 @@
       </p>
     </section>
 
-    <!-- MAIN 2-COLUMN -->
     <section class="layout">
       <!-- LEFT -->
       <section class="card">
@@ -102,7 +97,6 @@
           <textarea id="output" rows="2" placeholder="The proof is done when it produces _____."></textarea>
         </div>
 
-        <!-- Advanced (hidden/locked by app.js) -->
         <details class="advanced" id="advancedDrawer">
           <summary>Advanced (optional)</summary>
           <div class="advancedInner">
@@ -144,7 +138,6 @@
           <p class="muted">Your repo files + docs + snapshot.</p>
         </div>
 
-        <!-- Stage 3 -->
         <div class="block">
           <div class="blockHead">
             <div>
@@ -156,7 +149,6 @@
 
           <div id="filesList" class="chips"></div>
 
-          <!-- Viewer -->
           <div id="fileViewer" class="viewer hidden" role="dialog" aria-modal="true">
             <div class="viewerTop">
               <div class="viewerTitle" id="viewerTitle">—</div>
@@ -171,7 +163,6 @@
           </div>
         </div>
 
-        <!-- Docs (Stage 4) -->
         <details class="advanced" id="docsDrawer">
           <summary>Download docs</summary>
           <div class="advancedInner">
@@ -193,7 +184,6 @@
           </div>
         </details>
 
-        <!-- Snapshot (Stage 5) -->
         <details class="advanced" id="snapshotDrawer">
           <summary>Export plan</summary>
           <div class="advancedInner">
@@ -210,14 +200,15 @@
 
         <div class="footerNote">
           <footer class="footerNote">
-  © 2026 Vibe Coding · Source-Available License · Non-Commercial Use Only
-</footer>
+            © 2026 Vibe Coding · Source-Available License · Non-Commercial Use Only
+            <br />
+            Powered by <b>Self-Defi</b> — Sovereign-first infrastructure
+          </footer>
         </div>
       </section>
     </section>
   </main>
 
-  <!-- IMPORTANT: templates must load before app -->
   <script defer src="./templates.js"></script>
   <script defer src="./app.js"></script>
 </body>
