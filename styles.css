@@ -420,3 +420,116 @@ pre{
   .viewerTitle{ max-width:52%; }
   pre{ font-size:11.5px; }
 }
+
+/* =========================
+   Landing-match polish
+   Spacing + card contrast
+   (paste at END of file)
+========================= */
+
+/* Slightly stronger grid, closer to landing */
+.grid-bg{
+  opacity: 0.62;
+  background-size: 40px 40px;
+}
+
+/* Tighten the hero spacing to match landing rhythm */
+.wrap{
+  padding-top: 18px;
+  padding-bottom: 56px;
+}
+
+.hero{
+  padding: 10px 2px 10px;
+}
+
+.hero h1{
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1.18;
+}
+
+.heroSub{
+  margin-top: 10px;
+  max-width: 780px;
+}
+
+/* Add a more "landing-like" container feel */
+.layout{
+  margin-top: 12px;
+  gap: 16px;
+}
+
+/* Cards: darker, cleaner, more depth like landing modal */
+.card{
+  border: 1px solid rgba(255,255,255,0.10);
+  background:
+    radial-gradient(900px 520px at 50% 0%, rgba(11,18,32,0.78) 0%, rgba(7,11,20,0.92) 65%),
+    rgba(7,11,20,0.88);
+  box-shadow: 0 18px 70px rgba(0,0,0,0.55);
+  padding: 16px;
+}
+
+/* Card headers: clearer hierarchy */
+.cardHead{
+  padding-bottom: 10px;
+}
+
+.cardHead h2{
+  font-size: 15px;
+  letter-spacing: .15px;
+}
+
+.cardHead p{
+  color: rgba(255,255,255,0.62);
+}
+
+/* Sections inside cards: soften blocks so they feel embedded, not stacked slabs */
+.block,
+.advanced{
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+}
+
+/* Inputs: match landing input softness + focus ring */
+select, input, textarea{
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+select:focus, input:focus, textarea:focus{
+  border-color: rgba(217,70,141,0.55);
+  box-shadow: 0 0 0 3px rgba(217,70,141,0.14);
+}
+
+/* Buttons: slightly more “pill” + tighter glow */
+.btn{
+  border-radius: 999px;
+  padding: 10px 14px;
+}
+
+.btn.primary{
+  background: linear-gradient(135deg, rgba(217,70,141,0.98), rgba(217,70,141,0.62));
+  border-color: rgba(217,70,141,0.55);
+  box-shadow: 0 12px 34px rgba(217,70,141,0.18);
+}
+
+/* Chips: soften for consistency */
+.fileChip{
+  background: rgba(255,255,255,0.03);
+}
+
+/* Viewer: make it feel like an inset panel, not a different app */
+.viewer{
+  background: rgba(0,0,0,0.22);
+  border-color: rgba(255,255,255,0.10);
+}
+
+.viewerTop{
+  background: rgba(255,255,255,0.03);
+}
+
+/* Footer: align with landing */
+.footerNote{
+  color: rgba(255,255,255,0.55);
+  margin-top: 10px;
+}
