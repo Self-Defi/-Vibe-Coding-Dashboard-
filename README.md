@@ -3,3 +3,5 @@ This repository is the results of a documented system to bring instant infrastru
 ![Status](https://img.shields.io/badge/status-v0.9--proof--stable-success)
 This repository is released under the Vibe Coding Source-Available License (v0.9).
 Commercial use, resale, or SaaS deployment requires permission.
+This project includes third-party open-source components.
+See THIRD_PARTY_NOTICES.md for details.
