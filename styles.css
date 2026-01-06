@@ -533,3 +533,18 @@ select:focus, input:focus, textarea:focus{
   color: rgba(255,255,255,0.55);
   margin-top: 10px;
 }
+
+.legalLink {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+}
+
+.legalLink:hover {
+  color: rgba(217,70,141,0.9);
+  text-decoration: underline;
+}
+
+
