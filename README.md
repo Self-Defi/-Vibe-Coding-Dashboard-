@@ -1,4 +1,5 @@
 # -Vibe-Coded-Dashboard-
+**Engine Classification:** Proof Engine — generates inspectable, bounded first-build artifacts.
 
 This repository contains the working dashboard for **Vibe Coded** — a system designed to turn a written idea or problem statement into a tangible first build.
 
