@@ -14,7 +14,6 @@ Behind the interface, the system applies a structured methodology to generate:
 This is a **starting point**, not a finished product.
 
 ![Status](https://img.shields.io/badge/status-v0.9--proof--stable-success)
-
 ---
 
 ## License
