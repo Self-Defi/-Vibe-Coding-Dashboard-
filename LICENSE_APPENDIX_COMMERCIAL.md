@@ -1,16 +1,16 @@
 APPENDIX A — COMMERCIAL USE EXCEPTION ADDENDUM
 
-Vibe Coding License v0.9-proof-stable
+Vibe Coded License v0.9-proof-stable
 
 ⸻
 
 1. Purpose and Scope
 
-This Commercial Use Exception Addendum (“Addendum”) defines the exclusive and limited circumstances under which commercial use of the Vibe Coding software, methodology, documentation, templates, or generated materials (collectively, the “Software”) is permitted.
+This Commercial Use Exception Addendum (“Addendum”) defines the exclusive and limited circumstances under which commercial use of the Vibe Coded software, methodology, documentation, templates, or generated materials (collectively, the “Software”) is permitted.
 
 Absent an approved exception under this Addendum, all commercial use is expressly prohibited.
 
-This Addendum forms part of and is governed by the Vibe Coding License v0.9-proof-stable (“Base License”). In the event of conflict, this Addendum controls commercial usage.
+This Addendum forms part of and is governed by the Vibe Coded License v0.9-proof-stable (“Base License”). In the event of conflict, this Addendum controls commercial usage.
 
 ⸻
 
@@ -41,8 +41,8 @@ Approval is discretionary and may include additional written terms.
 Commercial use may be approved for internal use by a single organization or client, provided that:
 	•	The Software is used solely for internal operations or prototyping
 	•	The Software and outputs are not resold, sublicensed, or redistributed
-	•	All Vibe Coding branding, logos, and product references are removed or replaced
-	•	The client is informed that the Software is not an official Vibe Coding product
+	•	All Vibe Coded branding, logos, and product references are removed or replaced
+	•	The client is informed that the Software is not an official Vibe Coded product
 
 Typical permitted use cases include:
 	•	Internal dashboards
@@ -84,8 +84,8 @@ All commercial exceptions granted under this Addendum:
 5. Attribution Requirements (When Approved)
 
 When a commercial exception is granted, attribution must follow one of the following formats, as specified in writing:
-	•	“Built using Vibe Coding methodology (licensed use)”
-	•	“Inspired by Vibe Coding (with permission)”
+	•	“Built using Vibe Coded methodology (licensed use)”
+	•	“Inspired by Vibe Coded (with permission)”
 
 No logos, trademarks, or branding may be used unless explicitly authorized.
 
@@ -94,10 +94,10 @@ No logos, trademarks, or branding may be used unless explicitly authorized.
 6. Prohibited Representations
 
 Even when a commercial exception is granted, the following are strictly prohibited:
-	•	Claiming ownership of the Vibe Coding methodology
-	•	Representing the Software or outputs as an official Vibe Coding product
+	•	Claiming ownership of the Vibe Coded methodology
+	•	Representing the Software or outputs as an official Vibe Coded product
 	•	Implying endorsement, partnership, or certification without written approval
-	•	Using Vibe Coding branding outside the approved scope
+	•	Using Vibe Coded branding outside the approved scope
 
 ⸻
 
