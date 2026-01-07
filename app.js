@@ -66,16 +66,6 @@
     }[c]));
   }
 
-  function escapeHtml(str) {
-    return (str || "").replace(/[&<>"']/g, (m) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "\"": "&quot;",
-      "'": "&#039;",
-    }[m]));
-  }
-
   // Tabs
   function setTab(active) {
     const tabs = [tabPreview, tabFiles, tabZip];
@@ -90,235 +80,11 @@
     if (active === "zip")     { tabZip.classList.add("active"); tabZip.setAttribute("aria-selected", "true"); panelZip.classList.add("show"); }
   }
 
-  // SoT-locked canonical prompt
-  function buildCanonicalPrompt(type, pain) {
-    return `A high-fidelity system architecture visualization of a ${type} designed to solve "${pain}".
-The image shows clearly defined components including input, processing logic, automation, and outputs.
-Dark technical interface style, grid-based layout, modern infrastructure aesthetic, no people, no branding, no marketing visuals.
-Clean, professional, engineered, and realistic — suitable for a technical architecture document.`;
-  }
-
-  // Deterministic system "image" (SVG)
-  function buildSystemSvg(type, pain) {
-    const title = `${type}`;
-    const subtitle = `Problem: ${pain}`;
-
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#070b14"/>
-      <stop offset="100%" stop-color="#0b1220"/>
-    </linearGradient>
-
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-    </pattern>
-
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
-    </filter>
-  </defs>
-
-  <rect width="1200" height="675" fill="url(#bg)"/>
-  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
-
-  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="800">
-    ${escapeXml(title)}
-  </text>
-  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
-    ${escapeXml(subtitle)}
-  </text>
-
-  <g filter="url(#softShadow)">
-    ${box(90, 190, 220, 110, "Input Layer", ["User request", "Forms / Events", "Imports"], "#5cc8ff")}
-    ${box(360, 190, 240, 110, "Logic Layer", ["Rules", "Parsing", "Validation"], "#57f287")}
-    ${box(650, 190, 250, 110, "Automation Engine", ["Triggers", "Actions", "Routing"], "#ffd166")}
-    ${box(945, 190, 200, 110, "Outputs", ["Artifacts", "Files", "Delivery"], "#c084fc")}
-    ${box(360, 360, 535, 120, "State / Storage (optional)", ["Local state", "Config", "Versioning"], "#5cc8ff")}
-  </g>
-
-  ${arrow(310, 245, 360, 245)}
-  ${arrow(600, 245, 650, 245)}
-  ${arrow(900, 245, 945, 245)}
-  ${arrow(600, 300, 600, 360)}
-  ${arrow(895, 420, 945, 245)}
-
-  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
-    Deterministic visualization — suitable for architecture docs. No branding. No marketing claims.
-  </text>
-</svg>`;
-  }
-
-  function box(x, y, w, h, title, lines, accent) {
-    const r = 18;
-    const padX = 18;
-    const lineY1 = y + 66;
-
-    const linesSvg = lines.map((t, i) => (
-      `<text x="${x + padX}" y="${lineY1 + i*20}" fill="rgba(255,255,255,0.68)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="14">${escapeXml(t)}</text>`
-    )).join("");
-
-    return `
-    <g>
-      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="${h}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)"/>
-      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="6" fill="${accent}" opacity="0.95"/>
-      <text x="${x + padX}" y="${y + 38}" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16" font-weight="800">${escapeXml(title)}</text>
-      ${linesSvg}
-    </g>`;
-  }
-
-  function arrow(x1, y1, x2, y2) {
-    return `
-    <g>
-      <path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="rgba(217,70,141,0.85)" stroke-width="3" fill="none"/>
-      <path d="M ${x2} ${y2} l -10 -6 l 2 12 z" fill="rgba(217,70,141,0.85)"/>
-    </g>`;
-  }
-
-  // Repo files (explicit, bounded)
-  function buildRepoFiles(type, pain, prompt, svg) {
-    const repoName = safeName(pain);
-
-    const README = `# ${repoName}
-
-This repository was generated from one problem statement:
-
-“${pain}”
-
-## What this does
-- Converts a written request into a structured first build
-- Produces: system visualization + repo docs + static scaffold
-
-## What this does NOT mean (most important)
-- Not production-ready
-- Not security-audited
-- Not compliance-validated
-- No backend implied unless explicitly added
-
-## Included files
-- README.md
-- architecture.md
-- assumptions.md
-- DISCLAIMER.md
-- assets/system-image.svg
-- assets/image-prompt.txt
-- static/index.html
-
-## Run
-Open static/index.html directly, or serve with:
-- python -m http.server 8080
-
-## Ownership
-You control the outputs.`;
-
-    const ARCH = `# System Boundary
-
-Inside:
-- Request intake
-- Parsing and structuring
-- Deterministic artifact generation (docs + scaffold + visualization)
-
-Outside:
-- Hosting environment
-- Data sources unless explicitly provided
-- External services unless explicitly integrated
-
-# Flow
-Input -> Logic -> Automation -> Output
-Optional: State/Storage (explicit only)
-
-# Non-goals
-- Production claims
-- Security guarantees
-- Compliance guarantees`;
-
-    const ASSUMPTIONS = `# Assumptions Disclosure (Explicit)
-
-Rule:
-- Anything not stated verbatim is unknown.
-
-Assumption: The request can be represented as 4 layers (input, logic, automation, output)
-Reason: Required for deterministic visualization and scaffold
-
-Assumption: Default delivery is a static scaffold
-Reason: Tangible output without implying backend services
-
-Unknowns:
-- Scale targets
-- Security requirements
-- Compliance requirements
-- Data quality/availability
-
-If unknowns become required, state them explicitly and regenerate.`;
-
-    const DISCLAIMER = `# Meaning and Limitations (Critical)
-
-These generated files are a starting point.
-
-They do NOT mean:
-- Complete system
-- Production readiness
-- Security validation
-- Compliance validation
-
-Maturity promotion is explicit and evidence-based:
-Static artifact -> Prototype -> Systemized application -> Production system.`;
-
-    const STATIC_INDEX = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${repoName}</title>
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#070b14;color:rgba(255,255,255,.92)}
-    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
-    .card{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px}
-    .muted{color:rgba(255,255,255,.65);line-height:1.55}
-    .img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>${repoName}</h1>
-    <p class="muted"><strong>Problem:</strong> ${escapeHtml(pain)}</p>
-
-    <div class="card">
-      <h2>System image</h2>
-      <div class="img">
-        <img src="../assets/system-image.svg" alt="System architecture visualization" style="width:100%;height:auto"/>
-      </div>
-      <p class="muted">Deterministic visualization suitable for architecture docs.</p>
-    </div>
-
-    <div class="card">
-      <h2>Boundaries</h2>
-      <ul class="muted">
-        <li>No implied production readiness</li>
-        <li>No implied security or compliance</li>
-        <li>Anything not stated is unknown</li>
-      </ul>
-      <p class="muted">See README.md, architecture.md, assumptions.md, DISCLAIMER.md</p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    return {
-      "README.md": README,
-      "architecture.md": ARCH,
-      "assumptions.md": ASSUMPTIONS,
-      "DISCLAIMER.md": DISCLAIMER,
-      "assets/image-prompt.txt": prompt,
-      "assets/system-image.svg": svg,
-      "static/index.html": STATIC_INDEX
-    };
-  }
-
   // Render
   function renderSvg(svg) {
-    svgPreview.innerHTML = svg ? svg : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+    svgPreview.innerHTML = svg
+      ? `<div style="width:100%;max-width:100%;overflow:auto">${svg}</div>`
+      : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
   }
 
   function renderFiles(files) {
@@ -355,13 +121,14 @@ Static artifact -> Prototype -> Systemized application -> Production system.`;
     fileList.querySelectorAll("[data-download]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const key = decodeURIComponent(btn.getAttribute("data-download"));
-        downloadText(files[key], key.split("/").pop());
+        downloadText(files[key], key);
       });
     });
   }
 
   // Download helpers
-  function downloadText(text, filename) {
+  function downloadText(text, filenameWithPath) {
+    const filename = String(filenameWithPath || "file.txt").split("/").pop();
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -414,10 +181,17 @@ Static artifact -> Prototype -> Systemized application -> Production system.`;
     URL.revokeObjectURL(url);
   }
 
+  // ✅ Template engine accessor (hard fail if not loaded)
+  function getTemplateEngine() {
+    const engine = window.VIBE_FIRST_BUILD && window.VIBE_FIRST_BUILD.buildFirst;
+    if (!engine) return null;
+    return engine;
+  }
+
   // Generate
   function generate() {
     const pain = (painInput.value || "").trim();
-    const type = (systemType.value || "").trim();
+    const type = (systemType.value || "").trim(); // kept for your UI, stored, not required by templates.js
 
     if (!pain) {
       status.textContent = "Type one sentence first.";
@@ -429,16 +203,27 @@ Static artifact -> Prototype -> Systemized application -> Production system.`;
 
     current.pain = pain;
     current.type = type;
-    current.prompt = buildCanonicalPrompt(type, pain);
-    current.svg = buildSystemSvg(type, pain);
-    current.files = buildRepoFiles(type, pain, current.prompt, current.svg);
+
+    const buildFirst = getTemplateEngine();
+    if (!buildFirst) {
+      status.textContent = "templates.js not loaded. Make sure index.html includes <script defer src='./templates.js'></script> before app.js.";
+      return;
+    }
+
+    // ✅ Generate full repo bundle via template engine (includes static/styles.css)
+    const files = buildFirst(pain);
+    current.files = files;
+
+    // ✅ Pull SVG + prompt from returned files (SoT)
+    current.svg = files["assets/system-image.svg"] || "";
+    current.prompt = files["assets/image-prompt.txt"] || "";
 
     renderSvg(current.svg);
-    promptOut.textContent = current.prompt;
+    promptOut.textContent = current.prompt || "Generate a build to produce the locked prompt.";
     renderFiles(current.files);
 
-    downloadSvgBtn.disabled = false;
-    copyPromptBtn.disabled = false;
+    downloadSvgBtn.disabled = !current.svg;
+    copyPromptBtn.disabled = !current.prompt;
     copyAllBtn.disabled = false;
     downloadZipBtn.disabled = false;
 
@@ -487,10 +272,16 @@ Static artifact -> Prototype -> Systemized application -> Production system.`;
   tabFiles.addEventListener("click", () => setTab("files"));
   tabZip.addEventListener("click", () => setTab("zip"));
 
-  downloadSvgBtn.addEventListener("click", () => downloadSvg(current.svg, "system-image.svg"));
+  downloadSvgBtn.addEventListener("click", () => {
+    const svg = current.files["assets/system-image.svg"] || current.svg || "";
+    if (!svg) return;
+    downloadSvg(svg, "system-image.svg");
+  });
 
   copyPromptBtn.addEventListener("click", async () => {
-    await copyText(current.prompt);
+    const prompt = current.files["assets/image-prompt.txt"] || current.prompt || "";
+    if (!prompt) return;
+    await copyText(prompt);
     toast("Copied image prompt");
   });
 
