@@ -1,6 +1,8 @@
 APPENDIX A — COMMERCIAL USE EXCEPTION ADDENDUM
 
-Vibe Coded License v0.9-proof-stable
+VIBE CODED LICENSE
+
+Version: v1.0-Proof Engine
 
 ⸻
 
