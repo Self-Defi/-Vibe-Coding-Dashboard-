@@ -1,232 +1,239 @@
-/* templates.js
-   Vibe Coding — First-Build Templates (2-step engine)
-   UI: 2 actions only
-     1) Explain problem
-     2) Build (generate deliverables bundle)
+(() => {
+  // DOM
+  const painInput = document.getElementById("painInput");
+  const systemType = document.getElementById("systemType");
+  const generateBtn = document.getElementById("generateBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const status = document.getElementById("status");
+  const paramStatus = document.getElementById("paramStatus");
+  const buildStamp = document.getElementById("buildStamp");
 
-   NOTE:
-   - No industry dropdown / selection is exposed here.
-   - Any industry logic can exist “behind the curtain”, but the UI should not depend on it.
-   - Deliverables MUST include a CSS file alongside static/index.html.
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
+  const openHelpBtn = document.getElementById("openHelpBtn");
 
-   Output bundle shape (minimum):
-   - README.md
-   - architecture.md
-   - assumptions.md
-   - DISCLAIMER.md
-   - assets/system-image.svg
-   - assets/image-prompt.txt
-   - static/index.html
-   - static/styles.css   ✅ (added)
-*/
+  // Tabs
+  const tabPreview = document.getElementById("tabPreview");
+  const tabFiles = document.getElementById("tabFiles");
+  const tabZip = document.getElementById("tabZip");
+  const panelPreview = document.getElementById("panelPreview");
+  const panelFiles = document.getElementById("panelFiles");
+  const panelZip = document.getElementById("panelZip");
 
-// ----------------------------------------------------
-// Small utilities
-// ----------------------------------------------------
-function esc(s = "") {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
+  // Outputs
+  const svgPreview = document.getElementById("svgPreview");
+  const promptOut = document.getElementById("promptOut");
+  const fileList = document.getElementById("fileList");
 
-function nowISO() {
-  return new Date().toISOString();
-}
+  const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+  const copyPromptBtn = document.getElementById("copyPromptBtn");
+  const copyAllBtn = document.getElementById("copyAllBtn");
+  const downloadZipBtn = document.getElementById("downloadZipBtn");
 
-function normalizeProblem(raw) {
-  const t = String(raw || "").trim();
-  return t.length ? t : "I need a system that solves a clear operational problem.";
-}
+  // Help modal
+  const helpModal = document.getElementById("helpModal");
+  const closeHelpBtn = document.getElementById("closeHelpBtn");
+  const closeHelpBtn2 = document.getElementById("closeHelpBtn2");
 
-// ----------------------------------------------------
-// Static scaffold CSS (deliverable)
-// - Matches the look/feel of the current “Repo Files” preview
-// - This is intentionally lightweight + editable
-// ----------------------------------------------------
-const STATIC_SCAFFOLD_CSS = `:root{
-  --bg0:#070b14;
-  --bg1:#0b1220;
-  --card:rgba(255,255,255,.06);
-  --card2:rgba(255,255,255,.08);
-  --border:rgba(255,255,255,.10);
-  --text:rgba(255,255,255,.92);
-  --muted:rgba(255,255,255,.68);
-  --shadow:0 18px 60px rgba(0,0,0,.45);
-  --radius:18px;
-}
+  // State
+  let current = { pain: "", type: "", prompt: "", svg: "", files: {} };
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(900px 480px at 12% 8%, rgba(147,51,234,.22), transparent 60%),
-    radial-gradient(900px 520px at 82% 26%, rgba(6,182,212,.14), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-}
+  // Utilities
+  const qs = (k) => new URLSearchParams(window.location.search).get(k);
 
-.wrap{max-width:1020px;margin:0 auto;padding:26px 18px 46px}
-.top{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:10px 0 18px;border-bottom:1px solid var(--border);
-}
-.brand{font-weight:800;letter-spacing:.2px;font-size:18px}
-.sub{margin-top:4px;color:var(--muted);font-size:13px}
+  function nowStamp() {
+    const d = new Date();
+    return d.toISOString().replace("T", " ").slice(0, 19) + " UTC";
+  }
 
-.btnRow{display:flex;gap:10px;flex-wrap:wrap}
-.btn{
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:10px 12px;border-radius:999px;
-  font-size:13px;cursor:pointer;
-  backdrop-filter: blur(10px);
-}
+  function safeName(str) {
+    return (str || "vibe-coding-build")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "vibe-coding-build";
+  }
 
-.h1{margin:22px 0 8px;font-size:44px;line-height:1.06}
-.p{margin:0 0 18px;color:var(--muted);font-size:16px}
+  async function copyText(text) {
+    await navigator.clipboard.writeText(text);
+  }
 
-.card{
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.05);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:16px;
-  backdrop-filter: blur(12px);
-}
+  function escapeXml(s) {
+    return (s || "").replace(/[<>&'"]/g, (c) => ({
+      "<":"&lt;",
+      ">":"&gt;",
+      "&":"&amp;",
+      "'":"&apos;"
+    }[c]));
+  }
 
-.row{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.label{font-size:13px;color:var(--muted);margin:0 0 8px}
-textarea{
-  width:100%;
-  min-height:120px;
-  resize:vertical;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.15);
-  color:var(--text);
-  padding:14px;
-  font-size:15px;
-  outline:none;
-}
+  function escapeHtml(str) {
+    return (str || "").replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#039;",
+    }[m]));
+  }
 
-.meta{font-size:12px;color:var(--muted);margin-top:8px;text-align:right}
+  // Tabs
+  function setTab(active) {
+    const tabs = [tabPreview, tabFiles, tabZip];
+    const panels = [panelPreview, panelFiles, panelZip];
 
-.sectionTitle{margin:22px 0 10px;font-size:16px}
-.file{
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.04);
-  border-radius:16px;
-  padding:14px;
-  margin:10px 0;
-}
-.fileHead{display:flex;justify-content:space-between;gap:12px;align-items:center}
-.fileName{font-weight:700}
-.pill{
-  border:1px solid var(--border);
-  padding:8px 10px;
-  border-radius:999px;
-  background:rgba(255,255,255,.04);
-  font-size:12px;
-}
+    tabs.forEach(t => t.classList.remove("active"));
+    tabs.forEach(t => t.setAttribute("aria-selected", "false"));
+    panels.forEach(p => p.classList.remove("show"));
 
-.pre{
-  margin:10px 0 0;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.18);
-  overflow:auto;
-  max-height:240px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size:12px;
-  line-height:1.4;
-}
+    if (active === "preview") { tabPreview.classList.add("active"); tabPreview.setAttribute("aria-selected", "true"); panelPreview.classList.add("show"); }
+    if (active === "files")   { tabFiles.classList.add("active"); tabFiles.setAttribute("aria-selected", "true"); panelFiles.classList.add("show"); }
+    if (active === "zip")     { tabZip.classList.add("active"); tabZip.setAttribute("aria-selected", "true"); panelZip.classList.add("show"); }
+  }
 
-.footer{
-  margin-top:26px;
-  padding-top:14px;
-  border-top:1px solid var(--border);
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  color:var(--muted);
-  font-size:12px;
-}
-`;
+  // SoT-locked canonical prompt
+  function buildCanonicalPrompt(type, pain) {
+    return `A high-fidelity system architecture visualization of a ${type} designed to solve "${pain}".
+The image shows clearly defined components including input, processing logic, automation, and outputs.
+Dark technical interface style, grid-based layout, modern infrastructure aesthetic, no people, no branding, no marketing visuals.
+Clean, professional, engineered, and realistic — suitable for a technical architecture document.`;
+  }
 
-// ----------------------------------------------------
-// Static scaffold HTML (deliverable)
-// - Links to static/styles.css ✅
-// - Includes inline <style> fallback so it still renders if someone deletes the CSS
-// ----------------------------------------------------
-function makeStaticIndexHTML({ problem, generatedAtISO }) {
-  const safeProblem = esc(problem);
-  const safeGen = esc(generatedAtISO);
+  // Deterministic system "image" (SVG)
+  function buildSystemSvg(type, pain) {
+    const title = `${type}`;
+    const subtitle = `Problem: ${pain}`;
 
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${safeProblem}</title>
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#070b14"/>
+      <stop offset="100%" stop-color="#0b1220"/>
+    </linearGradient>
 
-  <!-- Optional: external CSS deliverable (recommended) -->
-  <link rel="stylesheet" href="./styles.css" />
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    </pattern>
 
-  <!-- Fallback: minimal inline CSS (keeps it usable even if CSS file removed) -->
-  <style>
-    ${STATIC_SCAFFOLD_CSS}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <div class="brand">Vibe Coding</div>
-        <div class="sub">Write the pain point. Get a first build.</div>
-      </div>
-      <div class="btnRow">
-        <button class="btn" type="button">Copy share link</button>
-        <button class="btn" type="button">What do I get?</button>
-      </div>
-    </div>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
+    </filter>
+  </defs>
 
-    <div class="h1">Tell us what you want built.</div>
-    <p class="p">It turns a written idea into something you can see, share, and build on.</p>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
 
-    <div class="card">
-      <div class="row">
-        <div style="min-width:260px">
-          <div class="label"><strong>Your request</strong><br/>Explain the pain point you want solved.</div>
-        </div>
-        <div class="meta">Generated: ${safeGen}</div>
-      </div>
-      <textarea readonly>${safeProblem}</textarea>
-    </div>
+  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="800">
+    ${escapeXml(title)}
+  </text>
+  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
+    ${escapeXml(subtitle)}
+  </text>
 
-    <div class="sectionTitle"><strong>Boundaries</strong>: This generates a starting point (docs + static scaffold + visualization). It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.</div>
+  <g filter="url(#softShadow)">
+    ${box(90, 190, 220, 110, "Input Layer", ["User request", "Forms / Events", "Imports"], "#5cc8ff")}
+    ${box(360, 190, 240, 110, "Logic Layer", ["Rules", "Parsing", "Validation"], "#57f287")}
+    ${box(650, 190, 250, 110, "Automation Engine", ["Triggers", "Actions", "Routing"], "#ffd166")}
+    ${box(945, 190, 200, 110, "Outputs", ["Artifacts", "Files", "Delivery"], "#c084fc")}
+    ${box(360, 360, 535, 120, "State / Storage (optional)", ["Local state", "Config", "Versioning"], "#5cc8ff")}
+  </g>
 
-    <div class="footer">
-      <div>Vibe Coding<br/><span class="sub">Simple front-stage. Rigid standards behind the curtain.</span></div>
-      <div>Powered by Self-Defi</div>
-    </div>
-  </div>
-</body>
-</html>`;
-}
+  ${arrow(310, 245, 360, 245)}
+  ${arrow(600, 245, 650, 245)}
+  ${arrow(900, 245, 945, 245)}
+  ${arrow(600, 300, 600, 360)}
+  ${arrow(895, 420, 945, 245)}
 
-// ----------------------------------------------------
-// Docs (deliverables)
-// ----------------------------------------------------
-function makeAssumptionsMD(problem) {
-  const p = normalizeProblem(problem);
-  return `# Assumptions Disclosure (Explicit)
+  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
+    Deterministic visualization — suitable for architecture docs. No branding. No marketing claims.
+  </text>
+</svg>`;
+  }
+
+  function box(x, y, w, h, title, lines, accent) {
+    const r = 18;
+    const padX = 18;
+    const lineY1 = y + 66;
+
+    const linesSvg = lines.map((t, i) => (
+      `<text x="${x + padX}" y="${lineY1 + i*20}" fill="rgba(255,255,255,0.68)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="14">${escapeXml(t)}</text>`
+    )).join("");
+
+    return `
+    <g>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="${h}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)"/>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="6" fill="${accent}" opacity="0.95"/>
+      <text x="${x + padX}" y="${y + 38}" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16" font-weight="800">${escapeXml(title)}</text>
+      ${linesSvg}
+    </g>`;
+  }
+
+  function arrow(x1, y1, x2, y2) {
+    return `
+    <g>
+      <path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="rgba(217,70,141,0.85)" stroke-width="3" fill="none"/>
+      <path d="M ${x2} ${y2} l -10 -6 l 2 12 z" fill="rgba(217,70,141,0.85)"/>
+    </g>`;
+  }
+
+  // Repo files (explicit, bounded)
+  function buildRepoFiles(type, pain, prompt, svg) {
+    const repoName = safeName(pain);
+
+    const README = `# ${repoName}
+
+This repository was generated from one problem statement:
+
+“${pain}”
+
+## What this does
+- Converts a written request into a structured first build
+- Produces: system visualization + repo docs + static scaffold
+
+## What this does NOT mean (most important)
+- Not production-ready
+- Not security-audited
+- Not compliance-validated
+- No backend implied unless explicitly added
+
+## Included files
+- README.md
+- architecture.md
+- assumptions.md
+- DISCLAIMER.md
+- assets/system-image.svg
+- assets/image-prompt.txt
+- static/index.html
+
+## Run
+Open static/index.html directly, or serve with:
+- python -m http.server 8080
+
+## Ownership
+You control the outputs.`;
+
+    const ARCH = `# System Boundary
+
+Inside:
+- Request intake
+- Parsing and structuring
+- Deterministic artifact generation (docs + scaffold + visualization)
+
+Outside:
+- Hosting environment
+- Data sources unless explicitly provided
+- External services unless explicitly integrated
+
+# Flow
+Input -> Logic -> Automation -> Output
+Optional: State/Storage (explicit only)
+
+# Non-goals
+- Production claims
+- Security guarantees
+- Compliance guarantees`;
+
+    const ASSUMPTIONS = `# Assumptions Disclosure (Explicit)
 
 Rule:
 - Anything not stated verbatim is unknown.
@@ -237,47 +244,15 @@ Reason: Required for deterministic visualization and scaffold
 Assumption: Default delivery is a static scaffold
 Reason: Tangible output without implying backend services
 
-Assumption: Data sources are unknown unless explicitly provided
-Reason: Prevents hallucinated integrations
-
-Request (verbatim):
-- ${p}
-
 Unknowns:
-- Data source(s)
-- Access model / permissions
-- Compliance requirements (if any)
-- SLA expectations
-`;
-}
+- Scale targets
+- Security requirements
+- Compliance requirements
+- Data quality/availability
 
-function makeArchitectureMD() {
-  return `# Architecture (Starting Point)
+If unknowns become required, state them explicitly and regenerate.`;
 
-## Hosting environment
-- Static files (GitHub Pages / any static host)
-
-## Data sources (explicit only)
-- None assumed
-- Add only when provided
-
-## External services (explicit only)
-- None assumed
-- Integrations must be declared and versioned
-
-## Flow
-Input -> Logic -> Automation -> Output  
-Optional: State/Storage (explicit only)
-
-## Non-goals
-- Production claims
-- Security guarantees
-- Compliance guarantees
-`;
-}
-
-function makeDisclaimerMD() {
-  return `# Meaning and Limitations (Critical)
+    const DISCLAIMER = `# Meaning and Limitations (Critical)
 
 These generated files are a starting point.
 
@@ -288,113 +263,287 @@ They do NOT mean:
 - Compliance validation
 
 Maturity promotion is explicit and evidence-based:
-Static artifact -> Prototype -> Systemized application -> Production system.
-`;
-}
+Static artifact -> Prototype -> Systemized application -> Production system.`;
 
-function makeReadmeMD() {
-  return `# Repo Bundle (First Build)
+    const STATIC_INDEX = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${repoName}</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#070b14;color:rgba(255,255,255,.92)}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .card{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px}
+    .muted{color:rgba(255,255,255,.65);line-height:1.55}
+    .img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>${repoName}</h1>
+    <p class="muted"><strong>Problem:</strong> ${escapeHtml(pain)}</p>
 
-## Files
-- assumptions.md
-- DISCLAIMER.md
-- assets/system-image.svg
-- assets/image-prompt.txt
-- static/index.html
-- static/styles.css
+    <div class="card">
+      <h2>System image</h2>
+      <div class="img">
+        <img src="../assets/system-image.svg" alt="System architecture visualization" style="width:100%;height:auto"/>
+      </div>
+      <p class="muted">Deterministic visualization suitable for architecture docs.</p>
+    </div>
 
-## Run
-Open \`static/index.html\` directly, or serve with:
-- \`python -m http.server 8080\`
+    <div class="card">
+      <h2>Boundaries</h2>
+      <ul class="muted">
+        <li>No implied production readiness</li>
+        <li>No implied security or compliance</li>
+        <li>Anything not stated is unknown</li>
+      </ul>
+      <p class="muted">See README.md, architecture.md, assumptions.md, DISCLAIMER.md</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
-## Ownership
-You control the outputs.
-`;
-}
+    return {
+      "README.md": README,
+      "architecture.md": ARCH,
+      "assumptions.md": ASSUMPTIONS,
+      "DISCLAIMER.md": DISCLAIMER,
+      "assets/image-prompt.txt": prompt,
+      "assets/system-image.svg": svg,
+      "static/index.html": STATIC_INDEX
+    };
+  }
 
-// ----------------------------------------------------
-// System image + prompt (deliverables)
-// Keep these as placeholders unless your generator overwrites them later.
-// ----------------------------------------------------
-function makeImagePromptTXT(problem) {
-  const p = normalizeProblem(problem);
-  return `A high-fidelity system architecture visualization designed to solve:
+  // Render
+  function renderSvg(svg) {
+    svgPreview.innerHTML = svg ? svg : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+  }
 
-"${p}"
+  function renderFiles(files) {
+    const names = Object.keys(files || {});
+    if (!names.length) {
+      fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
+      return;
+    }
 
-The image shows clearly defined components including input, processing logic, automation, and outputs.
-Dark technical interface style, grid-based layout, modern infrastructure aesthetic, no people,
-no branding, no marketing visuals.
-Clean, professional, engineered, and realistic — suitable for a technical architecture document.
-`;
-}
+    fileList.innerHTML = names.map((name) => {
+      const body = files[name];
+      return `
+        <div class="fileItem">
+          <div class="fileTop">
+            <div class="fileName">${escapeXml(name)}</div>
+            <div class="fileBtns">
+              <button class="btnSmall" type="button" data-copy="${encodeURIComponent(name)}">Copy</button>
+              <button class="btnSmall" type="button" data-download="${encodeURIComponent(name)}">Download</button>
+            </div>
+          </div>
+          <pre class="fileBody">${escapeXml(body)}</pre>
+        </div>
+      `;
+    }).join("");
 
-const PLACEHOLDER_SYSTEM_IMAGE_SVG = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization (placeholder)">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#070b14"/>
-      <stop offset="100%" stop-color="#0b1220"/>
-    </linearGradient>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-    </pattern>
-  </defs>
+    fileList.querySelectorAll("[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const key = decodeURIComponent(btn.getAttribute("data-copy"));
+        await copyText(files[key]);
+        toast(`Copied ${key}`);
+      });
+    });
 
-  <rect width="1200" height="675" fill="url(#bg)"/>
-  <rect width="1200" height="675" fill="url(#grid)"/>
+    fileList.querySelectorAll("[data-download]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = decodeURIComponent(btn.getAttribute("data-download"));
+        downloadText(files[key], key.split("/").pop());
+      });
+    });
+  }
 
-  <g font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" fill="rgba(255,255,255,.90)">
-    <text x="54" y="86" font-size="28" font-weight="700">System Overview (Placeholder)</text>
-    <text x="54" y="118" font-size="14" fill="rgba(255,255,255,.68)">Replace with a generated system diagram when ready.</text>
-  </g>
+  // Download helpers
+  function downloadText(text, filename) {
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
-  <g transform="translate(70,165)" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2">
-    <rect width="260" height="120" rx="16"/>
-    <rect x="330" width="340" height="120" rx="16"/>
-    <rect x="710" width="420" height="120" rx="16"/>
-    <path d="M260 60 H330"/>
-    <path d="M670 60 H710"/>
-  </g>
+  function downloadSvg(svg, filename) {
+    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
-  <g transform="translate(70,165)" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13" fill="rgba(255,255,255,.85)">
-    <text x="22" y="42">Input</text>
-    <text x="352" y="42">Logic</text>
-    <text x="732" y="42">Automation → Output</text>
-  </g>
-</svg>`;
+  // Toast
+  let toastTimer = null;
+  function toast(msg) {
+    status.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { status.textContent = ""; }, 1600);
+  }
 
-// ----------------------------------------------------
-// Public API: buildFirst(problem) => files map
-// This is what app.js should call on “Build”
-// ----------------------------------------------------
-function buildFirst(problemRaw) {
-  const problem = normalizeProblem(problemRaw);
-  const generatedAtISO = nowISO();
+  // ZIP build
+  async function downloadZip(files, zipName) {
+    if (!window.JSZip) {
+      toast("JSZip not loaded. Check CDN.");
+      return;
+    }
+    const zip = new window.JSZip();
+    for (const [path, content] of Object.entries(files)) {
+      zip.file(path, content);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${zipName}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
-  return {
-    "README.md": makeReadmeMD(),
-    "architecture.md": makeArchitectureMD(),
-    "assumptions.md": makeAssumptionsMD(problem),
-    "DISCLAIMER.md": makeDisclaimerMD(),
-    "assets/image-prompt.txt": makeImagePromptTXT(problem),
-    "assets/system-image.svg": PLACEHOLDER_SYSTEM_IMAGE_SVG,
-    "static/index.html": makeStaticIndexHTML({ problem, generatedAtISO }),
+  // Generate
+  function generate() {
+    const pain = (painInput.value || "").trim();
+    const type = (systemType.value || "").trim();
 
-    // ✅ NEW deliverable (requested)
-    "static/styles.css": STATIC_SCAFFOLD_CSS
-  };
-}
+    if (!pain) {
+      status.textContent = "Type one sentence first.";
+      return;
+    }
 
-// ----------------------------------------------------
-// Backwards-compatible globals (safe)
-// ----------------------------------------------------
-window.__TEMPLATES_READY__ = true;
+    localStorage.setItem("vc_last_pain", pain);
+    localStorage.setItem("vc_last_type", type);
 
-// New: single entrypoint for the 2-action flow
-window.VIBE_FIRST_BUILD = { buildFirst };
+    current.pain = pain;
+    current.type = type;
+    current.prompt = buildCanonicalPrompt(type, pain);
+    current.svg = buildSystemSvg(type, pain);
+    current.files = buildRepoFiles(type, pain, current.prompt, current.svg);
 
-// Optional: old code may check these
-window.BUILD_TEMPLATE = window.VIBE_FIRST_BUILD;
+    renderSvg(current.svg);
+    promptOut.textContent = current.prompt;
+    renderFiles(current.files);
 
-console.log("templates.js loaded: 2-action engine ready (buildFirst + deliverables including static/styles.css).");
+    downloadSvgBtn.disabled = false;
+    copyPromptBtn.disabled = false;
+    copyAllBtn.disabled = false;
+    downloadZipBtn.disabled = false;
+
+    buildStamp.textContent = `Generated: ${nowStamp()}`;
+    status.textContent = "First build generated. Review deliverables, then download the repo bundle.";
+
+    try { plausible("vc_generate"); } catch(e) {}
+
+    setTab("preview");
+  }
+
+  function resetAll() {
+    current = { pain: "", type: "", prompt: "", svg: "", files: {} };
+    painInput.value = "";
+    status.textContent = "";
+    buildStamp.textContent = "";
+    promptOut.textContent = "Generate a build to produce the locked prompt.";
+    svgPreview.innerHTML = `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+    fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
+
+    downloadSvgBtn.disabled = true;
+    copyPromptBtn.disabled = true;
+    copyAllBtn.disabled = true;
+    downloadZipBtn.disabled = true;
+
+    setTab("preview");
+  }
+
+  // Help modal
+  function openHelp() {
+    helpModal.classList.add("show");
+    helpModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+  function closeHelp() {
+    helpModal.classList.remove("show");
+    helpModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+
+  // Wire actions
+  generateBtn.addEventListener("click", generate);
+  resetBtn.addEventListener("click", resetAll);
+
+  tabPreview.addEventListener("click", () => setTab("preview"));
+  tabFiles.addEventListener("click", () => setTab("files"));
+  tabZip.addEventListener("click", () => setTab("zip"));
+
+  downloadSvgBtn.addEventListener("click", () => downloadSvg(current.svg, "system-image.svg"));
+
+  copyPromptBtn.addEventListener("click", async () => {
+    await copyText(current.prompt);
+    toast("Copied image prompt");
+  });
+
+  copyAllBtn.addEventListener("click", async () => {
+    const all = Object.entries(current.files)
+      .map(([k, v]) => `--- ${k} ---\n${v}\n`)
+      .join("\n");
+    await copyText(all);
+    toast("Copied all files");
+  });
+
+  downloadZipBtn.addEventListener("click", async () => {
+    const name = safeName(current.pain);
+    await downloadZip(current.files, name);
+    try { plausible("vc_zip_download"); } catch(e) {}
+  });
+
+  // Share link
+  copyLinkBtn.addEventListener("click", async () => {
+    const pain = (painInput.value || "").trim();
+    const url = new URL(window.location.href);
+    if (pain) url.searchParams.set("pain", pain);
+    else url.searchParams.delete("pain");
+    await copyText(url.toString());
+    toast("Copied share link");
+  });
+
+  // Help
+  openHelpBtn.addEventListener("click", openHelp);
+  closeHelpBtn.addEventListener("click", closeHelp);
+  closeHelpBtn2.addEventListener("click", closeHelp);
+  helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && helpModal.classList.contains("show")) closeHelp(); });
+
+  // Init from URL param or last session
+  const painParam = qs("pain");
+  const lastPain = localStorage.getItem("vc_last_pain");
+  const lastType = localStorage.getItem("vc_last_type");
+  if (lastType) systemType.value = lastType;
+
+  if (painParam) {
+    painInput.value = painParam;
+    paramStatus.textContent = "Loaded from share link";
+  } else if (lastPain) {
+    painInput.value = lastPain;
+    paramStatus.textContent = "Loaded last request";
+  } else {
+    paramStatus.textContent = "";
+  }
+
+  if ((painInput.value || "").trim()) {
+    status.textContent = "Ready. Click “Generate first build”.";
+  }
+
+  setTab("preview");
+})();
