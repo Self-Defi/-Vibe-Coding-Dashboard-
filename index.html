@@ -2,148 +2,236 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <title>Vibe Coding — Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vibe Coding — Build Prove Deploy</title>
 
-  <link rel="stylesheet" href="./styles.css" />
+  <!-- Retail trigger (LOCKED) -->
+  <meta name="description" content="It turns a written idea into something you can see, share, and build on." />
+  <meta name="theme-color" content="#070b14" />
 
   <!-- Social -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coding" />
-  <meta property="og:title" content="Vibe Coding — Build Prove Deploy" />
-  <meta property="og:description" content="Turn a thought into a working solution in minutes." />
+  <meta property="og:title" content="Vibe Coding — Dashboard" />
+  <meta property="og:description" content="It turns a written idea into something you can see, share, and build on." />
   <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
-  <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/bg-viben-03.PNG" />
-
+  <meta property="og:image" content="https://self-defi.github.io/VC-LandingPage/vibe-coding-studio-1200.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- PDFs -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" defer></script>
+  <!-- Plausible (optional; keep if desired) -->
+  <script async src="https://plausible.io/js/pa-DU_jjOTCyfBffPJH5QVaH.js"></script>
+  <script>
+    window.plausible = window.plausible || function () {
+      (plausible.q = plausible.q || []).push(arguments)
+    };
+  </script>
+
+  <!-- ZIP packaging -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
-  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="bgGrid" aria-hidden="true"></div>
 
-  <!-- Top bar -->
   <header class="topbar">
     <div class="brand">
-      <img class="brandLogo" src="./vc-logo-transparent.PNG" alt="Vibe Coding logo" />
+      <img class="brandLogo"
+           src="./vc-logo-transparent.png"
+           alt="Vibe Coding logo"
+           onerror="this.style.display='none'"/>
       <div class="brandText">
-        <div class="brandTitle">Vibe Coding</div>
-        <div class="brandSub">Turn a thought into a working solution in minutes.</div>
+        <div class="brandName">Vibe Coding</div>
+        <div class="brandTag">Write the pain point. Get a first build.</div>
       </div>
     </div>
 
-    <div class="statusPills">
-      <span class="pill" id="phasePill">Phase: 1–2</span>
-      <span class="pill" id="industryPill">Industry: —</span>
-      <span class="pill" id="proofPill">Proof: Not generated</span>
+    <div class="topbarRight">
+      <button class="pill" id="copyLinkBtn" type="button">Copy share link</button>
+      <button class="pill" id="openHelpBtn" type="button">What do I get?</button>
     </div>
   </header>
 
   <main class="wrap">
+    <!-- HERO -->
     <section class="hero">
-      <h1>Build a real solution from two sentences.</h1>
-      <p class="heroSub">
-        Pick an industry (optional), describe the idea, hit <b>Build My Proof</b>.
-        Files generate automatically behind the scenes.
-      </p>
+      <h1 class="heroTitle">Tell us what you want built.</h1>
+      <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
     </section>
 
-    <section class="layout">
-      <!-- LEFT -->
-      <section class="card">
-        <div class="cardHead">
-          <h2>Describe it</h2>
-          <p class="muted">Keep it simple. You can refine later.</p>
+    <section class="grid">
+      <!-- LEFT: INPUT -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Your request</h2>
+          <div class="panelMeta" id="buildStamp"></div>
         </div>
 
-        <div class="field">
-          <label for="industrySelect">Industry</label>
-          <select id="industrySelect"></select>
-        </div>
+        <label class="label" for="painInput">Explain the pain point you want solved.</label>
+        <textarea
+          id="painInput"
+          class="textarea"
+          rows="7"
+          maxlength="900"
+          placeholder="Example: I want a system that automatically finds leads and follows up for me."
+        ></textarea>
 
-        <div class="field">
-          <label for="artifactSelect">Type</label>
-          <select id="artifactSelect">
-            <option value="dashboard">Dashboard</option>
-            <option value="alert">Alert Digest</option>
-            <option value="workflow">Workflow Tracker</option>
-            <option value="report">Report</option>
+        <div class="row">
+          <label class="smallLabel" for="systemType">System type</label>
+          <select id="systemType" class="select">
+            <option>AI automation system</option>
+            <option>Lead generation pipeline</option>
+            <option>Workflow automation</option>
+            <option>Data intake + processing system</option>
+            <option>DAO governance system</option>
+            <option>Non-custodial custody workflow</option>
           </select>
         </div>
 
-        <div class="field">
-          <label for="oneSentence">One sentence</label>
-          <textarea id="oneSentence" rows="2"
-            placeholder="I want to build ______ for ______ so they can ______."></textarea>
-        </div>
-
-        <div class="field">
-          <label for="output">What does ‘done’ produce?</label>
-          <textarea id="output" rows="2"
-            placeholder="The proof is done when it produces _____."></textarea>
-        </div>
-
         <div class="actions">
-          <button class="btn ghost" id="btnAutofill" type="button">Use Example</button>
-          <button class="btn primary" id="btnGenerate" type="button">Build My Proof</button>
+          <button class="btnPrimary" id="generateBtn" type="button">Generate first build</button>
+          <button class="btnGhost" id="resetBtn" type="button">Reset</button>
         </div>
 
-        <p class="hint">Everything runs locally in your browser. Nothing is uploaded.</p>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+
+        <div class="note">
+          <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
+          It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
+        </div>
       </section>
 
-      <!-- RIGHT -->
-      <section class="card">
-        <div class="cardHead">
-          <h2>Results</h2>
-          <p class="muted">Your repo files.</p>
+      <!-- RIGHT: OUTPUTS -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Deliverables</h2>
+          <div class="panelMeta" id="paramStatus"></div>
         </div>
 
-        <div class="block">
-          <div class="blockHead">
-            <div>
-              <h3>Repo files</h3>
-              <p class="muted small">Copy/paste into a new GitHub repo.</p>
-            </div>
-            <button class="btn ghost" id="btnDownloadAll" disabled type="button">
-              Download all
-            </button>
-          </div>
+        <div class="tabs" role="tablist" aria-label="Deliverables tabs">
+          <button class="tab active" id="tabPreview" type="button" role="tab" aria-selected="true">System Image</button>
+          <button class="tab" id="tabFiles" type="button" role="tab" aria-selected="false">Repo Files</button>
+          <button class="tab" id="tabZip" type="button" role="tab" aria-selected="false">Download</button>
+        </div>
 
-          <div id="filesList" class="chips"></div>
-
-          <div id="fileViewer" class="viewer hidden" role="dialog" aria-modal="true">
-            <div class="viewerTop">
-              <div class="viewerTitle" id="viewerTitle">—</div>
-              <div class="viewerActions">
-                <button class="btn ghost" id="btnCopy">Copy</button>
-                <button class="btn ghost" id="btnDownload">Download</button>
-                <button class="btn ghost" id="btnClose">Close</button>
+        <!-- TAB: PREVIEW -->
+        <div class="tabPanel show" id="panelPreview" role="tabpanel" aria-labelledby="tabPreview">
+          <div class="card">
+            <div class="cardHead">
+              <div class="cardTitle">System visualization (SVG)</div>
+              <div class="cardActions">
+                <button class="btnSmall" id="downloadSvgBtn" type="button" disabled>Download SVG</button>
               </div>
             </div>
-            <pre id="viewerCode"></pre>
+            <div class="preview" id="svgPreview">
+              <div class="placeholder">Generate a build to preview the system visualization.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div class="cardTitle">Canonical image prompt (SoT)</div>
+              <div class="cardActions">
+                <button class="btnSmall" id="copyPromptBtn" type="button" disabled>Copy prompt</button>
+              </div>
+            </div>
+            <pre class="code" id="promptOut">Generate a build to produce the locked prompt.</pre>
           </div>
         </div>
 
-        <footer class="footerNote">
-  © 2026 Vibe Coding<br />
-  Powered by <b>Self-Defi</b> — Digital Infrastructure Architect<br />
-  <a
-  href="https://github.com/self-defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE_APPENDIX_COMMERCIAL.md"
-  target="_blank"
-  rel="noopener"
->
-  Commercial Use
-</a>
-</footer>
-        </footer>
+        <!-- TAB: FILES -->
+        <div class="tabPanel" id="panelFiles" role="tabpanel" aria-labelledby="tabFiles">
+          <div class="card">
+            <div class="cardHead">
+              <div class="cardTitle">Generated repo files</div>
+              <div class="cardActions">
+                <button class="btnSmall" id="copyAllBtn" type="button" disabled>Copy all</button>
+              </div>
+            </div>
+
+            <div class="fileList" id="fileList">
+              <div class="placeholder">Generate a build to populate repo files.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: ZIP -->
+        <div class="tabPanel" id="panelZip" role="tabpanel" aria-labelledby="tabZip">
+          <div class="card">
+            <div class="cardHead">
+              <div class="cardTitle">ZIP bundle</div>
+              <div class="cardActions">
+                <button class="btnPrimary" id="downloadZipBtn" type="button" disabled>Download repo (.zip)</button>
+              </div>
+            </div>
+
+            <p class="muted">
+              ZIP includes README.md, architecture.md, assumptions.md, DISCLAIMER.md, a static scaffold, the system SVG,
+              and the canonical prompt file.
+            </p>
+
+            <div class="divider"></div>
+
+            <div class="standards">
+              <div class="standardsTitle">Explicit meaning</div>
+              <ul class="bullets">
+                <li>Starting point only — not production readiness</li>
+                <li>No security validation implied</li>
+                <li>No compliance guarantees implied</li>
+                <li>Anything not stated is unknown</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
       </section>
     </section>
+
+    <footer class="footer">
+      <div class="footerLeft">
+        <div class="footerBrand">Vibe Coding</div>
+        <div class="footerSmall">Simple front-stage. Rigid standards behind the curtain.</div>
+      </div>
+      <div class="footerRight">
+        <span class="footerSmall">Powered by Self-Defi</span>
+      </div>
+    </footer>
   </main>
 
-  <script defer src="./templates.js"></script>
+  <!-- HELP MODAL -->
+  <div class="modal" id="helpModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="What do I get?">
+    <div class="modal-card" role="document">
+      <div class="modal-head">
+        <h2>What do I get?</h2>
+        <button class="icon-btn" type="button" id="closeHelpBtn" aria-label="Close">✕</button>
+      </div>
+
+      <ol class="modal-list">
+        <li>
+          <strong>System image</strong>
+          <span>A technical architecture visualization (no marketing fluff).</span>
+        </li>
+        <li>
+          <strong>Repo files</strong>
+          <span>README + architecture + assumptions + static scaffold for a clean starting point.</span>
+        </li>
+        <li>
+          <strong>Clear boundaries</strong>
+          <span>No implied production readiness, security, or compliance.</span>
+        </li>
+      </ol>
+
+      <p class="modal-note">
+        Everything is generated locally in your browser. Download your repo bundle when ready.
+      </p>
+
+      <div class="modal-actions">
+        <button class="btnPrimary" type="button" id="closeHelpBtn2">Got it</button>
+      </div>
+    </div>
+  </div>
+
   <script defer src="./app.js"></script>
 </body>
 </html>
