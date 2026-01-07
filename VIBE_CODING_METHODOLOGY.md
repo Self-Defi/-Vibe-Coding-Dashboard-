@@ -1,6 +1,7 @@
 VIBE CODED METHODOLOGY
 
-Version: v0.9-proof-stable
+# VIBE CODED METHODOLOGY
+Version: v1.0-proof
 Status: Public Methodology Specification
 Maintained by: Vibe Coded
 Powered by: Self-Defi
