@@ -1,201 +1,201 @@
-# VIBE CODING METHODOLOGY  
-**Version:** v0.9-proof-stable  
-**Status:** Public Methodology Specification  
-**Maintained by:** Vibe Coding  
-**Powered by:** Self-Defi
+VIBE CODED METHODOLOGY
 
----
+Version: v0.9-proof-stable
+Status: Public Methodology Specification
+Maintained by: Vibe Coded
+Powered by: Self-Defi
 
-## 1. Purpose
+⸻
 
-The Vibe Coding Methodology is a **proof-first system** for converting narrowly scoped problems into validated technical artifacts with minimal overhead and maximum clarity.
+1. Purpose
+
+The Vibe Coded Methodology is a proof-first system for converting narrowly scoped problems into validated technical artifacts with minimal overhead and maximum clarity.
 
 It exists to counteract:
-- Overbuilding
-- Premature scaling
-- Tool-driven design
-- Idea sprawl disguised as progress
+	•	Overbuilding
+	•	Premature scaling
+	•	Tool-driven design
+	•	Idea sprawl disguised as progress
 
-Vibe Coding prioritizes **usefulness before extensibility**, and **proof before infrastructure**.
+Vibe Coded prioritizes usefulness before extensibility, and proof before infrastructure.
 
----
+⸻
 
-## 2. Core Principle
+2. Core Principle
 
-> **A solution only earns the right to scale after it is understood, used, and validated in its simplest form.**
+A solution only earns the right to scale after it is understood, used, and validated in its simplest form.
 
 All stages, constraints, and outputs in this methodology are designed to enforce this principle.
 
----
+⸻
 
-## 3. System Overview
+3. System Overview
 
-The Vibe Coding Methodology is composed of a **fixed, sequential progression of stages**.
+The Vibe Coded Methodology is composed of a fixed, sequential progression of stages.
 
 Each stage:
-- Has defined inputs
-- Produces specific outputs
-- Imposes intentional constraints
-- Prohibits forward movement until requirements are met
+	•	Has defined inputs
+	•	Produces specific outputs
+	•	Imposes intentional constraints
+	•	Prohibits forward movement until requirements are met
 
 Stages may not be skipped, reordered, or merged without breaking the methodology.
 
----
+⸻
 
-## 4. Stage Definitions
+4. Stage Definitions
 
-### Stage 1 — Externalization (The Thought)
+Stage 1 — Externalization (The Thought)
 
-**Objective:**  
+Objective:
 Convert an internal idea into a clear, externally understandable problem statement.
 
-**Allowed Inputs:**
-- One sentence describing the problem
-- One sentence defining what “done” produces
+Allowed Inputs:
+	•	One sentence describing the problem
+	•	One sentence defining what “done” produces
 
-**Prohibited:**
-- Feature lists
-- Architecture diagrams
-- Tool selection
-- Scaling considerations
+Prohibited:
+	•	Feature lists
+	•	Architecture diagrams
+	•	Tool selection
+	•	Scaling considerations
 
-**Success Criteria:**
-- A stranger can understand the problem in under 60 seconds
-- The scope is narrow and concrete
+Success Criteria:
+	•	A stranger can understand the problem in under 60 seconds
+	•	The scope is narrow and concrete
 
----
+⸻
 
-### Stage 2 — Constraint Locking
+Stage 2 — Constraint Locking
 
-**Objective:**  
+Objective:
 Prevent scope creep and overengineering before proof exists.
 
-**Characteristics:**
-- Time constraints are fixed
-- Tooling constraints are fixed
-- Interpretation flexibility is intentionally limited
+Characteristics:
+	•	Time constraints are fixed
+	•	Tooling constraints are fixed
+	•	Interpretation flexibility is intentionally limited
 
-Constraints are **locked by design**, not user preference.
+Constraints are locked by design, not user preference.
 
-**Rationale:**  
+Rationale:
 Freedom too early destroys signal.
 
----
+⸻
 
-### Stage 3 — Proof Generation
+Stage 3 — Proof Generation
 
-**Objective:**  
+Objective:
 Produce a working, inspectable artifact that demonstrates the solution.
 
-**Outputs May Include:**
-- Static dashboards
-- Reports
-- Workflow trackers
-- Alerts or summaries
+Outputs May Include:
+	•	Static dashboards
+	•	Reports
+	•	Workflow trackers
+	•	Alerts or summaries
 
-**Characteristics:**
-- Must run without proprietary infrastructure
-- Must be understandable without explanation
-- Must exist as files that can be inspected or deployed
+Characteristics:
+	•	Must run without proprietary infrastructure
+	•	Must be understandable without explanation
+	•	Must exist as files that can be inspected or deployed
 
-At this stage, **existence matters more than elegance**.
+At this stage, existence matters more than elegance.
 
----
+⸻
 
-### Stage 4 — Source of Truth Documentation
+Stage 4 — Source of Truth Documentation
 
-**Objective:**  
-Capture what exists *now*, not what might exist later.
+Objective:
+Capture what exists now, not what might exist later.
 
-**Generated Documentation Includes:**
-- Definition (problem, user, artifact, done criteria)
-- Data requirements
-- Workflow states and triggers
-- Constraints and non-goals
+Generated Documentation Includes:
+	•	Definition (problem, user, artifact, done criteria)
+	•	Data requirements
+	•	Workflow states and triggers
+	•	Constraints and non-goals
 
-These documents define **reality**, not aspiration.
+These documents define reality, not aspiration.
 
----
+⸻
 
-### Stage 5 — Snapshot and Next Actions
+Stage 5 — Snapshot and Next Actions
 
-**Objective:**  
+Objective:
 Create a durable record of the proof and define immediate, grounded next steps.
 
-**Snapshot Includes:**
-- Timestamped proof state
-- What exists
-- What does not exist
-- Explicit next actions
+Snapshot Includes:
+	•	Timestamped proof state
+	•	What exists
+	•	What does not exist
+	•	Explicit next actions
 
-This snapshot acts as a **handoff artifact**, not a roadmap.
+This snapshot acts as a handoff artifact, not a roadmap.
 
----
+⸻
 
-## 5. Intentional Non-Goals
+5. Intentional Non-Goals
 
-The Vibe Coding Methodology explicitly does **not** attempt to:
+The Vibe Coded Methodology explicitly does not attempt to:
+	•	Replace full product management frameworks
+	•	Optimize for long-term scalability at early stages
+	•	Serve as a general-purpose development lifecycle
+	•	Automate decision-making
 
-- Replace full product management frameworks
-- Optimize for long-term scalability at early stages
-- Serve as a general-purpose development lifecycle
-- Automate decision-making
+Its role is validation, not optimization.
 
-Its role is **validation, not optimization**.
+⸻
 
----
-
-## 6. Locked Design Decisions
+6. Locked Design Decisions
 
 Certain aspects of the methodology are intentionally fixed:
+	•	Stage order
+	•	Constraint enforcement
+	•	Proof-first bias
+	•	Minimal configurability
 
-- Stage order
-- Constraint enforcement
-- Proof-first bias
-- Minimal configurability
+These are not limitations — they are protective mechanisms.
 
-These are not limitations — they are **protective mechanisms**.
+⸻
 
----
+7. Intellectual Property Notice
 
-## 7. Intellectual Property Notice
+The Vibe Coded Methodology is an original system comprising:
+	•	Defined stages and sequencing
+	•	Constraint enforcement patterns
+	•	Documentation structures
+	•	Terminology and framing
+	•	Proof-first operational rules
 
-The Vibe Coding Methodology is an original system comprising:
-- Defined stages and sequencing
-- Constraint enforcement patterns
-- Documentation structures
-- Terminology and framing
-- Proof-first operational rules
+While implementations may be source-available, the methodology itself is protected intellectual property.
 
-While implementations may be source-available, the **methodology itself is protected intellectual property**.
+Use of this methodology is governed by the Vibe Coded License and applicable appendices.
 
-Use of this methodology is governed by the Vibe Coding License and applicable appendices.
+⸻
 
----
+8. Relationship to Implementations
 
-## 8. Relationship to Implementations
-
-Tools, dashboards, generators, or interfaces that implement this methodology are **representations**, not the methodology itself.
+Tools, dashboards, generators, or interfaces that implement this methodology are representations, not the methodology itself.
 
 The methodology exists independently of any specific codebase, framework, or technology stack.
 
----
+⸻
 
-## 9. Evolution
+9. Evolution
 
-This methodology may evolve over time.  
+This methodology may evolve over time.
 Changes are versioned and documented.
 
 Backward compatibility is not guaranteed.
 
----
+⸻
 
-## 10. Closing Statement
+10. Closing Statement
 
-Vibe Coding exists to restore discipline to early-stage building.
+Vibe Coded exists to restore discipline to early-stage building.
 
 If a solution cannot survive clarity, it does not deserve scale.
 
----
+⸻
 
-**End of Methodology Specification**
+End of Methodology Specification
+
