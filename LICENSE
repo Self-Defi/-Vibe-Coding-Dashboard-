@@ -1,4 +1,4 @@
-VIBE CODING LICENSE
+VIBE CODED LICENSE
 
 Version: v0.9-proof-stable
 
@@ -12,10 +12,10 @@ All rights reserved.
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to view, study, copy, and modify the Software for personal, educational, or internal use, subject to the limitations below.
 
 This license permits:
-	•	Learning from the code and architecture
-	•	Adapting ideas for personal or internal projects
-	•	Forking for non-commercial experimentation
-	•	Using the Software as a reference implementation
+• Learning from the code and architecture  
+• Adapting ideas for personal or internal projects  
+• Forking for non-commercial experimentation  
+• Using the Software as a reference implementation  
 
 ⸻
 
@@ -24,30 +24,30 @@ This license permits:
 2.1 Branding, Identity, and Attribution
 
 This license does NOT grant permission to use:
-	•	Vibe Coding logos
-	•	Visual identity assets
-	•	Branding elements
-	•	UI/UX design language that is uniquely identifiable
-	•	Marketing copy or brand positioning
-	•	Proprietary process documentation describing the Vibe Coding methodology
+• Vibe Coded logos  
+• Visual identity assets  
+• Branding elements  
+• UI/UX design language that is uniquely identifiable  
+• Marketing copy or brand positioning  
+• Proprietary process documentation describing the Vibe Coded methodology  
 
 in any manner that implies:
-	•	Endorsement
-	•	Affiliation
-	•	Sponsorship
-	•	Authorship by the copyright holder
+• Endorsement  
+• Affiliation  
+• Sponsorship  
+• Authorship by the copyright holder  
 
-Use of the phrase “vibe coding” as a general descriptive term is not restricted by this license.
+Use of the phrase “vibe coded” or “vibe coding” as a general descriptive term is not restricted by this license.
 
 ⸻
 
 2.2 Commercial Use
 
 You may not:
-	•	Sell this Software or derivatives as a product
-	•	Offer it as a paid service
-	•	Repackage it as a SaaS or platform
-	•	Use it as the core of a competing commercial offering
+• Sell this Software or derivatives as a product  
+• Offer it as a paid service  
+• Repackage it as a SaaS or platform  
+• Use it as the core of a competing commercial offering  
 
 without explicit written permission from the copyright holder.
 
@@ -56,9 +56,9 @@ without explicit written permission from the copyright holder.
 2.3 Derivative Works
 
 Derivative works must:
-	•	Remove all Vibe Coding branding and logos
-	•	Use clearly distinct naming and visual identity
-	•	Not claim lineage, equivalence, or compatibility with Vibe Coding
+• Remove all Vibe Coded branding and logos  
+• Use clearly distinct naming and visual identity  
+• Not claim lineage, equivalence, or compatibility with Vibe Coded  
 
 ⸻
 
@@ -67,8 +67,8 @@ Derivative works must:
 You acknowledge that this Software is delivered via static web hosting and may be technically accessible.
 
 However:
-	•	Automated scraping for the purpose of cloning, mirroring, or reselling the Software or its process design is not permitted
-	•	Redistribution must comply with all restrictions in this license
+• Automated scraping for the purpose of cloning, mirroring, or reselling the Software or its process design is not permitted  
+• Redistribution must comply with all restrictions in this license  
 
 ⸻
 
@@ -92,4 +92,3 @@ For commercial licensing, branding permissions, or partnership inquiries, contac
 
 Third-party components are licensed separately.
 See THIRD_PARTY_NOTICES.md.
-
