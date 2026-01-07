@@ -1,4 +1,4 @@
-# -Vibe-Coding-Dashboard-
+# -Vibe-Coded-Dashboard-
 
 This repository contains the working dashboard for **Vibe Coded** — a system designed to turn a written idea or problem statement into a tangible first build.
 
