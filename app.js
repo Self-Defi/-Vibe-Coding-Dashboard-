@@ -1,275 +1,368 @@
-/* app.js — Vibe Coding Dashboard (Option 1 UI)
-   Adds:
-   - Save Proof → local JSON download
-   - Load Proof → restore from JSON file
-   - Clear → wipe UI + storage
-   - Auto-resume from localStorage (pure client-side)
-*/
-
 (() => {
-  // -----------------------------
-  // Session config
-  // -----------------------------
-  const SESSION_VERSION = 1;
-  const SESSION_KEY = "vc_proof_session_v1";
+  // DOM
+  const painInput = document.getElementById("painInput");
+  const systemType = document.getElementById("systemType");
+  const generateBtn = document.getElementById("generateBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const status = document.getElementById("status");
+  const paramStatus = document.getElementById("paramStatus");
+  const buildStamp = document.getElementById("buildStamp");
 
-  // -----------------------------
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
+  const openHelpBtn = document.getElementById("openHelpBtn");
+
+  // Tabs
+  const tabPreview = document.getElementById("tabPreview");
+  const tabFiles = document.getElementById("tabFiles");
+  const tabZip = document.getElementById("tabZip");
+  const panelPreview = document.getElementById("panelPreview");
+  const panelFiles = document.getElementById("panelFiles");
+  const panelZip = document.getElementById("panelZip");
+
+  // Outputs
+  const svgPreview = document.getElementById("svgPreview");
+  const promptOut = document.getElementById("promptOut");
+  const fileList = document.getElementById("fileList");
+
+  const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+  const copyPromptBtn = document.getElementById("copyPromptBtn");
+  const copyAllBtn = document.getElementById("copyAllBtn");
+  const downloadZipBtn = document.getElementById("downloadZipBtn");
+
+  // Help modal
+  const helpModal = document.getElementById("helpModal");
+  const closeHelpBtn = document.getElementById("closeHelpBtn");
+  const closeHelpBtn2 = document.getElementById("closeHelpBtn2");
+
   // State
-  // -----------------------------
-  let currentFiles = {};
-  let currentViewFile = null;
-  let currentSOT = null;
-  let currentStage5 = "";
+  let current = { pain: "", type: "", prompt: "", svg: "", files: {} };
 
-  // -----------------------------
-  // DOM helpers
-  // -----------------------------
-  const $ = (id) => document.getElementById(id);
+  // Utilities
+  const qs = (k) => new URLSearchParams(window.location.search).get(k);
 
-  const $maybe = (idList) => {
-    for (const id of idList) {
-      const el = document.getElementById(id);
-      if (el) return el;
-    }
-    return null;
-  };
-
-  const text = (id, value) => {
-    const el = $(id);
-    if (!el) return;
-    el.textContent = value;
-  };
-
-  const setValue = (id, value) => {
-    const el = $(id);
-    if (!el) return;
-    el.value = value ?? "";
-  };
-
-  const safeDisable = (el, disabled = true) => {
-    if (!el) return;
-    el.disabled = !!disabled;
-  };
-
-  const safeHide = (el) => {
-    if (!el) return;
-    el.style.display = "none";
-  };
-
-  const setStatus = (msg) => {
-    const el = $("proofStatus");
-    if (!el) return;
-    el.textContent = msg || "";
-  };
-
-  // -----------------------------
-  // “Behind-the-scenes” defaults
-  // -----------------------------
-  const LOCKED_DEFAULTS = {
-    constraint:
-      "I will build the first proof in 0.1 hours using static GitHub Pages files and a CSV export.",
-    realityTest:
-      "A stranger can open it and understand the proof in under 60 seconds."
-  };
-
-  function applyLockedAdvanced() {
-    const constraintEl = $("constraint");
-    const realityEl = $("realityTest");
-
-    if (constraintEl) {
-      constraintEl.value = LOCKED_DEFAULTS.constraint;
-      constraintEl.readOnly = true;
-      constraintEl.setAttribute("aria-readonly", "true");
-    }
-    if (realityEl) {
-      realityEl.value = LOCKED_DEFAULTS.realityTest;
-      realityEl.readOnly = true;
-      realityEl.setAttribute("aria-readonly", "true");
-    }
-
-    const advDrawer = $maybe(["advancedDrawer", "docsDrawer"]);
-    if (advDrawer && advDrawer.tagName.toLowerCase() === "details") {
-      advDrawer.open = false;
-    }
-
-    const advWrap = $maybe(["advancedWrap", "advancedSection"]);
-    if (advWrap) safeHide(advWrap);
+  function nowStamp() {
+    const d = new Date();
+    return d.toISOString().replace("T", " ").slice(0, 19) + " UTC";
   }
 
-  // -----------------------------
-  // Validation
-  // -----------------------------
-  function validateExternalization() {
-    const one = ($("oneSentence")?.value || "").trim();
-    const out = ($("output")?.value || "").trim();
-    return one.length >= 10 && out.length >= 10;
+  function safeName(str) {
+    return (str || "vibe-coding-build")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "vibe-coding-build";
   }
 
-  // -----------------------------
-  // Pills
-  // -----------------------------
-  function setPills({ phase, industry, proof, docs }) {
-    if (phase) text("phasePill", `Phase: ${phase}`);
-    if (industry) text("industryPill", `Industry: ${industry}`);
-    if (proof) text("proofPill", proof);
-    if (docs) text("sotPill", docs);
+  async function copyText(text) {
+    await navigator.clipboard.writeText(text);
   }
 
-  function markGood(id) {
-    const el = $(id);
-    if (!el) return;
-    el.classList.add("good");
+  function escapeXml(s) {
+    return (s || "").replace(/[<>&'"]/g, (c) => ({
+      "<":"&lt;",
+      ">":"&gt;",
+      "&":"&amp;",
+      "'":"&apos;"
+    }[c]));
   }
 
-  // -----------------------------
-  // Industries init (robust)
-  // -----------------------------
-  function populateIndustrySelect(industriesObj) {
-    const sel = $("industrySelect");
-    if (!sel) return;
+  function escapeHtml(str) {
+    return (str || "").replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#039;",
+    }[m]));
+  }
 
-    sel.innerHTML = "";
+  // Tabs
+  function setTab(active) {
+    const tabs = [tabPreview, tabFiles, tabZip];
+    const panels = [panelPreview, panelFiles, panelZip];
 
-    const names = Object.keys(industriesObj || {});
+    tabs.forEach(t => t.classList.remove("active"));
+    tabs.forEach(t => t.setAttribute("aria-selected", "false"));
+    panels.forEach(p => p.classList.remove("show"));
+
+    if (active === "preview") { tabPreview.classList.add("active"); tabPreview.setAttribute("aria-selected", "true"); panelPreview.classList.add("show"); }
+    if (active === "files")   { tabFiles.classList.add("active"); tabFiles.setAttribute("aria-selected", "true"); panelFiles.classList.add("show"); }
+    if (active === "zip")     { tabZip.classList.add("active"); tabZip.setAttribute("aria-selected", "true"); panelZip.classList.add("show"); }
+  }
+
+  // SoT-locked canonical prompt
+  function buildCanonicalPrompt(type, pain) {
+    return `A high-fidelity system architecture visualization of a ${type} designed to solve "${pain}".
+The image shows clearly defined components including input, processing logic, automation, and outputs.
+Dark technical interface style, grid-based layout, modern infrastructure aesthetic, no people, no branding, no marketing visuals.
+Clean, professional, engineered, and realistic — suitable for a technical architecture document.`;
+  }
+
+  // Deterministic system "image" (SVG)
+  function buildSystemSvg(type, pain) {
+    const title = `${type}`;
+    const subtitle = `Problem: ${pain}`;
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#070b14"/>
+      <stop offset="100%" stop-color="#0b1220"/>
+    </linearGradient>
+
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    </pattern>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
+
+  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="800">
+    ${escapeXml(title)}
+  </text>
+  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
+    ${escapeXml(subtitle)}
+  </text>
+
+  <g filter="url(#softShadow)">
+    ${box(90, 190, 220, 110, "Input Layer", ["User request", "Forms / Events", "Imports"], "#5cc8ff")}
+    ${box(360, 190, 240, 110, "Logic Layer", ["Rules", "Parsing", "Validation"], "#57f287")}
+    ${box(650, 190, 250, 110, "Automation Engine", ["Triggers", "Actions", "Routing"], "#ffd166")}
+    ${box(945, 190, 200, 110, "Outputs", ["Artifacts", "Files", "Delivery"], "#c084fc")}
+    ${box(360, 360, 535, 120, "State / Storage (optional)", ["Local state", "Config", "Versioning"], "#5cc8ff")}
+  </g>
+
+  ${arrow(310, 245, 360, 245)}
+  ${arrow(600, 245, 650, 245)}
+  ${arrow(900, 245, 945, 245)}
+  ${arrow(600, 300, 600, 360)}
+  ${arrow(895, 420, 945, 245)}
+
+  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
+    Deterministic visualization — suitable for architecture docs. No branding. No marketing claims.
+  </text>
+</svg>`;
+  }
+
+  function box(x, y, w, h, title, lines, accent) {
+    const r = 18;
+    const padX = 18;
+    const lineY1 = y + 66;
+
+    const linesSvg = lines.map((t, i) => (
+      `<text x="${x + padX}" y="${lineY1 + i*20}" fill="rgba(255,255,255,0.68)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="14">${escapeXml(t)}</text>`
+    )).join("");
+
+    return `
+    <g>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="${h}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)"/>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="6" fill="${accent}" opacity="0.95"/>
+      <text x="${x + padX}" y="${y + 38}" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16" font-weight="800">${escapeXml(title)}</text>
+      ${linesSvg}
+    </g>`;
+  }
+
+  function arrow(x1, y1, x2, y2) {
+    return `
+    <g>
+      <path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="rgba(217,70,141,0.85)" stroke-width="3" fill="none"/>
+      <path d="M ${x2} ${y2} l -10 -6 l 2 12 z" fill="rgba(217,70,141,0.85)"/>
+    </g>`;
+  }
+
+  // Repo files (explicit, bounded)
+  function buildRepoFiles(type, pain, prompt, svg) {
+    const repoName = safeName(pain);
+
+    const README = `# ${repoName}
+
+This repository was generated from one problem statement:
+
+“${pain}”
+
+## What this does
+- Converts a written request into a structured first build
+- Produces: system visualization + repo docs + static scaffold
+
+## What this does NOT mean (most important)
+- Not production-ready
+- Not security-audited
+- Not compliance-validated
+- No backend implied unless explicitly added
+
+## Included files
+- README.md
+- architecture.md
+- assumptions.md
+- DISCLAIMER.md
+- assets/system-image.svg
+- assets/image-prompt.txt
+- static/index.html
+
+## Run
+Open static/index.html directly, or serve with:
+- python -m http.server 8080
+
+## Ownership
+You control the outputs.`;
+
+    const ARCH = `# System Boundary
+
+Inside:
+- Request intake
+- Parsing and structuring
+- Deterministic artifact generation (docs + scaffold + visualization)
+
+Outside:
+- Hosting environment
+- Data sources unless explicitly provided
+- External services unless explicitly integrated
+
+# Flow
+Input -> Logic -> Automation -> Output
+Optional: State/Storage (explicit only)
+
+# Non-goals
+- Production claims
+- Security guarantees
+- Compliance guarantees`;
+
+    const ASSUMPTIONS = `# Assumptions Disclosure (Explicit)
+
+Rule:
+- Anything not stated verbatim is unknown.
+
+Assumption: The request can be represented as 4 layers (input, logic, automation, output)
+Reason: Required for deterministic visualization and scaffold
+
+Assumption: Default delivery is a static scaffold
+Reason: Tangible output without implying backend services
+
+Unknowns:
+- Scale targets
+- Security requirements
+- Compliance requirements
+- Data quality/availability
+
+If unknowns become required, state them explicitly and regenerate.`;
+
+    const DISCLAIMER = `# Meaning and Limitations (Critical)
+
+These generated files are a starting point.
+
+They do NOT mean:
+- Complete system
+- Production readiness
+- Security validation
+- Compliance validation
+
+Maturity promotion is explicit and evidence-based:
+Static artifact -> Prototype -> Systemized application -> Production system.`;
+
+    const STATIC_INDEX = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${repoName}</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#070b14;color:rgba(255,255,255,.92)}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .card{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px}
+    .muted{color:rgba(255,255,255,.65);line-height:1.55}
+    .img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>${repoName}</h1>
+    <p class="muted"><strong>Problem:</strong> ${escapeHtml(pain)}</p>
+
+    <div class="card">
+      <h2>System image</h2>
+      <div class="img">
+        <img src="../assets/system-image.svg" alt="System architecture visualization" style="width:100%;height:auto"/>
+      </div>
+      <p class="muted">Deterministic visualization suitable for architecture docs.</p>
+    </div>
+
+    <div class="card">
+      <h2>Boundaries</h2>
+      <ul class="muted">
+        <li>No implied production readiness</li>
+        <li>No implied security or compliance</li>
+        <li>Anything not stated is unknown</li>
+      </ul>
+      <p class="muted">See README.md, architecture.md, assumptions.md, DISCLAIMER.md</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    return {
+      "README.md": README,
+      "architecture.md": ARCH,
+      "assumptions.md": ASSUMPTIONS,
+      "DISCLAIMER.md": DISCLAIMER,
+      "assets/image-prompt.txt": prompt,
+      "assets/system-image.svg": svg,
+      "static/index.html": STATIC_INDEX
+    };
+  }
+
+  // Render
+  function renderSvg(svg) {
+    svgPreview.innerHTML = svg ? svg : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+  }
+
+  function renderFiles(files) {
+    const names = Object.keys(files || {});
     if (!names.length) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "No industries loaded";
-      sel.appendChild(opt);
+      fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
       return;
     }
 
-    for (const name of names) {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      sel.appendChild(opt);
-    }
+    fileList.innerHTML = names.map((name) => {
+      const body = files[name];
+      return `
+        <div class="fileItem">
+          <div class="fileTop">
+            <div class="fileName">${escapeXml(name)}</div>
+            <div class="fileBtns">
+              <button class="btnSmall" type="button" data-copy="${encodeURIComponent(name)}">Copy</button>
+              <button class="btnSmall" type="button" data-download="${encodeURIComponent(name)}">Download</button>
+            </div>
+          </div>
+          <pre class="fileBody">${escapeXml(body)}</pre>
+        </div>
+      `;
+    }).join("");
 
-    const defaultName = names.includes("Supply Chain") ? "Supply Chain" : names[0];
-    sel.value = defaultName;
-
-    sel.addEventListener("change", () => {
-      const indName = sel.value;
-      const ind = industriesObj[indName];
-      text("industryPill", `Industry: ${indName}`);
-
-      const artifactSel = $("artifactSelect");
-      if (artifactSel) {
-        artifactSel.value = (ind && ind.defaultArtifact) || artifactSel.value || "dashboard";
-      }
-
-      // autosave selection changes
-      scheduleAutoSave();
+    fileList.querySelectorAll("[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const key = decodeURIComponent(btn.getAttribute("data-copy"));
+        await copyText(files[key]);
+        toast(`Copied ${key}`);
+      });
     });
 
-    sel.dispatchEvent(new Event("change"));
-  }
-
-  function waitForIndustriesThenInit(done) {
-    const maxTries = 60;
-    const intervalMs = 50;
-    let tries = 0;
-
-    const tick = () => {
-      tries++;
-      const industriesObj = window.INDUSTRIES;
-
-      if (industriesObj && Object.keys(industriesObj).length) {
-        populateIndustrySelect(industriesObj);
-        done?.();
-        return;
-      }
-
-      if (tries >= maxTries) {
-        console.error("INDUSTRIES not found. Check templates.js load order.");
-        populateIndustrySelect({});
-        text("industryPill", "Industry: —");
-        done?.();
-        return;
-      }
-
-      setTimeout(tick, intervalMs);
-    };
-
-    tick();
-  }
-
-  // -----------------------------
-  // Example autofill
-  // -----------------------------
-  function autofillExample() {
-    const indName = $("industrySelect")?.value;
-    const ind = window.INDUSTRIES?.[indName];
-    const ex = ind?.example;
-
-    if (ex) {
-      setValue("oneSentence", ex.oneSentence || "");
-      setValue("output", ex.output || "");
-    } else {
-      setValue(
-        "oneSentence",
-        "I want to build a visibility dashboard so a busy operator can see what’s stuck instantly."
-      );
-      setValue(
-        "output",
-        "The proof is done when it generates a working dashboard page + downloadable repo files."
-      );
-    }
-
-    applyLockedAdvanced();
-    scheduleAutoSave();
-  }
-
-  // -----------------------------
-  // Files UI
-  // -----------------------------
-  function renderFiles(files) {
-    const list = $("filesList");
-    if (!list) return;
-
-    list.innerHTML = "";
-    Object.keys(files || {}).forEach((path) => {
-      const chip = document.createElement("div");
-      chip.className = "fileChip";
-      chip.textContent = path;
-      chip.onclick = () => openViewer(path);
-      list.appendChild(chip);
+    fileList.querySelectorAll("[data-download]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = decodeURIComponent(btn.getAttribute("data-download"));
+        downloadText(files[key], key.split("/").pop());
+      });
     });
   }
 
-  function openViewer(path) {
-    currentViewFile = path;
-    text("viewerTitle", path);
-
-    const codeEl = $("viewerCode");
-    if (codeEl) codeEl.textContent = currentFiles[path] || "";
-
-    $("fileViewer")?.classList.remove("hidden");
-  }
-
-  function closeViewer() {
-    $("fileViewer")?.classList.add("hidden");
-    currentViewFile = null;
-  }
-
-  async function copyViewer() {
-    if (!currentViewFile) return;
-    try {
-      await navigator.clipboard.writeText(currentFiles[currentViewFile] || "");
-      const btn = $("btnCopy");
-      if (btn) {
-        const old = btn.textContent;
-        btn.textContent = "Copied";
-        setTimeout(() => (btn.textContent = old || "Copy"), 900);
-      }
-    } catch (e) {
-      alert("Copy failed on this device/browser. Use the Download button instead.");
-    }
-  }
-
-  function downloadTextFile(filename, content, mime = "text/plain;charset=utf-8") {
-    const blob = new Blob([content], { type: mime });
+  // Download helpers
+  function downloadText(text, filename) {
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -280,607 +373,177 @@
     URL.revokeObjectURL(url);
   }
 
-  function downloadCurrentFile() {
-    if (!currentViewFile) return;
-    const name = currentViewFile.split("/").pop();
-    downloadTextFile(name, currentFiles[currentViewFile] || "");
+  function downloadSvg(svg, filename) {
+    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
-  function downloadAllFiles() {
-    Object.entries(currentFiles || {}).forEach(([path, content]) => {
-      const safeName = path.replaceAll("/", "__");
-      downloadTextFile(safeName, content);
-    });
+  // Toast
+  let toastTimer = null;
+  function toast(msg) {
+    status.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { status.textContent = ""; }, 1600);
   }
 
-  // -----------------------------
-  // Stage 5 snapshot
-  // -----------------------------
-  function makeStage5Snapshot(industryName, artifactType, ext) {
-    const proofPaths = Object.keys(currentFiles || {});
-    const now = new Date().toISOString();
-
-    const exists = [
-      "Stage 3 proof repo files generated (static GitHub default)",
-      `Industry template applied: ${industryName || "—"}`,
-      `Artifact type: ${artifactType || "—"}`,
-      "Stage 4 Source-of-Truth PDFs generated (Definition/Data/Workflow/Constraints)"
-    ];
-
-    const nextActions = [
-      "1) Create a new GitHub repo",
-      "2) Copy/paste the generated files into the repo root (and data/ folder)",
-      "3) Enable GitHub Pages (Deploy from main / root)",
-      "4) Open the live URL on desktop + mobile",
-      "5) Replace sample CSV with real export (same headers)",
-      "6) If scaling: convert CSV export into scheduled automation + API"
-    ];
-
-    return [
-      "VIBE CODING — STAGE 5 SNAPSHOT",
-      `Timestamp: ${now}`,
-      "",
-      "LOCKED INPUT",
-      `One sentence: ${ext.oneSentence}`,
-      `Output: ${ext.output}`,
-      "",
-      "WHAT EXISTS NOW",
-      ...exists.map((x) => `- ${x}`),
-      "",
-      "GENERATED PROOF FILES",
-      ...proofPaths.map((p) => `- ${p}`),
-      "",
-      "NEXT ACTIONS",
-      ...nextActions.map((x) => `- ${x}`)
-    ].join("\n");
-  }
-
-  // -----------------------------
-  // Stage 4 preview
-  // -----------------------------
-  function renderSOTPreview(sot) {
-    const preview = $("sotPreview");
-    if (!preview) return;
-
-    const def = sot?.definition || {};
-    const data = sot?.data || {};
-    const flow = sot?.workflow || {};
-    const cons = sot?.constraints || {};
-
-    const lines = [
-      "DOCS (AUTO-GENERATED)",
-      "",
-      "PDF 1 — Definition",
-      `- Problem: ${def.problem || "—"}`,
-      `- Primary user: ${def.primaryUser || "—"}`,
-      `- Artifact: ${def.artifactType || "—"}`,
-      `- Time-to-understand: ${def.timeToUnderstand || "—"}`,
-      "",
-      "PDF 2 — Data",
-      `- Required fields: ${(data.requiredFields || []).length}`,
-      `- Sources: ${(data.sources || []).length}`,
-      "",
-      "PDF 3 — Workflow",
-      `- States: ${(flow.states || []).length}`,
-      `- Triggers: ${(flow.triggers || []).length}`,
-      "",
-      "PDF 4 — Constraints",
-      `- Ops constraints: ${(cons.ops || []).length}`,
-      `- Non-goals: ${(cons.nonGoals || []).length}`
-    ];
-
-    preview.textContent = lines.join("\n");
-  }
-
-  // -----------------------------
-  // PDF generation (unchanged)
-  // -----------------------------
-  function pdfTitle(doc, title, subtitle) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text(title, 14, 18);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text(subtitle, 14, 26);
-  }
-
-  function ensureAutoTable(doc) {
-    if (typeof doc.autoTable !== "function") {
-      alert("jspdf-autotable not loaded. Check your index.html script tags.");
-      return false;
+  // ZIP build
+  async function downloadZip(files, zipName) {
+    if (!window.JSZip) {
+      toast("JSZip not loaded. Check CDN.");
+      return;
     }
-    return true;
+    const zip = new window.JSZip();
+    for (const [path, content] of Object.entries(files)) {
+      zip.file(path, content);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${zipName}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
-  function generatePDF1(def) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-
-    pdfTitle(doc, "Vibe Coding", "Docs | PDF 1 — Definition");
-
-    doc.setFontSize(12);
-    doc.text("Problem (Locked)", 14, 56);
-    doc.setFontSize(10);
-    doc.text(def.problem || "—", 14, 72, { maxWidth: 580 });
-
-    doc.setFontSize(12);
-    doc.text("User", 14, 112);
-    doc.setFontSize(10);
-    doc.text(`Primary: ${def.primaryUser || "—"}`, 14, 128);
-    doc.text(`Secondary: ${def.secondaryUsers || "—"}`, 14, 144);
-
-    doc.setFontSize(12);
-    doc.text("Output", 14, 180);
-    doc.setFontSize(10);
-    doc.text(`Artifact Type: ${def.artifactType || "—"}`, 14, 196);
-    doc.text(`Description: ${def.description || "—"}`, 14, 212, { maxWidth: 580 });
-    doc.text(`Time-to-Understand: ${def.timeToUnderstand || "—"}`, 14, 238);
-
-    doc.setFontSize(12);
-    doc.text("Definition of Done", 14, 270);
-    doc.setFontSize(10);
-    (def.doneCriteria || []).forEach((c, i) =>
-      doc.text(`• ${c}`, 18, 288 + i * 14, { maxWidth: 575 })
-    );
-
-    doc.save("SOT_PDF1_Definition.pdf");
-  }
-
-  function generatePDF2(data) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    if (!ensureAutoTable(doc)) return;
-
-    pdfTitle(doc, "Vibe Coding", "Docs | PDF 2 — Data");
-
-    doc.setFontSize(12);
-    doc.text("Required Fields", 14, 56);
-    doc.autoTable({
-      startY: 68,
-      head: [["Field", "Description", "Required"]],
-      body: data.requiredFields || [],
-      theme: "grid",
-      styles: { fontSize: 9 }
-    });
-
-    let y = doc.lastAutoTable.finalY + 18;
-    doc.setFontSize(12);
-    doc.text("Sources", 14, y);
-    doc.autoTable({
-      startY: y + 12,
-      head: [["Field", "Source", "Owner", "Refresh"]],
-      body: data.sources || [],
-      theme: "grid",
-      styles: { fontSize: 9 }
-    });
-
-    doc.save("SOT_PDF2_Data.pdf");
-  }
-
-  function generatePDF3(flow) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    if (!ensureAutoTable(doc)) return;
-
-    pdfTitle(doc, "Vibe Coding", "Docs | PDF 3 — Workflow");
-
-    doc.setFontSize(12);
-    doc.text("States", 14, 56);
-    doc.autoTable({
-      startY: 68,
-      head: [["State", "Description"]],
-      body: flow.states || [],
-      theme: "grid",
-      styles: { fontSize: 9 }
-    });
-
-    let y = doc.lastAutoTable.finalY + 18;
-    doc.setFontSize(12);
-    doc.text("Triggers", 14, y);
-    doc.autoTable({
-      startY: y + 12,
-      head: [["Trigger", "Condition", "Action"]],
-      body: flow.triggers || [],
-      theme: "grid",
-      styles: { fontSize: 9 }
-    });
-
-    doc.save("SOT_PDF3_Workflow.pdf");
-  }
-
-  function generatePDF4(cons) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    if (!ensureAutoTable(doc)) return;
-
-    pdfTitle(doc, "Vibe Coding", "Docs | PDF 4 — Constraints");
-
-    doc.setFontSize(12);
-    doc.text("Operational Constraints", 14, 56);
-    doc.autoTable({
-      startY: 68,
-      head: [["Type", "Details"]],
-      body: cons.ops || [],
-      theme: "grid",
-      styles: { fontSize: 9 }
-    });
-
-    let y = doc.lastAutoTable.finalY + 18;
-    doc.setFontSize(12);
-    doc.text("Non-Goals", 14, y);
-    doc.setFontSize(10);
-    (cons.nonGoals || []).forEach((ng, i) =>
-      doc.text(`• ${ng}`, 18, y + 18 + i * 14, { maxWidth: 575 })
-    );
-
-    doc.save("SOT_PDF4_Constraints.pdf");
-  }
-
-  // -----------------------------
   // Generate
-  // -----------------------------
-  function generateAll() {
-    const industries = window.INDUSTRIES || {};
-    const industryName = $("industrySelect")?.value || "";
-    const industry = industries[industryName];
+  function generate() {
+    const pain = (painInput.value || "").trim();
+    const type = (systemType.value || "").trim();
 
-    const artifactType = $("artifactSelect")?.value || "dashboard";
-
-    if (!industry) {
-      alert(
-        "Industry templates not loaded. Refresh the page. If it persists, check that templates.js loads before app.js."
-      );
+    if (!pain) {
+      status.textContent = "Type one sentence first.";
       return;
     }
 
-    applyLockedAdvanced();
+    localStorage.setItem("vc_last_pain", pain);
+    localStorage.setItem("vc_last_type", type);
 
-    if (!validateExternalization()) {
-      alert("Fill in One sentence and Output first (keep it simple).");
-      return;
-    }
+    current.pain = pain;
+    current.type = type;
+    current.prompt = buildCanonicalPrompt(type, pain);
+    current.svg = buildSystemSvg(type, pain);
+    current.files = buildRepoFiles(type, pain, current.prompt, current.svg);
 
-    // Stage 3
-    currentFiles = typeof industry.proofRepo === "function" ? industry.proofRepo() : {};
-    renderFiles(currentFiles);
-    safeDisable($("btnDownloadAll"), Object.keys(currentFiles).length === 0);
+    renderSvg(current.svg);
+    promptOut.textContent = current.prompt;
+    renderFiles(current.files);
 
-    // Stage 4
-    currentSOT = typeof industry.sotDefaults === "function" ? industry.sotDefaults() : null;
-    if (!currentSOT) {
-      alert("Docs generation failed: sotDefaults() returned nothing.");
-      return;
-    }
-    renderSOTPreview(currentSOT);
+    downloadSvgBtn.disabled = false;
+    copyPromptBtn.disabled = false;
+    copyAllBtn.disabled = false;
+    downloadZipBtn.disabled = false;
 
-    // Stage 5 snapshot
-    const ext = {
-      oneSentence: ($("oneSentence")?.value || "").trim(),
-      output: ($("output")?.value || "").trim()
-    };
-    currentStage5 = makeStage5Snapshot(industryName, artifactType, ext);
-    text("stage5", currentStage5);
-    safeDisable($("btnDownloadStage5"), false);
+    buildStamp.textContent = `Generated: ${nowStamp()}`;
+    status.textContent = "First build generated. Review deliverables, then download the repo bundle.";
 
-    // Enable doc buttons
-    safeDisable($("btnPDF1"), false);
-    safeDisable($("btnPDF2"), false);
-    safeDisable($("btnPDF3"), false);
-    safeDisable($("btnPDF4"), false);
+    try { plausible("vc_generate"); } catch(e) {}
 
-    setPills({
-      phase: "3–5",
-      industry: industryName || "—",
-      proof: "Proof: Generated",
-      docs: "Docs: Generated"
-    });
-
-    markGood("proofPill");
-    markGood("sotPill");
-
-    setStatus("Session updated (auto-saved).");
-    scheduleAutoSave(true);
+    setTab("preview");
   }
 
-  // -----------------------------
-  // Session: serialize / restore
-  // -----------------------------
-  function getSessionData() {
-    return {
-      version: SESSION_VERSION,
-      savedAt: new Date().toISOString(),
-      form: {
-        industry: $("industrySelect")?.value || "",
-        artifactType: $("artifactSelect")?.value || "dashboard",
-        oneSentence: $("oneSentence")?.value || "",
-        output: $("output")?.value || ""
-      },
-      generated: {
-        currentFiles,
-        currentSOT,
-        currentStage5
-      },
-      pills: {
-        phase: $("phasePill")?.textContent || "",
-        industry: $("industryPill")?.textContent || "",
-        proof: $("proofPill")?.textContent || "",
-        docs: $("sotPill")?.textContent || ""
-      }
-    };
+  function resetAll() {
+    current = { pain: "", type: "", prompt: "", svg: "", files: {} };
+    painInput.value = "";
+    status.textContent = "";
+    buildStamp.textContent = "";
+    promptOut.textContent = "Generate a build to produce the locked prompt.";
+    svgPreview.innerHTML = `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+    fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
+
+    downloadSvgBtn.disabled = true;
+    copyPromptBtn.disabled = true;
+    copyAllBtn.disabled = true;
+    downloadZipBtn.disabled = true;
+
+    setTab("preview");
   }
 
-  function applySessionData(session) {
-    if (!session || typeof session !== "object") return;
-
-    // Form first
-    if (session.form) {
-      if ($("industrySelect") && session.form.industry) {
-        $("industrySelect").value = session.form.industry;
-        $("industrySelect").dispatchEvent(new Event("change"));
-      }
-      if ($("artifactSelect") && session.form.artifactType) {
-        $("artifactSelect").value = session.form.artifactType;
-      }
-      setValue("oneSentence", session.form.oneSentence || "");
-      setValue("output", session.form.output || "");
-    }
-
-    applyLockedAdvanced();
-
-    // Generated outputs
-    const gen = session.generated || {};
-    currentFiles = gen.currentFiles && typeof gen.currentFiles === "object" ? gen.currentFiles : {};
-    currentSOT = gen.currentSOT && typeof gen.currentSOT === "object" ? gen.currentSOT : null;
-    currentStage5 = typeof gen.currentStage5 === "string" ? gen.currentStage5 : "";
-
-    renderFiles(currentFiles);
-
-    // enable/disable output buttons based on what exists
-    safeDisable($("btnDownloadAll"), !Object.keys(currentFiles || {}).length);
-
-    const hasDocs = !!currentSOT;
-    safeDisable($("btnPDF1"), !hasDocs);
-    safeDisable($("btnPDF2"), !hasDocs);
-    safeDisable($("btnPDF3"), !hasDocs);
-    safeDisable($("btnPDF4"), !hasDocs);
-
-    if (hasDocs) renderSOTPreview(currentSOT);
-
-    text("stage5", currentStage5 || "");
-    safeDisable($("btnDownloadStage5"), !currentStage5);
-
-    // Pills
-    const p = session.pills || {};
-    if (p.phase) text("phasePill", p.phase);
-    if (p.industry) text("industryPill", p.industry);
-    if (p.proof) text("proofPill", p.proof);
-    if (p.docs) text("sotPill", p.docs);
+  // Help modal
+  function openHelp() {
+    helpModal.classList.add("show");
+    helpModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+  function closeHelp() {
+    helpModal.classList.remove("show");
+    helpModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
   }
 
-  function saveSessionToLocalStorage() {
-    try {
-      const payload = JSON.stringify(getSessionData());
-      localStorage.setItem(SESSION_KEY, payload);
-    } catch (e) {
-      // ignore (private mode / quota)
-    }
-  }
+  // Wire actions
+  generateBtn.addEventListener("click", generate);
+  resetBtn.addEventListener("click", resetAll);
 
-  function loadSessionFromLocalStorage() {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return false;
-      const session = JSON.parse(raw);
-      applySessionData(session);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  tabPreview.addEventListener("click", () => setTab("preview"));
+  tabFiles.addEventListener("click", () => setTab("files"));
+  tabZip.addEventListener("click", () => setTab("zip"));
 
-  function clearSession() {
-    // wipe storage
-    try {
-      localStorage.removeItem(SESSION_KEY);
-    } catch (e) {}
+  downloadSvgBtn.addEventListener("click", () => downloadSvg(current.svg, "system-image.svg"));
 
-    // wipe state
-    currentFiles = {};
-    currentViewFile = null;
-    currentSOT = null;
-    currentStage5 = "";
+  copyPromptBtn.addEventListener("click", async () => {
+    await copyText(current.prompt);
+    toast("Copied image prompt");
+  });
 
-    // wipe UI
-    renderFiles({});
-    closeViewer();
-    text("sotPreview", "");
-    text("stage5", "");
-    safeDisable($("btnDownloadAll"), true);
-    safeDisable($("btnPDF1"), true);
-    safeDisable($("btnPDF2"), true);
-    safeDisable($("btnPDF3"), true);
-    safeDisable($("btnPDF4"), true);
-    safeDisable($("btnDownloadStage5"), true);
+  copyAllBtn.addEventListener("click", async () => {
+    const all = Object.entries(current.files)
+      .map(([k, v]) => `--- ${k} ---\n${v}\n`)
+      .join("\n");
+    await copyText(all);
+    toast("Copied all files");
+  });
 
-    setPills({
-      phase: "1–2",
-      industry: "—",
-      proof: "Proof: Not generated",
-      docs: "Docs: Not generated"
-    });
+  downloadZipBtn.addEventListener("click", async () => {
+    const name = safeName(current.pain);
+    await downloadZip(current.files, name);
+    try { plausible("vc_zip_download"); } catch(e) {}
+  });
 
-    setStatus("Cleared. No saved session.");
-  }
-
-  // -----------------------------
-  // Save / Load JSON file
-  // -----------------------------
-  function saveSessionToFile() {
-    const data = getSessionData();
-    const pretty = JSON.stringify(data, null, 2);
-    const stamp = new Date().toISOString().replaceAll(":", "-");
-    downloadTextFile(`vibe-proof-session_${stamp}.json`, pretty, "application/json;charset=utf-8");
-    setStatus("Saved proof session to JSON.");
-    saveSessionToLocalStorage(); // keep in sync
-  }
-
-  function triggerLoadSessionFile() {
-    const input = $("proofFile");
-    if (!input) {
-      alert("Missing <input id='proofFile' ...>. Add it under the buttons.");
-      return;
-    }
-    input.value = ""; // allow re-loading same file
-    input.click();
-  }
-
-  function handleSessionFileChosen(file) {
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const session = JSON.parse(String(reader.result || ""));
-        applySessionData(session);
-        saveSessionToLocalStorage();
-        setStatus("Loaded proof session.");
-      } catch (e) {
-        alert("That file is not a valid Vibe proof session JSON.");
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  // -----------------------------
-  // Auto-save (debounced)
-  // -----------------------------
-  let autoSaveTimer = null;
-
-  function scheduleAutoSave(immediate = false) {
-    if (immediate) {
-      saveSessionToLocalStorage();
-      return;
-    }
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(saveSessionToLocalStorage, 450);
-  }
-
-  // -----------------------------
-  // Refresh button behavior
-  // -----------------------------
-  function hardRefresh() {
+  // Share link
+  copyLinkBtn.addEventListener("click", async () => {
+    const pain = (painInput.value || "").trim();
     const url = new URL(window.location.href);
-    url.searchParams.set("_", Date.now().toString());
-    window.location.replace(url.toString());
-  }
+    if (pain) url.searchParams.set("pain", pain);
+    else url.searchParams.delete("pain");
+    await copyText(url.toString());
+    toast("Copied share link");
+  });
 
-  // -----------------------------
-  // Wire UI
-  // -----------------------------
-  function wireUI() {
-    // Main CTA buttons
-    const btnExample = $maybe(["btnAutofill", "btnExample", "btnUseExample"]);
-    const btnBuild = $maybe(["btnGenerate", "btnBuild", "btnBuildProof"]);
+  // Help
+  openHelpBtn.addEventListener("click", openHelp);
+  closeHelpBtn.addEventListener("click", closeHelp);
+  closeHelpBtn2.addEventListener("click", closeHelp);
+  helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && helpModal.classList.contains("show")) closeHelp(); });
 
-    if (btnExample) btnExample.onclick = autofillExample;
-    if (btnBuild) btnBuild.onclick = generateAll;
+  // Init from URL param or last session
+  const painParam = qs("pain");
+  const lastPain = localStorage.getItem("vc_last_pain");
+  const lastType = localStorage.getItem("vc_last_type");
+  if (lastType) systemType.value = lastType;
 
-    // Inputs auto-save (so “resume session” is real)
-    ["oneSentence", "output", "artifactSelect"].forEach((id) => {
-      const el = $(id);
-      if (el) el.addEventListener("input", () => scheduleAutoSave());
-      if (el) el.addEventListener("change", () => scheduleAutoSave());
-    });
-
-    // Viewer buttons
-    const btnCopy = $maybe(["btnCopy"]);
-    const btnDownload = $maybe(["btnDownload"]);
-    const btnClose = $maybe(["btnClose"]);
-    const btnRefresh = $maybe(["btnRefresh", "btnViewerRefresh", "btnReFresh"]);
-
-    if (btnCopy) btnCopy.onclick = copyViewer;
-    if (btnDownload) btnDownload.onclick = downloadCurrentFile;
-    if (btnClose) btnClose.onclick = closeViewer;
-    if (btnRefresh) btnRefresh.onclick = hardRefresh;
-
-    // Download all
-    const btnDownloadAll = $maybe(["btnDownloadAll"]);
-    if (btnDownloadAll) btnDownloadAll.onclick = downloadAllFiles;
-
-    // Docs buttons
-    const btnPDF1 = $maybe(["btnPDF1"]);
-    const btnPDF2 = $maybe(["btnPDF2"]);
-    const btnPDF3 = $maybe(["btnPDF3"]);
-    const btnPDF4 = $maybe(["btnPDF4"]);
-
-    if (btnPDF1) btnPDF1.onclick = () => generatePDF1(currentSOT?.definition || {});
-    if (btnPDF2) btnPDF2.onclick = () => generatePDF2(currentSOT?.data || {});
-    if (btnPDF3) btnPDF3.onclick = () => generatePDF3(currentSOT?.workflow || {});
-    if (btnPDF4) btnPDF4.onclick = () => generatePDF4(currentSOT?.constraints || {});
-
-    // Snapshot download
-    const btnStage5 = $maybe(["btnDownloadStage5"]);
-    if (btnStage5) {
-      btnStage5.onclick = () => downloadTextFile("Stage5_Snapshot.txt", currentStage5 || "");
-    }
-
-    // Session buttons
-    const btnSave = $("btnSaveProof");
-    const btnLoad = $("btnLoadProof");
-    const btnClear = $("btnClearProof");
-
-    if (btnSave) btnSave.onclick = saveSessionToFile;
-    if (btnLoad) btnLoad.onclick = triggerLoadSessionFile;
-    if (btnClear) btnClear.onclick = clearSession;
-
-    // File input change
-    const proofFile = $("proofFile");
-    if (proofFile) {
-      proofFile.addEventListener("change", (e) => {
-        const file = e.target?.files?.[0];
-        handleSessionFileChosen(file);
-      });
-    }
-  }
-
-  // -----------------------------
-  // Boot
-  // -----------------------------
-  function boot() {
-    applyLockedAdvanced();
-
-    waitForIndustriesThenInit(() => {
-      // After industries are populated, try resume
-      const resumed = loadSessionFromLocalStorage();
-      if (resumed) {
-        setStatus("Resumed last proof session.");
-      } else {
-        setStatus("");
-      }
-    });
-
-    wireUI();
-
-    // Default state
-    setPills({
-      phase: "1–2",
-      industry: "—",
-      proof: "Proof: Not generated",
-      docs: "Docs: Not generated"
-    });
-
-    // Disable outputs until build or load
-    safeDisable($("btnDownloadAll"), true);
-    safeDisable($("btnPDF1"), true);
-    safeDisable($("btnPDF2"), true);
-    safeDisable($("btnPDF3"), true);
-    safeDisable($("btnPDF4"), true);
-    safeDisable($("btnDownloadStage5"), true);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+  if (painParam) {
+    painInput.value = painParam;
+    paramStatus.textContent = "Loaded from share link";
+  } else if (lastPain) {
+    painInput.value = lastPain;
+    paramStatus.textContent = "Loaded last request";
   } else {
-    boot();
+    paramStatus.textContent = "";
   }
+
+  if ((painInput.value || "").trim()) {
+    status.textContent = "Ready. Click “Generate first build”.";
+  }
+
+  setTab("preview");
 })();
