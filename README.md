@@ -40,3 +40,5 @@ See `THIRD_PARTY_NOTICES.md` for details.
 - A guarantee of functionality beyond what is explicitly generated
 
 Anything not stated verbatim should be considered **unknown**.
+
+This repository is released under the Vibe Coded Source-Available License (v1.0-proof).
