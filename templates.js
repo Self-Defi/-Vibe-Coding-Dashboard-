@@ -1330,6 +1330,25 @@ const INDUSTRIES = {
     })
   }
 };
-window.__TEMPLATES_READY__ = true;
-window.INDUSTRIES = INDUSTRIES;
-console.log("templates.js loaded:", Object.keys(window.INDUSTRIES || {}).length, "industries");
+
+// ------------------------------------------------------------
+// Background-only export (no UI assumptions)
+// ------------------------------------------------------------
+(function () {
+  // One canonical namespace for the whole app
+  window.VC_TEMPLATES = {
+    ready: true,
+    version: "v1",
+    industries: INDUSTRIES
+  };
+
+  // Optional backward compatibility (safe aliases)
+  window.__TEMPLATES_READY__ = true;
+  window.INDUSTRIES = INDUSTRIES;
+
+  console.log(
+    "templates.js loaded:",
+    Object.keys(INDUSTRIES || {}).length,
+    "industries"
+  );
+})();
