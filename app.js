@@ -1,8 +1,3 @@
-/* app.js — Vibe Coding Dashboard
-   Fix: preview renders from files["assets/system-image.svg"] (after overwrite),
-   so placeholder from templates can’t leak into Deliverables.
-*/
-
 (() => {
   // DOM
   const painInput = document.getElementById("painInput");
@@ -39,11 +34,8 @@
   const closeHelpBtn = document.getElementById("closeHelpBtn");
   const closeHelpBtn2 = document.getElementById("closeHelpBtn2");
 
-  // VERSION STAMP (so you can confirm the deployed file is updated)
-  const APP_VERSION = "APP v2026-01-07.1";
-
   // State
-  let current = { pain: "", type: "", prompt: "", files: {} };
+  let current = { pain: "", type: "", prompt: "", svg: "", files: {} };
 
   // Utilities
   const qs = (k) => new URLSearchParams(window.location.search).get(k);
@@ -54,11 +46,11 @@
   }
 
   function safeName(str) {
-    return (str || "vibe-coding-build")
+    return (str || "vibe-coded-build")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "vibe-coding-build";
+      .slice(0, 48) || "vibe-coded-build";
   }
 
   async function copyText(text) {
@@ -71,7 +63,7 @@
       ">": "&gt;",
       "&": "&amp;",
       "'": "&apos;",
-      "\"": "&quot;"
+      "\"": "&quot;",
     }[c]));
   }
 
@@ -99,7 +91,7 @@
     if (active === "zip")     { tabZip.classList.add("active"); tabZip.setAttribute("aria-selected", "true"); panelZip.classList.add("show"); }
   }
 
-  // Canonical prompt (locked)
+  // SoT-locked canonical prompt
   function buildCanonicalPrompt(type, pain) {
     return `A high-fidelity system architecture visualization of a ${type} designed to solve "${pain}".
 The image shows clearly defined components including input, processing logic, automation, and outputs.
@@ -107,55 +99,135 @@ Dark technical interface style, grid-based layout, modern infrastructure aesthet
 Clean, professional, engineered, and realistic — suitable for a technical architecture document.`;
   }
 
-  // Deterministic SVG (no placeholder)
-  function buildSystemSvg(type, pain) {
-    const title = `${type}`;
-    const subtitle = `Problem: ${pain}`;
+  // -----------------------------
+  // BETTER deterministic diagrams
+  // -----------------------------
+  function hash32(str) {
+    // FNV-1a 32-bit
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
 
-    return `<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#070b14"/>
-      <stop offset="100%" stop-color="#0b1220"/>
-    </linearGradient>
+  function pickAccent(seed) {
+    const accents = [
+      "rgba(217,70,141,0.85)",  // pink
+      "rgba(92,200,255,0.85)",  // cyan
+      "rgba(87,242,135,0.85)",  // green
+      "rgba(255,209,102,0.85)", // gold
+      "rgba(192,132,252,0.85)", // purple
+    ];
+    return accents[seed % accents.length];
+  }
 
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M 48 0 H 0 V 48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-    </pattern>
+  function getDiagramTemplate(type) {
+    const t = (type || "").toLowerCase();
 
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
-    </filter>
-  </defs>
+    if (t.includes("lead")) {
+      return {
+        title: "Lead generation pipeline",
+        footer: "Deterministic first-pass pipeline — no implied deliverability, legality, or compliance.",
+        nodes: [
+          { label: "Sources", lines: ["Lists", "Inbound", "Explicit imports"], accent: "#5cc8ff" },
+          { label: "Enrichment", lines: ["Normalize", "Validate", "Deduplicate"], accent: "#57f287" },
+          { label: "Outreach", lines: ["Sequencing", "Personalization", "Follow-ups"], accent: "#ffd166" },
+          { label: "CRM / Reporting", lines: ["Stages", "Notes", "Dashboard"], accent: "#c084fc" },
+          { label: "State / Storage", lines: ["Local state", "Templates", "Versioning"], accent: "#5cc8ff" },
+        ],
+        bottomFrom: 1,
+        edges: [[2, 4]]
+      };
+    }
 
-  <rect width="1200" height="675" fill="url(#bg)"/>
-  <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
+    if (t.includes("dao")) {
+      return {
+        title: "DAO governance system",
+        footer: "Governance sketch — execution security depends on explicit modules, thresholds, and audits.",
+        nodes: [
+          { label: "Proposals", lines: ["Draft", "Discussion", "Submission"], accent: "#5cc8ff" },
+          { label: "Policy / Rules", lines: ["Roles", "Thresholds", "Guards"], accent: "#57f287" },
+          { label: "Voting", lines: ["Quorum", "Signals", "Timelock"], accent: "#ffd166" },
+          { label: "Execution", lines: ["Safe tx", "Modules", "Logs"], accent: "#c084fc" },
+          { label: "Treasury / Records", lines: ["Attestations", "Snapshots", "Audit trail"], accent: "#5cc8ff" },
+        ],
+        bottomFrom: 3,
+        edges: [[1, 4]]
+      };
+    }
 
-  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="800">
-    ${escapeXml(title)}
-  </text>
-  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
-    ${escapeXml(subtitle)}
-  </text>
+    if (t.includes("custody")) {
+      return {
+        title: "Non-custodial custody workflow",
+        footer: "Workflow sketch — security requires explicit hardware + policy decisions (not implied).",
+        nodes: [
+          { label: "User / Intent", lines: ["Request", "Amount", "Destination"], accent: "#5cc8ff" },
+          { label: "Signing", lines: ["Hardware wallet", "Multisig", "Approvals"], accent: "#57f287" },
+          { label: "Policy / Verification", lines: ["Rules", "Address checks", "Delays"], accent: "#ffd166" },
+          { label: "Broadcast / Monitor", lines: ["Send", "Confirmations", "Alerts"], accent: "#c084fc" },
+          { label: "State / Logs", lines: ["Configs", "Records", "Versioning"], accent: "#5cc8ff" },
+        ],
+        bottomFrom: 2,
+        edges: [[3, 4]]
+      };
+    }
 
-  <g filter="url(#softShadow)">
-    ${box(90, 190, 220, 110, "Input Layer", ["User request", "Forms / Events", "Imports"], "#5cc8ff")}
-    ${box(360, 190, 240, 110, "Logic Layer", ["Rules", "Parsing", "Validation"], "#57f287")}
-    ${box(650, 190, 250, 110, "Automation Engine", ["Triggers", "Actions", "Routing"], "#ffd166")}
-    ${box(945, 190, 200, 110, "Outputs", ["Artifacts", "Files", "Delivery"], "#c084fc")}
-    ${box(360, 360, 535, 120, "State / Storage (optional)", ["Local state", "Config", "Versioning"], "#5cc8ff")}
-  </g>
+    if (t.includes("workflow")) {
+      return {
+        title: "Workflow automation",
+        footer: "Workflow sketch — connectors and integrations are explicit-only additions.",
+        nodes: [
+          { label: "Intake", lines: ["Forms", "Email", "Files"], accent: "#5cc8ff" },
+          { label: "Rules", lines: ["Validation", "Routing", "States"], accent: "#57f287" },
+          { label: "Actions", lines: ["Tasks", "Notifications", "Updates"], accent: "#ffd166" },
+          { label: "Outputs", lines: ["Reports", "Artifacts", "Exports"], accent: "#c084fc" },
+          { label: "Audit Trail", lines: ["Logs", "Snapshots", "Versioning"], accent: "#5cc8ff" },
+        ],
+        bottomFrom: 1,
+        edges: [[2, 4]]
+      };
+    }
 
-  ${arrow(310, 245, 360, 245)}
-  ${arrow(600, 245, 650, 245)}
-  ${arrow(900, 245, 945, 245)}
-  ${arrow(600, 300, 600, 360)}
-  ${arrow(895, 420, 945, 245)}
+    if (t.includes("data intake")) {
+      return {
+        title: "Data intake + processing system",
+        footer: "Processing sketch — data sources and schemas are unknown unless explicitly provided.",
+        nodes: [
+          { label: "Sources", lines: ["Uploads", "APIs (explicit)", "Streams (explicit)"], accent: "#5cc8ff" },
+          { label: "Parsing", lines: ["Schema map", "Cleaning", "Validation"], accent: "#57f287" },
+          { label: "Processing", lines: ["Transforms", "Rules", "Enrichment"], accent: "#ffd166" },
+          { label: "Outputs", lines: ["Exports", "Dashboards", "Artifacts"], accent: "#c084fc" },
+          { label: "Storage", lines: ["Versioned data", "Configs", "Snapshots"], accent: "#5cc8ff" },
+        ],
+        bottomFrom: 2,
+        edges: [[2, 4]]
+      };
+    }
 
-  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
-    Deterministic visualization — suitable for architecture docs. No branding. No marketing claims.
-  </text>
-</svg>`;
+    // Default: AI automation system / generic
+    return {
+      title: type || "System",
+      footer: "Deterministic visualization — suitable for architecture docs. No branding. No marketing claims.",
+      nodes: [
+        { label: "Input Layer", lines: ["User request", "Events", "Imports"], accent: "#5cc8ff" },
+        { label: "Logic Layer", lines: ["Rules", "Parsing", "Validation"], accent: "#57f287" },
+        { label: "Orchestration", lines: ["Triggers", "Actions", "Routing"], accent: "#ffd166" },
+        { label: "Outputs", lines: ["Artifacts", "Files", "Delivery"], accent: "#c084fc" },
+        { label: "State / Storage", lines: ["Local state", "Config", "Versioning"], accent: "#5cc8ff" },
+      ],
+      bottomFrom: 1,
+      edges: [[2, 4]]
+    };
+  }
+
+  function arrow(x1, y1, x2, y2, accent) {
+    return `
+    <g>
+      <path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="${accent}" stroke-width="3" fill="none" opacity="0.85"/>
+      <path d="M ${x2} ${y2} l -10 -6 l 2 12 z" fill="${accent}" opacity="0.85"/>
+    </g>`;
   }
 
   function box(x, y, w, h, title, lines, accent) {
@@ -163,7 +235,7 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     const padX = 18;
     const lineY1 = y + 66;
 
-    const linesSvg = lines.map((t, i) => (
+    const linesSvg = (lines || []).map((t, i) => (
       `<text x="${x + padX}" y="${lineY1 + i * 20}" fill="rgba(255,255,255,0.68)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="14">${escapeXml(t)}</text>`
     )).join("");
 
@@ -176,58 +248,285 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     </g>`;
   }
 
-  function arrow(x1, y1, x2, y2) {
-    return `
-    <g>
-      <path d="M ${x1} ${y1} L ${x2} ${y2}" stroke="rgba(217,70,141,0.85)" stroke-width="3" fill="none"/>
-      <path d="M ${x2} ${y2} l -10 -6 l 2 12 z" fill="rgba(217,70,141,0.85)"/>
-    </g>`;
+  // Deterministic system "image" (SVG) — now varies by template
+  function buildSystemSvg(type, pain) {
+    const tpl = getDiagramTemplate(type);
+    const seed = hash32(`${type}::${pain}`);
+    const accent = pickAccent(seed);
+
+    const title = tpl.title;
+    const subtitle = `Problem: ${pain}`;
+
+    const W = 1200, H = 675;
+    const marginX = 70;
+    const topY = 190;
+    const rowGap = 44;
+    const colGap = 24;
+    const boxW = 250;
+    const boxH = 120;
+
+    const nodes = tpl.nodes.slice();
+    const topRow = nodes.slice(0, 4);
+    const bottomRow = nodes.slice(4);
+
+    function rowX(i) { return marginX + i * (boxW + colGap); }
+
+    const boxes = [];
+    topRow.forEach((n, i) => boxes.push({ ...n, x: rowX(i), y: topY, w: boxW, h: boxH }));
+
+    if (bottomRow.length) {
+      const bottomCount = Math.min(bottomRow.length, 3);
+      const spanW = 4 * boxW + 3 * colGap;
+      const bottomSpanW = bottomCount * boxW + (bottomCount - 1) * colGap;
+      const startX = marginX + Math.max(0, (spanW - bottomSpanW) / 2);
+
+      bottomRow.slice(0, bottomCount).forEach((n, i) => {
+        boxes.push({ ...n, x: startX + i * (boxW + colGap), y: topY + boxH + rowGap, w: boxW, h: boxH });
+      });
+    }
+
+    const arrows = [];
+
+    // linear flow across top row
+    for (let i = 0; i < topRow.length - 1; i++) {
+      const a = boxes[i];
+      const b = boxes[i + 1];
+      arrows.push({ x1: a.x + a.w, y1: a.y + 60, x2: b.x, y2: b.y + 60 });
+    }
+
+    // connect to bottom row (if present)
+    if (bottomRow.length) {
+      const from = boxes[tpl.bottomFrom ?? 1] || boxes[1];
+      const to = boxes[topRow.length];
+      if (from && to) {
+        arrows.push({ x1: from.x + from.w / 2, y1: from.y + from.h, x2: to.x + to.w / 2, y2: to.y });
+      }
+    }
+
+    // extra edges declared in template (indices refer to boxes array)
+    (tpl.edges || []).forEach(([fromIdx, toIdx]) => {
+      const a = boxes[fromIdx];
+      const b = boxes[toIdx];
+      if (!a || !b) return;
+      arrows.push({ x1: a.x + a.w, y1: a.y + 60, x2: b.x, y2: b.y + 60 });
+    });
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#070b14"/>
+      <stop offset="100%" stop-color="#0b1220"/>
+    </linearGradient>
+
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    </pattern>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
+    </filter>
+  </defs>
+
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <rect width="${W}" height="${H}" fill="url(#grid)" opacity="0.55"/>
+
+  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="800">
+    ${escapeXml(title)}
+  </text>
+  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
+    ${escapeXml(subtitle)}
+  </text>
+
+  <g filter="url(#softShadow)">
+    ${boxes.map(b => box(b.x, b.y, b.w, b.h, b.label, b.lines, b.accent || accent)).join("")}
+  </g>
+
+  ${arrows.map(a => arrow(a.x1, a.y1, a.x2, a.y2, accent)).join("")}
+
+  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
+    ${escapeXml(tpl.footer)}
+  </text>
+</svg>`;
   }
 
-  // Bundle builder (templates + overwrite)
+  // Repo files (explicit, bounded) + includes static/styles.css now
   function buildRepoFiles(type, pain, prompt, svg) {
-    const hasTemplates = !!(window.VIBE_FIRST_BUILD && typeof window.VIBE_FIRST_BUILD.buildFirst === "function");
-    const base = hasTemplates ? window.VIBE_FIRST_BUILD.buildFirst(pain) : {};
+    const repoName = safeName(pain);
 
-    // Force deterministic artifacts (this is the whole fix)
-    base["assets/image-prompt.txt"] = prompt;
-    base["assets/system-image.svg"] = svg;
+    // Prefer templates.js for static scaffold + css if present
+    let templateFiles = null;
+    try {
+      if (window.VIBE_FIRST_BUILD && typeof window.VIBE_FIRST_BUILD.buildFirst === "function") {
+        templateFiles = window.VIBE_FIRST_BUILD.buildFirst(pain);
+      }
+    } catch (e) {}
 
-    // Ensure static/styles.css exists even if templates missing
-    if (!base["static/styles.css"]) {
-      base["static/styles.css"] = `:root{--bg0:#070b14;--bg1:#0b1220;--text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.68);--border:rgba(255,255,255,.10)}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:linear-gradient(180deg,var(--bg0),var(--bg1))}
-.wrap{max-width:980px;margin:0 auto;padding:28px 18px}.card{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px}
-.muted{color:var(--muted);line-height:1.55}.img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}`;
-    }
+    const README = `# ${repoName}
 
-    // Ensure static/index.html links to css
-    if (!base["static/index.html"]) {
-      const repoName = safeName(pain);
-      base["static/index.html"] = `<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${escapeHtml(repoName)}</title>
-<link rel="stylesheet" href="./styles.css"/>
-</head><body>
-<div class="wrap">
-<h1>${escapeHtml(repoName)}</h1>
-<p class="muted"><strong>Problem:</strong> ${escapeHtml(pain)}</p>
-<div class="card"><h2>System image</h2>
-<div class="img"><img src="../assets/system-image.svg" alt="System architecture visualization" style="width:100%;height:auto"/></div>
-</div></div></body></html>`;
-    }
+This repository is the result of a proof-first engine that turns one written problem into tangible first-build infrastructure.
 
-    // Helpful stamp so you can confirm templates/app alignment
-    base["_meta.txt"] = `${APP_VERSION}\n${hasTemplates ? "templates.js: ready" : "templates.js: missing"}\nGenerated: ${nowStamp()}\n`;
+**System type:** ${type}  
+**Problem statement:** “${pain}”
 
-    return base;
+## What this produces
+- A deterministic (but type-shaped) system visualization
+- A documented architecture boundary
+- A static scaffold suitable for iteration
+- Explicit assumptions and limitations
+
+## What this does NOT mean (critical)
+- Not production-ready
+- Not security-audited
+- Not compliance-validated
+- No backend implied unless explicitly added
+
+## Status
+- Proof Engine
+- v1.0-proof
+
+![Status](https://img.shields.io/badge/status-v1.0--proof-success)
+
+## Included files
+- README.md
+- architecture.md
+- assumptions.md
+- DISCLAIMER.md
+- assets/system-image.svg
+- assets/image-prompt.txt
+- static/index.html
+- static/styles.css
+
+## Run
+Open static/index.html directly, or serve with:
+- python -m http.server 8080
+
+## Ownership
+You control the outputs.`;
+
+    const ARCH = `# System Boundary
+
+Inside:
+- Request intake
+- Parsing and structuring
+- Deterministic artifact generation (docs + scaffold + visualization)
+
+Outside:
+- Hosting environment
+- Data sources unless explicitly provided
+- External services unless explicitly integrated
+
+# Flow
+Input -> Logic -> Automation -> Output
+Optional: State/Storage (explicit only)
+
+# Non-goals
+- Production claims
+- Security guarantees
+- Compliance guarantees`;
+
+    const ASSUMPTIONS = `# Assumptions Disclosure (Explicit)
+
+Rule:
+- Anything not stated verbatim is unknown.
+
+Assumption: The request can be represented as a typed template (type-shaped architecture)
+Reason: Ensures the diagram is not the same shape for every request.
+
+Assumption: Default delivery is a static scaffold
+Reason: Tangible output without implying backend services
+
+Unknowns:
+- Scale targets
+- Security requirements
+- Compliance requirements
+- Data quality/availability
+
+If unknowns become required, state them explicitly and regenerate.`;
+
+    const DISCLAIMER = `# Meaning and Limitations (Critical)
+
+These generated files are a starting point.
+
+They do NOT mean:
+- Complete system
+- Production readiness
+- Security validation
+- Compliance validation
+
+Maturity promotion is explicit and evidence-based:
+Static artifact -> Prototype -> Systemized application -> Production system.`;
+
+    // If templates.js exists, use its scaffold outputs (but we still overwrite SVG + prompt to match this generator)
+    const files = templateFiles ? { ...templateFiles } : {
+      "static/index.html": `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${repoName}</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#070b14;color:rgba(255,255,255,.92)}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .card{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px}
+    .muted{color:rgba(255,255,255,.65);line-height:1.55}
+    .img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>${repoName}</h1>
+    <p class="muted"><strong>Problem:</strong> ${escapeHtml(pain)}</p>
+
+    <div class="card">
+      <h2>System image</h2>
+      <div class="img">
+        <img src="../assets/system-image.svg" alt="System architecture visualization" style="width:100%;height:auto"/>
+      </div>
+      <p class="muted">Deterministic visualization suitable for architecture docs.</p>
+    </div>
+
+    <div class="card">
+      <h2>Boundaries</h2>
+      <ul class="muted">
+        <li>No implied production readiness</li>
+        <li>No implied security or compliance</li>
+        <li>Anything not stated is unknown</li>
+      </ul>
+      <p class="muted">See README.md, architecture.md, assumptions.md, DISCLAIMER.md</p>
+    </div>
+  </div>
+</body>
+</html>`,
+      "static/styles.css": `:root{--bg0:#070b14;--bg1:#0b1220;--text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.70);--border:rgba(255,255,255,.10);--shadow:0 16px 48px rgba(0,0,0,.45)}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);
+background:radial-gradient(900px 520px at 12% 8%, rgba(192,132,252,.18), transparent 60%),
+radial-gradient(900px 520px at 82% 26%, rgba(92,200,255,.14), transparent 55%),
+linear-gradient(180deg,var(--bg0),var(--bg1))}
+.wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+.card{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:18px;padding:16px;margin-top:14px;box-shadow:var(--shadow)}
+.muted{color:var(--muted);line-height:1.55}
+.img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;padding:12px;background:rgba(0,0,0,.18)}`
+    };
+
+    // overwrite / set canonical docs + artifacts
+    return {
+      ...files,
+      "README.md": README,
+      "architecture.md": ARCH,
+      "assumptions.md": ASSUMPTIONS,
+      "DISCLAIMER.md": DISCLAIMER,
+      "assets/image-prompt.txt": prompt,
+      "assets/system-image.svg": svg
+    };
   }
 
   // Render
-  function renderSvgFromFiles(files) {
-    const svg = files?.["assets/system-image.svg"];
-    svgPreview.innerHTML = svg ? svg : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
+  function renderSvg(svg) {
+    svgPreview.innerHTML = svg
+      ? svg
+      : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
   }
 
   function renderFiles(files) {
@@ -249,7 +548,8 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
             </div>
           </div>
           <pre class="fileBody">${escapeXml(body)}</pre>
-        </div>`;
+        </div>
+      `;
     }).join("");
 
     fileList.querySelectorAll("[data-copy]").forEach((btn) => {
@@ -308,7 +608,9 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
       return;
     }
     const zip = new window.JSZip();
-    for (const [path, content] of Object.entries(files)) zip.file(path, content);
+    for (const [path, content] of Object.entries(files)) {
+      zip.file(path, content);
+    }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -333,17 +635,14 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     localStorage.setItem("vc_last_pain", pain);
     localStorage.setItem("vc_last_type", type);
 
-    const prompt = buildCanonicalPrompt(type, pain);
-    const svg = buildSystemSvg(type, pain);
-
     current.pain = pain;
     current.type = type;
-    current.prompt = prompt;
-    current.files = buildRepoFiles(type, pain, prompt, svg);
+    current.prompt = buildCanonicalPrompt(type, pain);
+    current.svg = buildSystemSvg(type, pain);
+    current.files = buildRepoFiles(type, pain, current.prompt, current.svg);
 
-    // IMPORTANT: preview renders from files (post-overwrite)
-    renderSvgFromFiles(current.files);
-    promptOut.textContent = prompt;
+    renderSvg(current.svg);
+    promptOut.textContent = current.prompt;
     renderFiles(current.files);
 
     downloadSvgBtn.disabled = false;
@@ -352,15 +651,15 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     downloadZipBtn.disabled = false;
 
     buildStamp.textContent = `Generated: ${nowStamp()}`;
-    paramStatus.textContent = APP_VERSION;
     status.textContent = "First build generated. Review deliverables, then download the repo bundle.";
 
     try { plausible("vc_generate"); } catch (e) {}
+
     setTab("preview");
   }
 
   function resetAll() {
-    current = { pain: "", type: "", prompt: "", files: {} };
+    current = { pain: "", type: "", prompt: "", svg: "", files: {} };
     painInput.value = "";
     status.textContent = "";
     buildStamp.textContent = "";
@@ -373,7 +672,6 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     copyAllBtn.disabled = true;
     downloadZipBtn.disabled = true;
 
-    paramStatus.textContent = APP_VERSION;
     setTab("preview");
   }
 
@@ -397,18 +695,15 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
   tabFiles.addEventListener("click", () => setTab("files"));
   tabZip.addEventListener("click", () => setTab("zip"));
 
-  downloadSvgBtn.addEventListener("click", () => {
-    const svg = current.files?.["assets/system-image.svg"] || "";
-    downloadSvg(svg, "system-image.svg");
-  });
+  downloadSvgBtn.addEventListener("click", () => downloadSvg(current.svg, "system-image.svg"));
 
   copyPromptBtn.addEventListener("click", async () => {
-    await copyText(current.prompt || "");
+    await copyText(current.prompt);
     toast("Copied image prompt");
   });
 
   copyAllBtn.addEventListener("click", async () => {
-    const all = Object.entries(current.files || {})
+    const all = Object.entries(current.files)
       .map(([k, v]) => `--- ${k} ---\n${v}\n`)
       .join("\n");
     await copyText(all);
@@ -438,7 +733,7 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
   helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && helpModal.classList.contains("show")) closeHelp(); });
 
-  // Init
+  // Init from URL param or last session
   const painParam = qs("pain");
   const lastPain = localStorage.getItem("vc_last_pain");
   const lastType = localStorage.getItem("vc_last_type");
@@ -451,9 +746,12 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     painInput.value = lastPain;
     paramStatus.textContent = "Loaded last request";
   } else {
-    paramStatus.textContent = APP_VERSION;
+    paramStatus.textContent = "";
   }
 
-  if ((painInput.value || "").trim()) status.textContent = "Ready. Click “Generate first build”.";
+  if ((painInput.value || "").trim()) {
+    status.textContent = "Ready. Click “Generate first build”.";
+  }
+
   setTab("preview");
 })();
