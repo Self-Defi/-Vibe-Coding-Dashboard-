@@ -1,65 +1,288 @@
 /* templates.js
    Vibe Coded — Proof Engine Templates (v1.0-proof)
-   - Provides per-option diagram templates
-   - Generates deterministic SVGs that actually change by system type + pain point
-   - Exposes: window.VIBE_CODED_TEMPLATES.build({ type, pain })
+
+   buildFirst(problem, type) => files map:
+   - README.md
+   - architecture.md
+   - assumptions.md
+   - DISCLAIMER.md
+   - assets/system-image.svg     (template varies by type)
+   - assets/image-prompt.txt
+   - static/index.html
+   - static/styles.css
 */
 
-(() => {
-  // -----------------------------
-  // Utilities
-  // -----------------------------
-  function escXml(s = "") {
-    return String(s).replace(/[<>&'"]/g, (c) => ({
-      "<": "&lt;",
-      ">": "&gt;",
-      "&": "&amp;",
-      "'": "&apos;",
-      '"': "&quot;",
-    }[c]));
-  }
+(function () {
+  const VERSION = "v1.0-proof";
+  const BRAND = "Vibe Coded Studio";
+  const TAGLINE = "Write the pain point. Get a first build.";
+  const POWERED_BY = "Self-Defi";
 
-  function escHtml(s = "") {
-    return String(s).replace(/[&<>"']/g, (m) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    }[m]));
+  // -------------------------
+  // Small utilities
+  // -------------------------
+  function esc(s = "") {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 
   function nowISO() {
     return new Date().toISOString();
   }
 
-  function safeName(str) {
-    return (str || "vibe-coded-proof")
+  function normalizeProblem(raw) {
+    const t = String(raw || "").trim();
+    return t.length ? t : "I need a system that solves a clear operational problem.";
+  }
+
+  function normalizeType(raw) {
+    const t = String(raw || "").trim();
+    return t.length ? t : "AI automation system";
+  }
+
+  function safeRepoName(problem) {
+    return normalizeProblem(problem)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "vibe-coded-proof";
+      .slice(0, 48) || "vibe-coded-build";
   }
 
-  function normalizePain(raw) {
-    const t = String(raw || "").trim();
-    return t.length ? t : "I need a simple system that solves a clear operational problem.";
+  // -------------------------
+  // Static scaffold CSS deliverable
+  // -------------------------
+  const STATIC_SCAFFOLD_CSS = `:root{
+  --bg0:#070b14;
+  --bg1:#0b1220;
+  --card:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.10);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.68);
+  --shadow:0 18px 60px rgba(0,0,0,.45);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(900px 480px at 12% 8%, rgba(217,70,141,.18), transparent 60%),
+    radial-gradient(900px 520px at 82% 26%, rgba(80,140,255,.14), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+.wrap{max-width:1020px;margin:0 auto;padding:26px 18px 46px}
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 0 18px;border-bottom:1px solid var(--border);
+}
+.brand{font-weight:850;letter-spacing:.2px;font-size:18px}
+.sub{margin-top:4px;color:var(--muted);font-size:13px}
+.h1{margin:22px 0 8px;font-size:44px;line-height:1.06}
+.p{margin:0 0 18px;color:var(--muted);font-size:16px}
+.card{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+.label{font-size:13px;color:var(--muted);margin:0 0 8px}
+textarea{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.15);
+  color:var(--text);
+  padding:14px;
+  font-size:15px;
+  outline:none;
+}
+.meta{font-size:12px;color:var(--muted);margin-top:8px;text-align:right}
+.footer{
+  margin-top:26px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--muted);
+  font-size:12px;
+}`;
+
+  function makeStaticIndexHTML({ problem, type, generatedAtISO }) {
+    const safeProblem = esc(problem);
+    const safeType = esc(type);
+    const safeGen = esc(generatedAtISO);
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${safeType}</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>${STATIC_SCAFFOLD_CSS}</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="brand">${BRAND}</div>
+        <div class="sub">${TAGLINE}</div>
+      </div>
+      <div class="sub">${VERSION}</div>
+    </div>
+
+    <div class="h1">Tell us what you want built.</div>
+    <p class="p">It turns a written idea into something you can see, share, and build on.</p>
+
+    <div class="card">
+      <div class="label"><strong>System type:</strong> ${safeType}</div>
+      <div class="label"><strong>Your request:</strong></div>
+      <textarea readonly>${safeProblem}</textarea>
+      <div class="meta">Generated: ${safeGen}</div>
+    </div>
+
+    <div class="footer">
+      <div>${BRAND}<br/><span class="sub">Proof-first. No marketing claims.</span></div>
+      <div>Powered by ${POWERED_BY}</div>
+    </div>
+  </div>
+</body>
+</html>`;
   }
 
-  // -----------------------------
+  // -------------------------
+  // Docs
+  // -------------------------
+  function makeReadmeMD(problem, type) {
+    const repoName = safeRepoName(problem);
+    return `# ${repoName}
+
+**${BRAND} — Proof Engine**  
+System type: **${type}**
+
+![Status](https://img.shields.io/badge/status-${VERSION.replaceAll("-", "--")}-success)
+
+## What this is
+This repository contains a generated “first build” bundle — a deterministic starting point that turns a written problem statement into tangible artifacts:
+
+- A deterministic system visualization (SVG)
+- A documented architecture boundary
+- A static scaffold suitable for iteration
+- Explicit assumptions + limitations (Source of Truth rules)
+
+## License
+Released under the **Vibe Coded Source-Available License (${VERSION})**.  
+Commercial use, resale, or SaaS deployment requires permission.
+
+## Third-party
+This project may include third-party open-source components.  
+See \`THIRD_PARTY_NOTICES.md\` for details.
+
+## Run
+Open \`static/index.html\` directly, or serve with:
+- \`python -m http.server 8080\`
+
+## Ownership
+You control the outputs.
+`;
+  }
+
+  function makeArchitectureMD(type) {
+    return `# Architecture Boundary (Starting Point)
+
+**System type:** ${type}  
+**Version:** ${VERSION}
+
+## Inside boundary
+- Request intake (problem statement)
+- Deterministic artifact generation
+- Documentation outputs (assumptions, architecture, disclaimer)
+- System visualization (SVG)
+
+## Outside boundary (explicit only)
+- Hosting environment
+- External data sources
+- Third-party services / integrations
+- Security, compliance, and legal validation
+
+## Flow (generic)
+Input → Processing → Automation → Output  
+Optional: Source of Truth (SoT) storage + logs
+
+## Non-goals
+- Production claims
+- Security guarantees
+- Compliance guarantees
+`;
+  }
+
+  function makeAssumptionsMD(problem, type) {
+    return `# Assumptions Disclosure (Explicit)
+
+**Version:** ${VERSION}  
+**System type:** ${type}
+
+Rule:
+- Anything not stated verbatim is unknown.
+
+Request (verbatim):
+- ${problem}
+
+Assumptions:
+- The system can be expressed as a small number of stages (pipeline) to produce a deterministic diagram
+- Default delivery is static, inspectable files (no backend implied)
+
+Unknowns (must be stated explicitly to exist):
+- Data source(s)
+- Access model / permissions
+- Compliance requirements (if any)
+- SLA expectations
+- Security requirements
+`;
+  }
+
+  function makeDisclaimerMD() {
+    return `# Meaning and Limitations (Critical)
+
+**Version:** ${VERSION}
+
+These generated files are a starting point.
+
+They do NOT mean:
+- Production readiness
+- Security validation
+- Compliance validation
+- Guaranteed outcomes
+
+Promotion is explicit and evidence-based:
+Static artifact → Prototype → Systemized application → Production system.
+`;
+  }
+
+  // -------------------------
   // Canonical image prompt (SoT)
-  // -----------------------------
-  function canonicalPrompt(type, pain) {
-    return `A high-fidelity system architecture visualization of a ${type} designed to solve "${pain}".
+  // -------------------------
+  function makeImagePromptTXT(problem, type) {
+    return `A high-fidelity system architecture visualization of a ${type} designed to solve "${problem}".
 The image shows clearly defined components including input, processing logic, automation, and outputs.
 Dark technical interface style, grid-based layout, modern infrastructure aesthetic, no people, no branding, no marketing visuals.
 Clean, professional, engineered, and realistic — suitable for a technical architecture document.`;
   }
 
-  // -----------------------------
-  // SVG builder primitives
-  // -----------------------------
-  function svgShell({ title, subtitle, bodySvg, footer }) {
+  // -------------------------
+  // SVG Engine (better, per template)
+  // -------------------------
+  function svgBase({ title, subtitle, body, footer }) {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="System architecture visualization">
   <defs>
@@ -73,62 +296,72 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     </pattern>
 
     <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="rgba(0,0,0,0.55)"/>
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="rgba(0,0,0,0.60)"/>
     </filter>
+
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.06)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)"/>
+    </linearGradient>
+
+    <style>
+      .t{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+      .title{fill:rgba(255,255,255,0.94);font-size:44px;font-weight:850}
+      .sub{fill:rgba(255,255,255,0.62);font-size:16px}
+      .h{fill:rgba(255,255,255,0.92);font-size:16px;font-weight:800}
+      .p{fill:rgba(255,255,255,0.68);font-size:14px}
+      .foot{fill:rgba(255,255,255,0.52);font-size:13px}
+    </style>
   </defs>
 
   <rect width="1200" height="675" fill="url(#bg)"/>
   <rect width="1200" height="675" fill="url(#grid)" opacity="0.55"/>
 
-  <text x="64" y="78" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" font-weight="900">
-    ${escXml(title)}
-  </text>
-  <text x="64" y="112" fill="rgba(255,255,255,0.62)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16">
-    ${escXml(subtitle)}
-  </text>
+  <text x="64" y="88" class="t title">${esc(title)}</text>
+  <text x="64" y="122" class="t sub">${esc(subtitle)}</text>
 
   <g filter="url(#softShadow)">
-    ${bodySvg}
+    ${body}
   </g>
 
-  <text x="64" y="626" fill="rgba(255,255,255,0.55)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="13">
-    ${escXml(footer)}
-  </text>
+  <text x="64" y="640" class="t foot">${esc(footer)}</text>
 </svg>`;
   }
 
-  function box({ x, y, w, h, title, lines, accent = "#5cc8ff" }) {
+  function card(x, y, w, h, header, lines, accent) {
     const r = 18;
-    const padX = 18;
-    const lineY1 = y + 66;
+    const padX = 20;
+    const headerY = y + 42;
+    const firstLineY = y + 72;
+
     const linesSvg = (lines || []).map((t, i) => (
-      `<text x="${x + padX}" y="${lineY1 + i * 20}" fill="rgba(255,255,255,0.70)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="14">${escXml(t)}</text>`
+      `<text x="${x + padX}" y="${firstLineY + i*20}" class="t p">${esc(t)}</text>`
     )).join("");
 
     return `
     <g>
-      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="${h}" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)"/>
-      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="6" fill="${accent}" opacity="0.95"/>
-      <text x="${x + padX}" y="${y + 38}" fill="rgba(255,255,255,0.92)" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="16" font-weight="900">${escXml(title)}</text>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="${h}" fill="url(#card)" stroke="rgba(255,255,255,0.10)"/>
+      <rect x="${x}" y="${y}" rx="${r}" ry="${r}" width="${w}" height="7" fill="${accent}" opacity="0.95"/>
+      <text x="${x + padX}" y="${headerY}" class="t h">${esc(header)}</text>
       ${linesSvg}
     </g>`;
   }
 
-  function arrow({ x1, y1, x2, y2, color = "rgba(217,70,141,0.85)" }) {
-    // Small arrow head
+  function arrow(x1, y1, x2, y2, color = "rgba(217,70,141,0.88)") {
+    // little arrowhead
     const dx = x2 - x1;
     const dy = y2 - y1;
-    const len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+    const len = Math.max(1, Math.hypot(dx, dy));
     const ux = dx / len;
     const uy = dy / len;
 
-    // Arrow head points
-    const hx = x2 - ux * 12;
-    const hy = y2 - uy * 12;
-    const leftX = hx + (-uy) * 6;
-    const leftY = hy + (ux) * 6;
-    const rightX = hx + (uy) * 6;
-    const rightY = hy + (-ux) * 6;
+    const ax = x2 - ux * 10;
+    const ay = y2 - uy * 10;
+
+    const leftX = ax + (-uy) * 6;
+    const leftY = ay + (ux) * 6;
+    const rightX = ax + (uy) * 6;
+    const rightY = ay + (-ux) * 6;
 
     return `
     <g>
@@ -137,351 +370,235 @@ Clean, professional, engineered, and realistic — suitable for a technical arch
     </g>`;
   }
 
-  // -----------------------------
-  // Per-template diagram builders
-  // (basic, easy to follow — like you requested)
-  // -----------------------------
-  function diagramLeadGen(pain) {
-    // 4-column: Sources → Qualification → Outreach → Handoff
-    const body =
-      box({ x: 70,  y: 190, w: 260, h: 120, title: "Lead Sources", accent: "#5cc8ff", lines: ["Website / forms", "Lists / CSV", "Inbound signals"] }) +
-      box({ x: 350, y: 190, w: 260, h: 120, title: "Enrichment + Scoring", accent: "#57f287", lines: ["Validate fields", "Score intent", "Deduplicate"] }) +
-      box({ x: 630, y: 190, w: 260, h: 120, title: "Outreach Automation", accent: "#ffd166", lines: ["Email / DM", "Follow-ups", "Routing rules"] }) +
-      box({ x: 910, y: 190, w: 220, h: 120, title: "Handoff", accent: "#c084fc", lines: ["Calendar link", "CRM update", "Owner notified"] }) +
-      box({ x: 350, y: 360, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["Leads table", "Activity log", "Status (new → contacted → booked → closed)"] }) +
-      arrow({ x1: 330, y1: 250, x2: 350, y2: 250 }) +
-      arrow({ x1: 610, y1: 250, x2: 630, y2: 250 }) +
-      arrow({ x1: 890, y1: 250, x2: 910, y2: 250 }) +
-      arrow({ x1: 480, y1: 310, x2: 480, y2: 360 }) +
-      arrow({ x1: 760, y1: 310, x2: 760, y2: 360 }) +
-      arrow({ x1: 1020, y1: 310, x2: 1020, y2: 360 });
+  // ---- Templates ----
 
-    return svgShell({
-      title: "Lead Generation Pipeline",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
+  function svgLeadGen(problem) {
+    const title = "Lead Generation Pipeline";
+    const subtitle = `Problem: ${problem}`;
+
+    const y = 220;
+    const boxH = 120;
+
+    const b1 = card(90,  y, 260, boxH, "Lead Sources", ["Website / forms", "Lists / CSV", "Inbound signals"], "#5cc8ff");
+    const b2 = card(375, y, 280, boxH, "Enrichment + Scoring", ["Validate fields", "Score intent", "Deduplicate"], "#57f287");
+    const b3 = card(685, y, 280, boxH, "Outreach Automation", ["Email / DM", "Follow-ups", "Routing rules"], "#ffd166");
+    const b4 = card(995, y, 200, boxH, "Handoff", ["Calendar link", "CRM update", "Owner notified"], "#c084fc");
+
+    const sot = card(375, 400, 820, 125, "Source of Truth (SoT)", [
+      "Leads table",
+      "Activity log",
+      "Status (new → contacted → booked → closed)"
+    ], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(350, 280, 375, 280)}
+      ${arrow(655, 280, 685, 280)}
+      ${arrow(965, 280, 995, 280)}
+
+      ${arrow(515, 340, 515, 400)}
+      ${arrow(825, 340, 825, 400)}
+      ${arrow(1095, 340, 1095, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
       footer: "Basic pipeline diagram — proof-first. No branding. No marketing claims."
     });
   }
 
-  function diagramAIAutomation(pain) {
-    // Basic AI automation: Intake → AI processing → Actions → Results (+ SoT)
-    const body =
-      box({ x: 80,  y: 200, w: 260, h: 120, title: "Input", accent: "#5cc8ff", lines: ["Form / email", "Webhook", "File drop"] }) +
-      box({ x: 360, y: 200, w: 280, h: 120, title: "AI Processing", accent: "#57f287", lines: ["Extract fields", "Classify intent", "Generate response"] }) +
-      box({ x: 660, y: 200, w: 280, h: 120, title: "Automation", accent: "#ffd166", lines: ["Route", "Create tasks", "Send messages"] }) +
-      box({ x: 960, y: 200, w: 180, h: 120, title: "Outputs", accent: "#c084fc", lines: ["Updates", "Reports", "Notifications"] }) +
-      box({ x: 360, y: 370, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["Records", "Audit log", "Statuses + timestamps"] }) +
-      arrow({ x1: 340, y1: 260, x2: 360, y2: 260 }) +
-      arrow({ x1: 640, y1: 260, x2: 660, y2: 260 }) +
-      arrow({ x1: 940, y1: 260, x2: 960, y2: 260 }) +
-      arrow({ x1: 520, y1: 320, x2: 520, y2: 370 }) +
-      arrow({ x1: 800, y1: 320, x2: 800, y2: 370 }) +
-      arrow({ x1: 1050, y1: 320, x2: 1050, y2: 370 });
+  function svgAIAutomation(problem) {
+    const title = "AI Automation System";
+    const subtitle = `Problem: ${problem}`;
 
-    return svgShell({
-      title: "AI Automation Flow",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
-      footer: "Basic AI automation diagram — proof-first. No branding. No marketing claims."
+    const b1 = card(90, 220, 260, 125, "Inputs", ["User request", "Events / webhooks", "Imports (explicit)"], "#5cc8ff");
+    const b2 = card(375, 220, 300, 125, "AI Processing", ["Classify / extract", "Rules + validation", "Decision routing"], "#57f287");
+    const b3 = card(705, 220, 300, 125, "Automation", ["Triggers", "Actions", "Retries / alerts"], "#ffd166");
+    const b4 = card(1035, 220, 140, 125, "Outputs", ["Files", "Updates", "Notifications"], "#c084fc");
+
+    const sot = card(375, 400, 800, 125, "Source of Truth (SoT)", ["Audit log", "Config + versions", "State snapshots"], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(350, 282, 375, 282)}
+      ${arrow(675, 282, 705, 282)}
+      ${arrow(1005, 282, 1035, 282)}
+
+      ${arrow(525, 345, 525, 400)}
+      ${arrow(855, 345, 855, 400)}
+      ${arrow(1105, 345, 1105, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
+      footer: "Deterministic first-pass diagram — suitable for architecture docs."
     });
   }
 
-  function diagramWorkflowAutomation(pain) {
-    // Workflow: Intake → Queue → Human/Auto step → Completion (+ SoT)
-    const body =
-      box({ x: 90,  y: 200, w: 260, h: 120, title: "Intake", accent: "#5cc8ff", lines: ["Request captured", "Minimum fields", "Validation"] }) +
-      box({ x: 370, y: 200, w: 260, h: 120, title: "Queue", accent: "#57f287", lines: ["Prioritize", "Assign owner", "SLA timer"] }) +
-      box({ x: 650, y: 200, w: 260, h: 120, title: "Steps", accent: "#ffd166", lines: ["Auto actions", "Human approvals", "Escalations"] }) +
-      box({ x: 930, y: 200, w: 220, h: 120, title: "Done", accent: "#c084fc", lines: ["Delivered", "Logged", "Notified"] }) +
-      box({ x: 370, y: 370, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["State machine", "Owner + timestamps", "History / notes"] }) +
-      arrow({ x1: 350, y1: 260, x2: 370, y2: 260 }) +
-      arrow({ x1: 630, y1: 260, x2: 650, y2: 260 }) +
-      arrow({ x1: 910, y1: 260, x2: 930, y2: 260 }) +
-      arrow({ x1: 520, y1: 320, x2: 520, y2: 370 }) +
-      arrow({ x1: 800, y1: 320, x2: 800, y2: 370 }) +
-      arrow({ x1: 1040, y1: 320, x2: 1040, y2: 370 });
+  function svgWorkflowAutomation(problem) {
+    const title = "Workflow Automation";
+    const subtitle = `Problem: ${problem}`;
 
-    return svgShell({
-      title: "Workflow Automation",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
-      footer: "Basic workflow diagram — proof-first. No branding. No marketing claims."
+    const b1 = card(90, 220, 270, 125, "Intake", ["Form / email / ticket", "Required fields", "Validation"], "#5cc8ff");
+    const b2 = card(390, 220, 300, 125, "Workflow Logic", ["States + rules", "Approvals (optional)", "Timers / SLAs"], "#57f287");
+    const b3 = card(720, 220, 300, 125, "Automation Actions", ["Assign / notify", "Create tasks", "Escalate"], "#ffd166");
+    const b4 = card(1050, 220, 125, 125, "Outputs", ["Reports", "Logs", "Artifacts"], "#c084fc");
+
+    const sot = card(390, 400, 785, 125, "Source of Truth (SoT)", ["State history", "Who changed what", "Versioned rules"], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(360, 282, 390, 282)}
+      ${arrow(690, 282, 720, 282)}
+      ${arrow(1020, 282, 1050, 282)}
+
+      ${arrow(540, 345, 540, 400)}
+      ${arrow(870, 345, 870, 400)}
+      ${arrow(1115, 345, 1115, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
+      footer: "Workflow view — proof-first. Nothing implied beyond what is written."
     });
   }
 
-  function diagramDataIntakeProcessing(pain) {
-    // Data: Collect → Clean → Transform → Deliver (+ SoT)
-    const body =
-      box({ x: 80,  y: 200, w: 260, h: 120, title: "Collect", accent: "#5cc8ff", lines: ["Upload / API", "Schema check", "Reject invalid"] }) +
-      box({ x: 360, y: 200, w: 260, h: 120, title: "Clean", accent: "#57f287", lines: ["Normalize", "Deduplicate", "Fill gaps"] }) +
-      box({ x: 640, y: 200, w: 260, h: 120, title: "Transform", accent: "#ffd166", lines: ["Derive fields", "Aggregate", "Rules"] }) +
-      box({ x: 920, y: 200, w: 220, h: 120, title: "Deliver", accent: "#c084fc", lines: ["Export", "Dashboard", "Alerts"] }) +
-      box({ x: 360, y: 370, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["Raw + processed tables", "Lineage", "Run logs"] }) +
-      arrow({ x1: 340, y1: 260, x2: 360, y2: 260 }) +
-      arrow({ x1: 620, y1: 260, x2: 640, y2: 260 }) +
-      arrow({ x1: 900, y1: 260, x2: 920, y2: 260 }) +
-      arrow({ x1: 500, y1: 320, x2: 500, y2: 370 }) +
-      arrow({ x1: 780, y1: 320, x2: 780, y2: 370 }) +
-      arrow({ x1: 1030, y1: 320, x2: 1030, y2: 370 });
+  function svgDataIntakeProcessing(problem) {
+    const title = "Data Intake + Processing";
+    const subtitle = `Problem: ${problem}`;
 
-    return svgShell({
-      title: "Data Intake + Processing",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
-      footer: "Basic data flow diagram — proof-first. No branding. No marketing claims."
+    const b1 = card(90, 220, 270, 125, "Sources", ["CSV / sheets", "APIs (explicit)", "Events"], "#5cc8ff");
+    const b2 = card(390, 220, 300, 125, "Ingestion", ["Normalize", "Validate", "Deduplicate"], "#57f287");
+    const b3 = card(720, 220, 300, 125, "Processing", ["Transform", "Enrich (explicit)", "Compute outputs"], "#ffd166");
+    const b4 = card(1050, 220, 125, 125, "Deliver", ["Exports", "Dashboards", "Reports"], "#c084fc");
+
+    const sot = card(390, 400, 785, 125, "Source of Truth (SoT)", ["Tables / schemas", "Lineage notes", "Versioned mappings"], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(360, 282, 390, 282)}
+      ${arrow(690, 282, 720, 282)}
+      ${arrow(1020, 282, 1050, 282)}
+
+      ${arrow(540, 345, 540, 400)}
+      ${arrow(870, 345, 870, 400)}
+      ${arrow(1115, 345, 1115, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
+      footer: "Deterministic pipeline diagram — no implied legality, deliverability, or compliance."
     });
   }
 
-  function diagramDAOGovernance(pain) {
-    // DAO: Proposal → Review → Vote/Sign → Execute (+ SoT)
-    const body =
-      box({ x: 80,  y: 200, w: 260, h: 120, title: "Proposal", accent: "#5cc8ff", lines: ["Draft action", "Attach evidence", "Define scope"] }) +
-      box({ x: 360, y: 200, w: 260, h: 120, title: "Review", accent: "#57f287", lines: ["Rules check", "Risk notes", "Signer brief"] }) +
-      box({ x: 640, y: 200, w: 260, h: 120, title: "Approve", accent: "#ffd166", lines: ["Vote or sign", "Threshold met", "Time lock (optional)"] }) +
-      box({ x: 920, y: 200, w: 220, h: 120, title: "Execute", accent: "#c084fc", lines: ["Transaction", "Receipt", "Publish result"] }) +
-      box({ x: 360, y: 370, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["Proposals", "Signer actions", "On-chain refs + logs"] }) +
-      arrow({ x1: 340, y1: 260, x2: 360, y2: 260 }) +
-      arrow({ x1: 620, y1: 260, x2: 640, y2: 260 }) +
-      arrow({ x1: 900, y1: 260, x2: 920, y2: 260 }) +
-      arrow({ x1: 500, y1: 320, x2: 500, y2: 370 }) +
-      arrow({ x1: 780, y1: 320, x2: 780, y2: 370 }) +
-      arrow({ x1: 1030, y1: 320, x2: 1030, y2: 370 });
+  function svgDAOGovernance(problem) {
+    const title = "DAO Governance System";
+    const subtitle = `Problem: ${problem}`;
 
-    return svgShell({
-      title: "DAO Governance Flow",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
-      footer: "Basic DAO flow diagram — proof-first. No branding. No marketing claims."
+    const b1 = card(90, 220, 260, 125, "Proposal Intake", ["Scope statement", "Constraints", "Owner + timeline"], "#5cc8ff");
+    const b2 = card(375, 220, 280, 125, "Deliberation", ["Discussion", "Revisions", "Risk notes"], "#57f287");
+    const b3 = card(685, 220, 280, 125, "Voting", ["Eligibility rules", "Quorum / threshold", "Time window"], "#ffd166");
+    const b4 = card(995, 220, 200, 125, "Execution", ["Multisig action", "Timelock", "On-chain record"], "#c084fc");
+
+    const sot = card(375, 400, 820, 125, "Source of Truth (SoT)", ["Proposal registry", "Vote receipts", "Execution log"], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(350, 282, 375, 282)}
+      ${arrow(655, 282, 685, 282)}
+      ${arrow(965, 282, 995, 282)}
+
+      ${arrow(515, 345, 515, 400)}
+      ${arrow(825, 345, 825, 400)}
+      ${arrow(1095, 345, 1095, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
+      footer: "Governance flow — proof-first. No implied security guarantees."
     });
   }
 
-  function diagramNonCustodialCustody(pain) {
-    // Custody: Keys → Wallet → Transactions → Verification (+ SoT)
-    const body =
-      box({ x: 80,  y: 200, w: 260, h: 120, title: "Key Setup", accent: "#5cc8ff", lines: ["Cold storage", "Backup plan", "Signer roles"] }) +
-      box({ x: 360, y: 200, w: 260, h: 120, title: "Wallet Control", accent: "#57f287", lines: ["Policy / multisig", "Addresses", "Spending rules"] }) +
-      box({ x: 640, y: 200, w: 260, h: 120, title: "Transactions", accent: "#ffd166", lines: ["Create", "Sign", "Broadcast"] }) +
-      box({ x: 920, y: 200, w: 220, h: 120, title: "Verification", accent: "#c084fc", lines: ["Confirmations", "Audit trail", "Reporting"] }) +
-      box({ x: 360, y: 370, w: 780, h: 120, title: "Source of Truth (SoT)", accent: "#5cc8ff", lines: ["Policy docs", "Address book", "Tx log + notes"] }) +
-      arrow({ x1: 340, y1: 260, x2: 360, y2: 260 }) +
-      arrow({ x1: 620, y1: 260, x2: 640, y2: 260 }) +
-      arrow({ x1: 900, y1: 260, x2: 920, y2: 260 }) +
-      arrow({ x1: 500, y1: 320, x2: 500, y2: 370 }) +
-      arrow({ x1: 780, y1: 320, x2: 780, y2: 370 }) +
-      arrow({ x1: 1030, y1: 320, x2: 1030, y2: 370 });
+  function svgCustodyWorkflow(problem) {
+    const title = "Non-Custodial Custody Workflow";
+    const subtitle = `Problem: ${problem}`;
 
-    return svgShell({
-      title: "Non-Custodial Custody Workflow",
-      subtitle: `Problem: ${pain}`,
-      bodySvg: body,
-      footer: "Basic custody workflow — proof-first. No branding. No marketing claims."
+    const b1 = card(90, 220, 270, 125, "Key Control", ["Hardware wallet", "Seed storage policy", "Signer roles"], "#5cc8ff");
+    const b2 = card(390, 220, 300, 125, "Policy + Approvals", ["Spending rules", "Multisig threshold", "Change control"], "#57f287");
+    const b3 = card(720, 220, 300, 125, "Transaction Flow", ["Build → sign", "Broadcast", "Confirmations"], "#ffd166");
+    const b4 = card(1050, 220, 125, 125, "Monitoring", ["Alerts", "Balances", "Audit checks"], "#c084fc");
+
+    const sot = card(390, 400, 785, 125, "Source of Truth (SoT)", ["Addresses list", "Signer roster", "Policy versions"], "#5cc8ff");
+
+    const body = `
+      ${b1}${b2}${b3}${b4}${sot}
+      ${arrow(360, 282, 390, 282)}
+      ${arrow(690, 282, 720, 282)}
+      ${arrow(1020, 282, 1050, 282)}
+
+      ${arrow(540, 345, 540, 400)}
+      ${arrow(870, 345, 870, 400)}
+      ${arrow(1115, 345, 1115, 400)}
+    `;
+
+    return svgBase({
+      title,
+      subtitle,
+      body,
+      footer: "Custody workflow — non-custodial by design. No marketing claims."
     });
   }
 
-  // Map your dropdown labels -> diagram builders
-  const DIAGRAMS = {
-    "Lead generation pipeline": diagramLeadGen,
-    "AI automation system": diagramAIAutomation,
-    "Workflow automation": diagramWorkflowAutomation,
-    "Data intake + processing system": diagramDataIntakeProcessing,
-    "DAO governance system": diagramDAOGovernance,
-    "Non-custodial custody workflow": diagramNonCustodialCustody,
-  };
+  function buildSystemSvg(type, problem) {
+    const t = normalizeType(type).toLowerCase();
 
-  // -----------------------------
-  // Repo file generator
-  // -----------------------------
-  function buildRepoFiles({ type, pain, prompt, svg }) {
-    const repoName = safeName(pain);
+    if (t.includes("lead generation")) return svgLeadGen(problem);
+    if (t.includes("ai automation")) return svgAIAutomation(problem);
+    if (t.includes("workflow automation")) return svgWorkflowAutomation(problem);
+    if (t.includes("data intake")) return svgDataIntakeProcessing(problem);
+    if (t.includes("dao")) return svgDAOGovernance(problem);
+    if (t.includes("non-custodial")) return svgCustodyWorkflow(problem);
 
-    const README = `# ${repoName}
-![Status](https://img.shields.io/badge/status-v1.0--proof-success)
-
-This repository is the result of a documented system to bring instant infrastructure to a random thought or specific solution to a problem.
-
-**Tagline:** Proof Engine
-
-This repository is released under the **Vibe Coded Source-Available License (v1.0-proof)**.
-Commercial use, resale, or SaaS deployment requires permission.
-
-This project includes third-party open-source components.
-See THIRD_PARTY_NOTICES.md for details.
-`;
-
-    const ARCH = `# System Boundary
-
-Inside:
-- Request intake
-- Structured first build generation
-- Deterministic artifacts (docs + scaffold + visualization)
-
-Outside:
-- Hosting environment
-- External data sources (unless explicitly provided)
-- External services (unless explicitly integrated)
-
-# Flow
-Input -> Processing -> Automation -> Output
-Plus: Source of Truth (SoT)
-
-# Non-goals
-- Production claims
-- Security guarantees
-- Compliance guarantees
-`;
-
-    const ASSUMPTIONS = `# Assumptions Disclosure (Explicit)
-
-Rule:
-- Anything not stated verbatim is unknown.
-
-Request (verbatim):
-- ${pain}
-
-Assumption: The request can be represented as a basic flow diagram
-Reason: Proof-first visualization with minimal complexity
-
-Unknowns:
-- Scale targets
-- Security requirements
-- Compliance requirements
-- Data quality/availability
-`;
-
-    const DISCLAIMER = `# Meaning and Limitations (Critical)
-
-These generated files are a starting point.
-
-They do NOT mean:
-- Complete system
-- Production readiness
-- Security validation
-- Compliance validation
-
-Maturity promotion is explicit and evidence-based:
-Proof artifact -> Prototype -> Systemized application -> Production system.
-`;
-
-    // static scaffold (simple, links to svg)
-    const STATIC_INDEX = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${escHtml(repoName)}</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <main class="wrap">
-    <header class="top">
-      <div>
-        <div class="brand">Vibe Coded</div>
-        <div class="sub">Proof Engine — first build artifacts</div>
-      </div>
-      <div class="pill">v1.0-proof</div>
-    </header>
-
-    <h1>${escHtml(type)}</h1>
-    <p class="muted"><strong>Problem:</strong> ${escHtml(pain)}</p>
-
-    <section class="card">
-      <h2>System Diagram (SVG)</h2>
-      <div class="img">
-        <img src="../assets/system-image.svg" alt="System architecture visualization" />
-      </div>
-      <p class="muted">Deterministic diagram meant to be easy to follow.</p>
-    </section>
-
-    <section class="card">
-      <h2>Boundaries</h2>
-      <ul class="muted">
-        <li>Starting point only — not production readiness</li>
-        <li>No security validation implied</li>
-        <li>No compliance guarantees implied</li>
-        <li>Anything not stated is unknown</li>
-      </ul>
-    </section>
-
-    <footer class="foot">
-      <span class="muted">Powered by Self-Defi</span>
-    </footer>
-  </main>
-</body>
-</html>`;
-
-    const STATIC_CSS = `:root{
-  --bg0:#070b14; --bg1:#0b1220;
-  --text:rgba(255,255,255,.92);
-  --muted:rgba(255,255,255,.68);
-  --border:rgba(255,255,255,.12);
-  --card:rgba(255,255,255,.04);
-  --shadow:0 18px 60px rgba(0,0,0,.45);
-  --radius:18px;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(900px 520px at 14% 10%, rgba(217,70,141,.18), transparent 60%),
-    radial-gradient(900px 520px at 86% 20%, rgba(80,140,255,.14), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-}
-.wrap{max-width:980px;margin:0 auto;padding:26px 18px 50px}
-.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:14px}
-.brand{font-weight:900;letter-spacing:.2px}
-.sub{color:var(--muted);font-size:13px;margin-top:4px}
-.pill{border:1px solid var(--border);border-radius:999px;padding:8px 10px;background:rgba(255,255,255,.03);font-size:12px;color:var(--muted)}
-h1{margin:16px 0 8px;font-size:34px;line-height:1.12}
-.muted{color:var(--muted);line-height:1.55}
-.card{border:1px solid var(--border);background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-top:12px}
-.img{border:1px dashed rgba(255,255,255,.18);border-radius:16px;background:rgba(0,0,0,.18);padding:12px}
-.img img{width:100%;height:auto;display:block}
-.foot{margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
-`;
-
-    return {
-      "README.md": README,
-      "architecture.md": ARCH,
-      "assumptions.md": ASSUMPTIONS,
-      "DISCLAIMER.md": DISCLAIMER,
-      "assets/image-prompt.txt": prompt,
-      "assets/system-image.svg": svg,
-      "static/index.html": STATIC_INDEX,
-      "static/styles.css": STATIC_CSS,
-    };
+    // fallback
+    return svgAIAutomation(problem);
   }
 
-  // -----------------------------
+  // -------------------------
   // Public API
-  // -----------------------------
-  function build({ type, pain }) {
-    const t = String(type || "").trim() || "AI automation system";
-    const p = normalizePain(pain);
+  // -------------------------
+  function buildFirst(problemRaw, typeRaw) {
+    const problem = normalizeProblem(problemRaw);
+    const type = normalizeType(typeRaw);
+    const generatedAtISO = nowISO();
 
-    const prompt = canonicalPrompt(t, p);
-
-    // choose diagram by type; fallback to AI automation
-    const diagramFn = DIAGRAMS[t] || diagramAIAutomation;
-    const svg = diagramFn(p);
-
-    const files = buildRepoFiles({ type: t, pain: p, prompt, svg });
+    const svg = buildSystemSvg(type, problem);
+    const prompt = makeImagePromptTXT(problem, type);
 
     return {
-      type: t,
-      pain: p,
-      prompt,
-      svg,
-      files,
-      generatedAtISO: nowISO(),
+      "README.md": makeReadmeMD(problem, type),
+      "architecture.md": makeArchitectureMD(type),
+      "assumptions.md": makeAssumptionsMD(problem, type),
+      "DISCLAIMER.md": makeDisclaimerMD(),
+      "assets/system-image.svg": svg,
+      "assets/image-prompt.txt": prompt,
+      "static/index.html": makeStaticIndexHTML({ problem, type, generatedAtISO }),
+      "static/styles.css": STATIC_SCAFFOLD_CSS
     };
   }
 
   window.__TEMPLATES_READY__ = true;
-  window.VIBE_CODED_TEMPLATES = { build };
+  window.VIBE_FIRST_BUILD = { buildFirst };
+  window.BUILD_TEMPLATE = window.VIBE_FIRST_BUILD;
 
-  console.log("templates.js loaded: VIBE_CODED_TEMPLATES.build ready (v1.0-proof).");
+  console.log(`templates.js loaded: ${BRAND} ${VERSION} (Proof Engine templates ready).`);
 })();
