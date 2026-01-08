@@ -1,10 +1,3 @@
-/* app.js
-   Vibe Coded — Dashboard (v1.0-proof)
-   - Uses templates.js (window.VIBE_CODED_TEMPLATES.build)
-   - Ensures SVG changes by type + pain point (no “same image” issue)
-   - Adds type to share link params
-*/
-
 (() => {
   // DOM
   const painInput = document.getElementById("painInput");
@@ -42,7 +35,13 @@
   const closeHelpBtn2 = document.getElementById("closeHelpBtn2");
 
   // State
-  let current = { pain: "", type: "", prompt: "", svg: "", files: {} };
+  let current = {
+    pain: "",
+    type: "",
+    prompt: "",
+    svg: "",
+    files: {}
+  };
 
   // Utilities
   const qs = (k) => new URLSearchParams(window.location.search).get(k);
@@ -53,11 +52,11 @@
   }
 
   function safeName(str) {
-    return (str || "vibe-coded-proof")
+    return (str || "vibe-coded-build")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "vibe-coded-proof";
+      .slice(0, 48) || "vibe-coded-build";
   }
 
   async function copyText(text) {
@@ -66,11 +65,11 @@
 
   function escapeXml(s) {
     return (s || "").replace(/[<>&'"]/g, (c) => ({
-      "<": "&lt;",
-      ">": "&gt;",
-      "&": "&amp;",
-      "'": "&apos;",
-      '"': "&quot;",
+      "<":"&lt;",
+      ">":"&gt;",
+      "&":"&amp;",
+      "'":"&apos;",
+      "\"":"&quot;"
     }[c]));
   }
 
@@ -104,13 +103,14 @@
 
     fileList.innerHTML = names.map((name) => {
       const body = files[name];
+      const safeKey = encodeURIComponent(name);
       return `
         <div class="fileItem">
           <div class="fileTop">
             <div class="fileName">${escapeXml(name)}</div>
             <div class="fileBtns">
-              <button class="btnSmall" type="button" data-copy="${encodeURIComponent(name)}">Copy</button>
-              <button class="btnSmall" type="button" data-download="${encodeURIComponent(name)}">Download</button>
+              <button class="btnSmall" type="button" data-copy="${safeKey}">Copy</button>
+              <button class="btnSmall" type="button" data-download="${safeKey}">Download</button>
             </div>
           </div>
           <pre class="fileBody">${escapeXml(body)}</pre>
@@ -129,7 +129,9 @@
     fileList.querySelectorAll("[data-download]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const key = decodeURIComponent(btn.getAttribute("data-download"));
-        downloadText(files[key], key.split("/").pop());
+        // Preserve uniqueness: folder__file.ext
+        const dlName = key.replaceAll("/", "__");
+        downloadText(files[key], dlName);
       });
     });
   }
@@ -188,7 +190,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // Generate
+  // Generate (uses templates.js engine)
   function generate() {
     const pain = (painInput.value || "").trim();
     const type = (systemType.value || "").trim();
@@ -198,37 +200,41 @@
       return;
     }
 
-    // Ensure templates.js is loaded
-    if (!window.VIBE_CODED_TEMPLATES || typeof window.VIBE_CODED_TEMPLATES.build !== "function") {
-      status.textContent = "templates.js not loaded. Ensure index.html loads templates.js before app.js.";
-      return;
-    }
-
+    // Persist
     localStorage.setItem("vc_last_pain", pain);
     localStorage.setItem("vc_last_type", type);
 
-    // Build via template engine (per option)
-    const built = window.VIBE_CODED_TEMPLATES.build({ type, pain });
+    // Guard: templates.js must be loaded
+    const engine = window?.VIBE_FIRST_BUILD?.buildFirst;
+    if (!engine) {
+      status.textContent = "Templates engine not loaded. Confirm templates.js is included BEFORE app.js.";
+      return;
+    }
 
-    current.pain = built.pain;
-    current.type = built.type;
-    current.prompt = built.prompt;
-    current.svg = built.svg;
-    current.files = built.files;
+    // Build
+    const files = engine(pain, type);
 
+    current.pain = pain;
+    current.type = type;
+    current.files = files || {};
+    current.prompt = current.files["assets/image-prompt.txt"] || "";
+    current.svg = current.files["assets/system-image.svg"] || "";
+
+    // Render
     renderSvg(current.svg);
-    promptOut.textContent = current.prompt;
+    promptOut.textContent = current.prompt || "No prompt generated.";
     renderFiles(current.files);
 
-    downloadSvgBtn.disabled = false;
-    copyPromptBtn.disabled = false;
-    copyAllBtn.disabled = false;
-    downloadZipBtn.disabled = false;
+    // Enable buttons
+    downloadSvgBtn.disabled = !current.svg;
+    copyPromptBtn.disabled = !current.prompt;
+    copyAllBtn.disabled = !Object.keys(current.files || {}).length;
+    downloadZipBtn.disabled = !Object.keys(current.files || {}).length;
 
     buildStamp.textContent = `Generated: ${nowStamp()}`;
     status.textContent = "First build generated. Review deliverables, then download the repo bundle.";
 
-    try { plausible("vc_generate"); } catch (e) {}
+    try { plausible("vc_generate"); } catch(e) {}
 
     setTab("preview");
   }
@@ -270,9 +276,13 @@
   tabFiles.addEventListener("click", () => setTab("files"));
   tabZip.addEventListener("click", () => setTab("zip"));
 
-  downloadSvgBtn.addEventListener("click", () => downloadSvg(current.svg, "system-image.svg"));
+  downloadSvgBtn.addEventListener("click", () => {
+    if (!current.svg) return;
+    downloadSvg(current.svg, "system-image.svg");
+  });
 
   copyPromptBtn.addEventListener("click", async () => {
+    if (!current.prompt) return;
     await copyText(current.prompt);
     toast("Copied image prompt");
   });
@@ -288,7 +298,7 @@
   downloadZipBtn.addEventListener("click", async () => {
     const name = safeName(current.pain);
     await downloadZip(current.files, name);
-    try { plausible("vc_zip_download"); } catch (e) {}
+    try { plausible("vc_zip_download"); } catch(e) {}
   });
 
   // Share link (include pain + type)
@@ -317,25 +327,20 @@
   // Init from URL param or last session
   const painParam = qs("pain");
   const typeParam = qs("type");
-
   const lastPain = localStorage.getItem("vc_last_pain");
   const lastType = localStorage.getItem("vc_last_type");
 
-  if (typeParam) {
-    systemType.value = typeParam;
-    paramStatus.textContent = "Loaded from share link";
-  } else if (lastType) {
-    systemType.value = lastType;
-  }
+  if (typeParam) systemType.value = typeParam;
+  else if (lastType) systemType.value = lastType;
 
   if (painParam) {
     painInput.value = painParam;
     paramStatus.textContent = "Loaded from share link";
   } else if (lastPain) {
     painInput.value = lastPain;
-    if (!paramStatus.textContent) paramStatus.textContent = "Loaded last request";
+    paramStatus.textContent = "Loaded last request";
   } else {
-    if (!paramStatus.textContent) paramStatus.textContent = "";
+    paramStatus.textContent = "";
   }
 
   if ((painInput.value || "").trim()) {
