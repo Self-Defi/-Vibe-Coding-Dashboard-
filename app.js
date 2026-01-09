@@ -1,144 +1,84 @@
+/* app.js — Vibe Coded Studio Dashboard (UI-only)
+   Uses templates.js (VC_TEMPLATES) + JSZip (CDN) for real ZIP download.
+*/
+
 (() => {
-  // DOM
-  const painInput = document.getElementById("painInput");
-  const systemType = document.getElementById("systemType");
-  const generateBtn = document.getElementById("generateBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const status = document.getElementById("status");
-  const paramStatus = document.getElementById("paramStatus");
-  const buildStamp = document.getElementById("buildStamp");
+  const $ = (id) => document.getElementById(id);
 
-  const copyLinkBtn = document.getElementById("copyLinkBtn");
-  const openHelpBtn = document.getElementById("openHelpBtn");
+  const thought = $("thought");
+  const systemType = $("systemType");
+  const generateBtn = $("generateBtn");
+  const resetBtn = $("resetBtn");
+  const statusText = $("statusText");
+  const lastLoaded = $("lastLoaded");
 
-  // Tabs
-  const tabPreview = document.getElementById("tabPreview");
-  const tabFiles = document.getElementById("tabFiles");
-  const tabZip = document.getElementById("tabZip");
-  const panelPreview = document.getElementById("panelPreview");
-  const panelFiles = document.getElementById("panelFiles");
-  const panelZip = document.getElementById("panelZip");
+  const svgBox = $("svgBox");
+  const promptBox = $("promptBox");
+  const repoBox = $("repoBox");
+  const downloadBox = $("downloadBox");
 
-  // Outputs
-  const svgPreview = document.getElementById("svgPreview");
-  const promptOut = document.getElementById("promptOut");
-  const fileList = document.getElementById("fileList");
+  const downloadSvgBtn = $("downloadSvgBtn");
+  const copyPromptBtn = $("copyPromptBtn");
+  const copyFilesBtn = $("copyFilesBtn");
+  const downloadZipBtn = $("downloadZipBtn");
 
-  const downloadSvgBtn = document.getElementById("downloadSvgBtn");
-  const copyPromptBtn = document.getElementById("copyPromptBtn");
-  const copyAllBtn = document.getElementById("copyAllBtn");
-  const downloadZipBtn = document.getElementById("downloadZipBtn");
+  const tabs = Array.from(document.querySelectorAll(".tab"));
+  const tabSystem = $("tab-system");
+  const tabRepo = $("tab-repo");
+  const tabDownload = $("tab-download");
 
-  // Help modal
-  const helpModal = document.getElementById("helpModal");
-  const closeHelpBtn = document.getElementById("closeHelpBtn");
-  const closeHelpBtn2 = document.getElementById("closeHelpBtn2");
+  $("yr").textContent = new Date().getFullYear();
 
-  // State
-  let current = {
-    pain: "",
-    type: "",
-    prompt: "",
-    svg: "",
-    files: {}
-  };
+  const KEY = "vcs_dashboard_last_request_v2";
 
-  // Utilities
-  const qs = (k) => new URLSearchParams(window.location.search).get(k);
-
-  function nowStamp() {
-    const d = new Date();
-    return d.toISOString().replace("T", " ").slice(0, 19) + " UTC";
+  function setGenerateEnabled() {
+    const hasThought = thought.value.trim().length > 0;
+    generateBtn.disabled = !hasThought;
+    statusText.textContent = hasThought ? 'Ready. Click "Generate first build".' : "Write the Thought first.";
   }
 
-  function safeName(str) {
-    return (str || "vibe-coded-build")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "vibe-coded-build";
+  function showTab(which) {
+    tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === which));
+    tabSystem.style.display = which === "system" ? "block" : "none";
+    tabRepo.style.display = which === "repo" ? "block" : "none";
+    tabDownload.style.display = which === "download" ? "block" : "none";
   }
 
-  async function copyText(text) {
-    await navigator.clipboard.writeText(text);
+  tabs.forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
+  thought.addEventListener("input", setGenerateEnabled);
+
+  function saveLastRequest() {
+    localStorage.setItem(KEY, JSON.stringify({
+      thought: thought.value,
+      systemType: systemType.value,
+      at: new Date().toISOString()
+    }));
   }
 
-  function escapeXml(s) {
-    return (s || "").replace(/[<>&'"]/g, (c) => ({
-      "<":"&lt;",
-      ">":"&gt;",
-      "&":"&amp;",
-      "'":"&apos;",
-      "\"":"&quot;"
-    }[c]));
+  function loadLastRequest() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.thought) thought.value = data.thought;
+      if (data.systemType) systemType.value = data.systemType;
+      lastLoaded.textContent = "Loaded last request";
+    } catch (e) {}
   }
 
-  // Tabs
-  function setTab(active) {
-    const tabs = [tabPreview, tabFiles, tabZip];
-    const panels = [panelPreview, panelFiles, panelZip];
-
-    tabs.forEach(t => t.classList.remove("active"));
-    tabs.forEach(t => t.setAttribute("aria-selected", "false"));
-    panels.forEach(p => p.classList.remove("show"));
-
-    if (active === "preview") { tabPreview.classList.add("active"); tabPreview.setAttribute("aria-selected", "true"); panelPreview.classList.add("show"); }
-    if (active === "files")   { tabFiles.classList.add("active"); tabFiles.setAttribute("aria-selected", "true"); panelFiles.classList.add("show"); }
-    if (active === "zip")     { tabZip.classList.add("active"); tabZip.setAttribute("aria-selected", "true"); panelZip.classList.add("show"); }
-  }
-
-  // Render
-  function renderSvg(svg) {
-    svgPreview.innerHTML = svg
-      ? svg
-      : `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
-  }
-
-  function renderFiles(files) {
-    const names = Object.keys(files || {});
-    if (!names.length) {
-      fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
-      return;
+  async function copyText(txt) {
+    try {
+      await navigator.clipboard.writeText(txt);
+      statusText.textContent = "Copied.";
+      setTimeout(setGenerateEnabled, 900);
+    } catch (e) {
+      statusText.textContent = "Copy blocked by browser.";
+      setTimeout(setGenerateEnabled, 1200);
     }
-
-    fileList.innerHTML = names.map((name) => {
-      const body = files[name];
-      const safeKey = encodeURIComponent(name);
-      return `
-        <div class="fileItem">
-          <div class="fileTop">
-            <div class="fileName">${escapeXml(name)}</div>
-            <div class="fileBtns">
-              <button class="btnSmall" type="button" data-copy="${safeKey}">Copy</button>
-              <button class="btnSmall" type="button" data-download="${safeKey}">Download</button>
-            </div>
-          </div>
-          <pre class="fileBody">${escapeXml(body)}</pre>
-        </div>
-      `;
-    }).join("");
-
-    fileList.querySelectorAll("[data-copy]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const key = decodeURIComponent(btn.getAttribute("data-copy"));
-        await copyText(files[key]);
-        toast(`Copied ${key}`);
-      });
-    });
-
-    fileList.querySelectorAll("[data-download]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = decodeURIComponent(btn.getAttribute("data-download"));
-        // Preserve uniqueness: folder__file.ext
-        const dlName = key.replaceAll("/", "__");
-        downloadText(files[key], dlName);
-      });
-    });
   }
 
-  // Download helpers
-  function downloadText(text, filename) {
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  function downloadFile(filename, content, mime = "text/plain;charset=utf-8") {
+    const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -149,203 +89,107 @@
     URL.revokeObjectURL(url);
   }
 
-  function downloadSvg(svg, filename) {
-    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  function build() {
+    const t = thought.value.trim();
+    const sys = systemType.value;
+
+    const prompt = window.VC_TEMPLATES.canonicalPrompt(sys, t);
+    const svg = window.VC_TEMPLATES.systemSvg(sys, t);
+    const fileMap = window.VC_TEMPLATES.buildFileMap(sys, t);
+
+    return { t, sys, prompt, svg, fileMap };
   }
 
-  // Toast
-  let toastTimer = null;
-  function toast(msg) {
-    status.textContent = msg;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { status.textContent = ""; }, 1600);
+  function renderRepoBundle(fileMap) {
+    // Show actual file contents (not just file names)
+    const paths = Object.keys(fileMap).sort();
+    let out = "";
+    for (const p of paths) {
+      out += `// ===============================\n// ${p}\n// ===============================\n`;
+      out += `${fileMap[p]}\n\n`;
+    }
+    return out.trim();
   }
 
-  // ZIP build
-  async function downloadZip(files, zipName) {
+  function setGeneratedUI(payload) {
+    svgBox.innerHTML = payload.svg;
+    promptBox.textContent = payload.prompt;
+
+    repoBox.textContent = renderRepoBundle(payload.fileMap);
+    downloadBox.textContent = "ZIP bundle ready: README + docs + diagram + scaffold index.html";
+
+    downloadSvgBtn.disabled = false;
+    copyPromptBtn.disabled = false;
+    copyFilesBtn.disabled = false;
+    downloadZipBtn.disabled = false;
+
+    statusText.textContent = "Generated. Preview + ZIP export ready.";
+  }
+
+  async function downloadZip(fileMap) {
     if (!window.JSZip) {
-      toast("JSZip not loaded. Check CDN.");
+      statusText.textContent = "JSZip failed to load. Refresh page and try again.";
       return;
     }
-    const zip = new window.JSZip();
-    for (const [path, content] of Object.entries(files)) {
+
+    const zip = new JSZip();
+    for (const [path, content] of Object.entries(fileMap)) {
       zip.file(path, content);
     }
+
+    statusText.textContent = "Building ZIP…";
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${zipName}.zip`;
+    a.download = "vcs-first-build.zip";
     document.body.appendChild(a);
     a.click();
     a.remove();
+
     URL.revokeObjectURL(url);
+    statusText.textContent = "ZIP downloaded.";
+    setTimeout(setGenerateEnabled, 1000);
   }
 
-  // Generate (uses templates.js engine)
-  function generate() {
-    const pain = (painInput.value || "").trim();
-    const type = (systemType.value || "").trim();
+  // Actions
+  generateBtn.addEventListener("click", () => {
+    const payload = build();
+    setGeneratedUI(payload);
+    saveLastRequest();
+  });
 
-    if (!pain) {
-      status.textContent = "Type one sentence first.";
-      return;
-    }
+  resetBtn.addEventListener("click", () => {
+    thought.value = "";
+    systemType.selectedIndex = 0;
 
-    // Persist
-    localStorage.setItem("vc_last_pain", pain);
-    localStorage.setItem("vc_last_type", type);
-
-    // Guard: templates.js must be loaded
-    const engine = window?.VIBE_FIRST_BUILD?.buildFirst;
-    if (!engine) {
-      status.textContent = "Templates engine not loaded. Confirm templates.js is included BEFORE app.js.";
-      return;
-    }
-
-    // Build
-    const files = engine(pain, type);
-
-    current.pain = pain;
-    current.type = type;
-    current.files = files || {};
-    current.prompt = current.files["assets/image-prompt.txt"] || "";
-    current.svg = current.files["assets/system-image.svg"] || "";
-
-    // Render
-    renderSvg(current.svg);
-    promptOut.textContent = current.prompt || "No prompt generated.";
-    renderFiles(current.files);
-
-    // Enable buttons
-    downloadSvgBtn.disabled = !current.svg;
-    copyPromptBtn.disabled = !current.prompt;
-    copyAllBtn.disabled = !Object.keys(current.files || {}).length;
-    downloadZipBtn.disabled = !Object.keys(current.files || {}).length;
-
-    buildStamp.textContent = `Generated: ${nowStamp()}`;
-    status.textContent = "First build generated. Review deliverables, then download the repo bundle.";
-
-    try { plausible("vc_generate"); } catch(e) {}
-
-    setTab("preview");
-  }
-
-  function resetAll() {
-    current = { pain: "", type: "", prompt: "", svg: "", files: {} };
-    painInput.value = "";
-    status.textContent = "";
-    buildStamp.textContent = "";
-    promptOut.textContent = "Generate a build to produce the locked prompt.";
-    svgPreview.innerHTML = `<div class="placeholder">Generate a build to preview the system visualization.</div>`;
-    fileList.innerHTML = `<div class="placeholder">Generate a build to populate repo files.</div>`;
+    svgBox.textContent = "Generate a build to preview the system visualization.";
+    promptBox.textContent = "Generate a build to produce the locked prompt.";
+    repoBox.textContent = "Generate a build to generate the repo scaffold.";
+    downloadBox.textContent = "Generate a build to enable downloads.";
 
     downloadSvgBtn.disabled = true;
     copyPromptBtn.disabled = true;
-    copyAllBtn.disabled = true;
+    copyFilesBtn.disabled = true;
     downloadZipBtn.disabled = true;
 
-    setTab("preview");
-  }
-
-  // Help modal
-  function openHelp() {
-    helpModal.classList.add("show");
-    helpModal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-  }
-  function closeHelp() {
-    helpModal.classList.remove("show");
-    helpModal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("modal-open");
-  }
-
-  // Wire actions
-  generateBtn.addEventListener("click", generate);
-  resetBtn.addEventListener("click", resetAll);
-
-  tabPreview.addEventListener("click", () => setTab("preview"));
-  tabFiles.addEventListener("click", () => setTab("files"));
-  tabZip.addEventListener("click", () => setTab("zip"));
+    localStorage.removeItem(KEY);
+    setGenerateEnabled();
+  });
 
   downloadSvgBtn.addEventListener("click", () => {
-    if (!current.svg) return;
-    downloadSvg(current.svg, "system-image.svg");
+    const svgEl = svgBox.querySelector("svg");
+    if (!svgEl) return;
+    downloadFile("system.svg", svgEl.outerHTML, "image/svg+xml;charset=utf-8");
   });
 
-  copyPromptBtn.addEventListener("click", async () => {
-    if (!current.prompt) return;
-    await copyText(current.prompt);
-    toast("Copied image prompt");
-  });
+  copyPromptBtn.addEventListener("click", () => copyText(promptBox.textContent));
+  copyFilesBtn.addEventListener("click", () => copyText(repoBox.textContent));
+  downloadZipBtn.addEventListener("click", () => downloadZip(build().fileMap));
 
-  copyAllBtn.addEventListener("click", async () => {
-    const all = Object.entries(current.files)
-      .map(([k, v]) => `--- ${k} ---\n${v}\n`)
-      .join("\n");
-    await copyText(all);
-    toast("Copied all files");
-  });
-
-  downloadZipBtn.addEventListener("click", async () => {
-    const name = safeName(current.pain);
-    await downloadZip(current.files, name);
-    try { plausible("vc_zip_download"); } catch(e) {}
-  });
-
-  // Share link (include pain + type)
-  copyLinkBtn.addEventListener("click", async () => {
-    const pain = (painInput.value || "").trim();
-    const type = (systemType.value || "").trim();
-    const url = new URL(window.location.href);
-
-    if (pain) url.searchParams.set("pain", pain);
-    else url.searchParams.delete("pain");
-
-    if (type) url.searchParams.set("type", type);
-    else url.searchParams.delete("type");
-
-    await copyText(url.toString());
-    toast("Copied share link");
-  });
-
-  // Help
-  openHelpBtn.addEventListener("click", openHelp);
-  closeHelpBtn.addEventListener("click", closeHelp);
-  closeHelpBtn2.addEventListener("click", closeHelp);
-  helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && helpModal.classList.contains("show")) closeHelp(); });
-
-  // Init from URL param or last session
-  const painParam = qs("pain");
-  const typeParam = qs("type");
-  const lastPain = localStorage.getItem("vc_last_pain");
-  const lastType = localStorage.getItem("vc_last_type");
-
-  if (typeParam) systemType.value = typeParam;
-  else if (lastType) systemType.value = lastType;
-
-  if (painParam) {
-    painInput.value = painParam;
-    paramStatus.textContent = "Loaded from share link";
-  } else if (lastPain) {
-    painInput.value = lastPain;
-    paramStatus.textContent = "Loaded last request";
-  } else {
-    paramStatus.textContent = "";
-  }
-
-  if ((painInput.value || "").trim()) {
-    status.textContent = "Ready. Click “Generate first build”.";
-  }
-
-  setTab("preview");
+  // Boot
+  loadLastRequest();
+  setGenerateEnabled();
+  showTab("system");
 })();
