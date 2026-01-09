@@ -4,16 +4,15 @@
   <meta charset="utf-8" />
   <title>Vibe Coded Studio — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Vibe Coded Studio Dashboard — generate a UI-only first build (docs + static scaffold + visualization). No backend." />
+  <meta name="description" content="Vibe Coded Studio Dashboard — UI-only build generator. Everything starts with the Thought." />
   <meta name="theme-color" content="#070b14" />
 
   <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coded Studio" />
   <meta property="og:title" content="Vibe Coded Studio — Dashboard" />
-  <meta property="og:description" content="Generate a UI-only first build (docs + static scaffold + visualization). Ownership-first." />
+  <meta property="og:description" content="It turns a written idea into something you can see, share, and build on." />
   <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
-  <!-- IMPORTANT: file must exist at this exact path + name in the Dashboard repo -->
   <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -21,28 +20,28 @@
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Vibe Coded Studio — Dashboard" />
-  <meta name="twitter:description" content="Generate a UI-only first build (docs + static scaffold + visualization). Ownership-first." />
+  <meta name="twitter:description" content="It turns a written idea into something you can see, share, and build on." />
   <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
 
   <style>
     :root{
       --bg0:#070b14;
       --bg1:#0b1220;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08);
-      --border:rgba(255,255,255,.10);
+
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --muted2:rgba(255,255,255,.55);
-      --shadow: 0 16px 48px rgba(0,0,0,.45);
-      --radius:16px;
+
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --border:rgba(255,255,255,.10);
+
+      --shadow:0 16px 48px rgba(0,0,0,.45);
+      --radius:18px;
       --radius2:22px;
+
       --pill:999px;
       --accent:#d9468d;
-      --accent2:#508cff;
-      --ok:#16a34a;
-      --warn:#f59e0b;
-      --bad:#ef4444;
     }
 
     *{box-sizing:border-box}
@@ -71,7 +70,7 @@
     .wrap{
       max-width:1160px;
       margin:0 auto;
-      padding:16px 16px 48px;
+      padding:22px 18px 64px;
     }
 
     /* Topbar */
@@ -79,28 +78,34 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:14px;
-      padding:14px 0 10px;
+      gap:18px;
+      margin-bottom:14px;
     }
 
-    .brand{display:flex; align-items:center; gap:12px; min-width: 240px}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 260px;
+    }
+
     .brandLogo{
-      width:40px; height:40px;
+      width:38px; height:38px;
       border-radius:12px;
       box-shadow:0 10px 24px rgba(0,0,0,.35);
       object-fit:cover;
       display:block;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
     }
-    .brandText{display:flex; flex-direction:column; line-height:1.1}
+
+    .brandText{display:flex; flex-direction:column}
     .brandName{font-weight:900; letter-spacing:.2px}
-    .brandTag{color:var(--muted2); font-size:12.5px; margin-top:4px}
+    .brandTag{color:var(--muted2); font-size:12.5px; margin-top:2px}
 
     .topbarRight{
       display:flex;
-      align-items:center;
       gap:10px;
+      align-items:center;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
@@ -112,17 +117,16 @@
       border-radius:var(--pill);
       padding:10px 12px;
       font-size:13px;
-      cursor:pointer;
-      user-select:none;
       display:inline-flex;
+      gap:10px;
       align-items:center;
-      gap:8px;
+      white-space:nowrap;
     }
-    .pill:hover{border-color:rgba(255,255,255,.20)}
     .pillDot{
-      width:8px;height:8px;border-radius:99px;
-      background: rgba(217,70,141,.95);
-      box-shadow:0 0 0 1px rgba(255,255,255,.08);
+      width:8px; height:8px;
+      border-radius:999px;
+      background:rgba(217,70,141,.95);
+      box-shadow:0 0 0 1px rgba(255,255,255,.10);
     }
 
     .btnPrimary{
@@ -143,206 +147,271 @@
     }
     .btnPrimary:hover{filter:brightness(1.05)}
     .btnPrimary:active{transform:translateY(1px)}
-    .btnGhost{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding:10px 14px;
-      border-radius: var(--pill);
-      font-weight:850;
-      font-size:14px;
-      cursor:pointer;
-    }
-    .btnGhost:hover{border-color:rgba(255,255,255,.22)}
-    .btnGhost:active{transform:translateY(1px)}
 
     /* Hero */
-    .hero{padding:10px 0 12px}
+    .hero{
+      padding:8px 0 14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      margin-bottom:18px;
+    }
     .heroTitle{
       margin:0;
-      font-size: clamp(28px, 4.0vw, 44px);
-      line-height:1.08;
+      font-size: clamp(34px, 4.6vw, 56px);
+      line-height:1.06;
       letter-spacing:-.6px;
+      font-weight:950;
     }
     .heroSub{
       margin:10px 0 0;
-      font-size: clamp(14px, 1.8vw, 18px);
+      font-size: clamp(15px, 1.9vw, 18px);
       color:var(--muted);
-      max-width: 78ch;
-      line-height:1.5;
+      max-width: 70ch;
+      line-height:1.55;
     }
 
     /* Panels */
     .panel{
-      border-radius: var(--radius2);
-      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius2);
+      border:1px solid var(--border);
       background: rgba(0,0,0,.16);
       box-shadow: var(--shadow);
       padding:16px;
     }
-    .stack{display:grid; gap:14px}
+
+    .panel + .panel{ margin-top:14px; }
 
     .panelHead{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:12px;
-      margin-bottom:12px;
+      gap:10px;
+      margin-bottom:10px;
     }
-    .panelTitle{margin:0; font-size:16px}
-    .panelMeta{color:var(--muted2); font-size:12.5px}
-
-    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
-
-    /* Form */
-    .formGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-      margin-top:8px;
-    }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .label{
-      color:var(--muted2);
-      font-size:12.5px;
+    .panelTitle{
+      margin:0;
+      font-size:16px;
+      font-weight:900;
       letter-spacing:.2px;
     }
-    .select, .input{
-      width:100%;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding:12px 12px;
-      font-size:14px;
-      outline:none;
+    .panelMeta{
+      color:var(--muted2);
+      font-size:12.5px;
+      white-space:nowrap;
+      margin-top:2px;
     }
-    .select:focus, .input:focus{
-      border-color: rgba(217,70,141,.55);
-      box-shadow: 0 0 0 3px rgba(217,70,141,.12);
+    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
+
+    /* Fields */
+    .fieldLabel{
+      font-size:12.5px;
+      color:var(--muted2);
+      margin:12px 0 8px;
     }
 
-    .rowActions{
+    .subLabel{
+      margin:0 0 8px;
+      font-weight:900;
+      color:rgba(255,255,255,.88);
+    }
+
+    textarea.input, select.input{
+      width:100%;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+
+    textarea.input{
+      min-height:160px;
+      padding:14px;
+      resize:vertical;
+      line-height:1.45;
+      font-size:14.5px;
+    }
+
+    select.input{
+      padding:12px 12px;
+      font-size:14.5px;
+      appearance:none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.70) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.70) 50%, transparent 50%),
+        linear-gradient(to right, transparent, transparent);
+      background-position:
+        calc(100% - 18px) calc(1em + 2px),
+        calc(100% - 13px) calc(1em + 2px),
+        0 0;
+      background-size:5px 5px, 5px 5px, 2.5em 2.5em;
+      background-repeat:no-repeat;
+    }
+
+    .help{
+      color:var(--muted2);
+      font-size:12.6px;
+      margin-top:8px;
+      line-height:1.55;
+    }
+
+    .btnRow{
       display:flex;
+      gap:12px;
       align-items:center;
-      gap:10px;
       flex-wrap:wrap;
       margin-top:12px;
     }
 
-    .hint{
-      color:var(--muted2);
-      font-size:12.6px;
-      line-height:1.45;
-    }
-
-    .boundary{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      padding:12px 12px;
-      color: var(--muted);
-      line-height:1.5;
-    }
-    .boundary strong{color: rgba(255,255,255,.86)}
-    .boundary em{color: rgba(255,255,255,.80); font-style:italic}
-
-    /* Tabs */
-    .tabsRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .tab{
-      border-radius: var(--pill);
+    .btnSecondary{
       border:1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.03);
-      padding:10px 12px;
+      color:rgba(255,255,255,.86);
+      border-radius: var(--pill);
+      padding:10px 14px;
       font-weight:850;
-      font-size:14px;
       cursor:pointer;
-      user-select:none;
     }
-    .tab[aria-selected="true"]{
-      border-color: rgba(217,70,141,.55);
-      box-shadow: 0 0 0 3px rgba(217,70,141,.12);
+    .btnSecondary:hover{border-color:rgba(255,255,255,.22)}
+    .btnSecondary:active{transform:translateY(1px)}
+
+    .statusText{
+      color:var(--muted2);
+      font-size:12.5px;
+      margin-left:4px;
     }
 
-    .kpiRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      margin-top:10px;
-      flex-wrap:wrap;
+    .btnPrimary[disabled]{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none !important;
+      filter:none !important;
     }
-    .muted{color:var(--muted); margin:0; line-height:1.55}
 
-    /* Output blocks */
-    .block{
-      border-radius: 18px;
+    .boundaries{
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.03);
-      padding:14px;
+      padding:12px 14px;
+      color:var(--muted);
+      line-height:1.55;
     }
-    .blockHead{
+    .boundaries strong{color:rgba(255,255,255,.86)}
+
+    /* Deliverables */
+    .deliverHead{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
       margin-bottom:10px;
     }
-    .blockTitle{margin:0; font-weight:900}
-    .blockBtn{
+    .deliverTitle{
+      margin:0;
+      font-size:16px;
+      font-weight:900;
+    }
+    .deliverMeta{
+      color:var(--muted2);
+      font-size:12.5px;
+      white-space:nowrap;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .appVer{
+      opacity:.85;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:8px 0 12px;
+    }
+    .tab{
       border:1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding:9px 12px;
-      border-radius: var(--pill);
+      color:rgba(255,255,255,.86);
+      border-radius:999px;
+      padding:10px 12px;
       font-weight:850;
       cursor:pointer;
+      user-select:none;
     }
-    .blockBtn:hover{border-color:rgba(255,255,255,.22)}
-    .placeholder{
-      border:1px dashed rgba(255,255,255,.14);
-      border-radius: 16px;
+    .tab.active{
+      border-color: rgba(217,70,141,.55);
+      box-shadow:0 0 0 2px rgba(217,70,141,.12);
+    }
+
+    .deliverCard{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
       padding:14px;
-      color: rgba(255,255,255,.55);
-      min-height: 150px;
+      min-height:180px;
+      position:relative;
+    }
+
+    .deliverCardHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .deliverCardTitle{
+      margin:0;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .miniBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color:rgba(255,255,255,.86);
+      border-radius:999px;
+      padding:10px 12px;
+      font-weight:850;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .miniBtn:hover{border-color:rgba(255,255,255,.22)}
+    .miniBtn:active{transform:translateY(1px)}
+    .miniBtn[disabled]{opacity:.45; cursor:not-allowed; transform:none !important;}
+
+    .placeholderBox{
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:16px;
+      padding:14px;
+      color:var(--muted2);
+      min-height:120px;
       display:flex;
       align-items:flex-start;
-    }
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 13px;
-      line-height:1.45;
-      white-space:pre-wrap;
+      line-height:1.55;
     }
 
     /* Footer */
-    footer{
-      margin-top:16px;
+    .footer{
+      margin-top:18px;
       padding-top:16px;
       border-top:1px solid rgba(255,255,255,.10);
       display:flex;
       align-items:flex-end;
       justify-content:space-between;
-      gap:12px;
+      gap:14px;
       flex-wrap:wrap;
     }
-    .footerLeft{
-      min-width: 260px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    .footerBrand{
+      font-weight:900;
+      letter-spacing:.2px;
+      margin-bottom:6px;
     }
-    .footerBrand{font-weight:900; font-size:16px; letter-spacing:.2px}
     .footerMeta{
       color:var(--muted2);
       font-size:12.8px;
@@ -352,7 +421,7 @@
       gap:10px;
       align-items:center;
     }
-    .sep{opacity:.45}
+    .footerMeta .sep{opacity:.45}
     .footerMeta a{
       color: rgba(255,255,255,.86);
       text-decoration:none;
@@ -368,35 +437,12 @@
       display:flex;
       align-items:center;
       gap:10px;
-      white-space:nowrap;
       margin-left:auto;
-    }
-
-    /* Toast */
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:18px;
-      transform:translateX(-50%);
-      background: rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.14);
-      color: rgba(255,255,255,.92);
-      padding:10px 12px;
-      border-radius: 999px;
-      box-shadow: 0 16px 44px rgba(0,0,0,.55);
-      opacity:0;
-      pointer-events:none;
-      transition: opacity .18s ease, transform .18s ease;
-      z-index:9999;
-      font-size:13.5px;
-    }
-    .toast.show{
-      opacity:1;
-      transform:translateX(-50%) translateY(-2px);
+      white-space:nowrap;
     }
 
     @media (max-width: 980px){
-      .formGrid{grid-template-columns:1fr}
+      .footer{align-items:flex-start}
       .footerRight{margin-left:0}
     }
   </style>
@@ -406,16 +452,13 @@
   <div class="bgGrid" aria-hidden="true"></div>
 
   <div class="wrap">
+
     <!-- Topbar -->
     <div class="topbar">
       <div class="brand">
-        <!-- If your Dashboard repo uses a different filename, update ONLY this line -->
-        <img
-          src="./vc-logo-transparent.png"
-          onerror="this.onerror=null;this.src='./vc-logo.png';"
-          alt="Vibe Coded Studio logo"
-          class="brandLogo"
-        />
+        <!-- Put your dashboard repo logo filename here -->
+        <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio logo" class="brandLogo"
+             onerror="this.style.display='none';" />
         <div class="brandText">
           <div class="brandName">Vibe Coded Studio</div>
           <div class="brandTag">Dashboard · UI-only build generator</div>
@@ -423,388 +466,417 @@
       </div>
 
       <div class="topbarRight">
-        <div class="pill" id="pillStatus" title="UI-only mode">
-          <span class="pillDot" aria-hidden="true"></span>
-          Non-custodial · No backend
-        </div>
+        <div class="pill"><span class="pillDot"></span> Non-custodial · No backend</div>
         <a class="btnPrimary" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">
           Tutorial
         </a>
       </div>
     </div>
 
-    <!-- Hero -->
+    <!-- HERO (your exact copy) -->
     <div class="hero">
-      <h1 class="heroTitle">Dashboard</h1>
-      <p class="heroSub">
-        Generate a clean starting point (docs + static scaffold + visualization). This page is UI-only — it does not
-        generate real files server-side. It’s meant to communicate structure, boundaries, and deliverables.
-      </p>
+      <h1 class="heroTitle">Tell us what you want built.</h1>
+      <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
     </div>
 
-    <div class="stack">
-      <!-- Generator Panel -->
-      <section class="panel">
-        <div class="panelHead">
-          <h2 class="panelTitle">Build Setup</h2>
-          <div class="panelMeta" id="metaLoaded">Loaded last request</div>
+    <!-- BUILD SETUP -->
+    <section class="panel" id="build">
+      <div class="panelHead">
+        <h2 class="panelTitle">Build Setup</h2>
+        <div class="panelMeta" id="lastLoaded">Loaded last request</div>
+      </div>
+
+      <!-- THE THOUGHT -->
+      <div class="fieldLabel">Your request</div>
+      <p class="subLabel">Explain the pain point you want solved.</p>
+      <textarea
+        id="thought"
+        class="input"
+        placeholder="Example: I want a system that automatically finds leads and follows up for me."
+      ></textarea>
+
+      <!-- System type -->
+      <div class="fieldLabel">System type</div>
+      <select id="systemType" class="input">
+        <option>AI automation system</option>
+        <option>Non-custodial custody workflow</option>
+        <option>DAO governance workflow</option>
+        <option>Wallet integration + onboarding</option>
+        <option>Content + IPFS publishing pipeline</option>
+        <option>Lead gen + follow-up engine</option>
+        <option>Internal ops / control tower</option>
+      </select>
+
+      <!-- Action dropdown (restored) -->
+      <div class="fieldLabel">Action</div>
+      <select id="actionType" class="input">
+        <option>AI Agent Builder</option>
+        <option>Workflow Automations</option>
+        <option>DAO Governance</option>
+        <option>Wallet Integration</option>
+        <option>Publishing + GitHub Pages</option>
+        <option>IPFS / Content Ownership</option>
+        <option>Analytics + Reporting</option>
+      </select>
+
+      <div class="btnRow">
+        <button id="generateBtn" class="btnPrimary" disabled>Generate first build</button>
+        <button id="resetBtn" class="btnSecondary" type="button">Reset</button>
+        <span class="statusText" id="statusText">Write the Thought first.</span>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="boundaries">
+        <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
+        It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
+      </div>
+    </section>
+
+    <!-- DELIVERABLES -->
+    <section class="panel" id="deliverables">
+      <div class="deliverHead">
+        <h2 class="deliverTitle">Deliverables</h2>
+        <div class="deliverMeta">
+          <span>UI preview</span>
+          <span class="appVer" id="appVer">APP v2026-01-07.1</span>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Deliverables tabs">
+        <div class="tab active" data-tab="system">System Image</div>
+        <div class="tab" data-tab="repo">Repo Files</div>
+        <div class="tab" data-tab="download">Download</div>
+      </div>
+
+      <!-- Tab: System -->
+      <div class="deliverCard" id="tab-system">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">System visualization (SVG)</h3>
+          <button class="miniBtn" id="downloadSvgBtn" disabled>Download SVG</button>
+        </div>
+        <div class="placeholderBox" id="svgBox">
+          Generate a build to preview the system visualization.
         </div>
 
-        <div class="formGrid">
-          <div class="field">
-            <div class="label">System type</div>
-            <select class="select" id="systemType">
-              <option>Non-custodial custody workflow</option>
-              <option>DAO treasury dashboard</option>
-              <option>Tokenized RWA vault overview</option>
-              <option>Micro-school transparency hub</option>
-              <option>Personal knowledge base (docs-first)</option>
-            </select>
-          </div>
+        <div style="height:12px"></div>
 
-          <div class="field">
-            <div class="label">Action</div>
-            <select class="select" id="actionType">
-              <option>AI Agent Builder</option>
-              <option>Workflow Automations</option>
-              <option>DAO Governance</option>
-              <option>Wallet Integration</option>
-              <option>Landing Page Builder</option>
-              <option>Docs Pack Generator</option>
-              <option>Brand Kit Scaffold</option>
-            </select>
-          </div>
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Canonical image prompt (SoT)</h3>
+          <button class="miniBtn" id="copyPromptBtn" disabled>Copy prompt</button>
         </div>
-
-        <div class="rowActions">
-          <button class="btnPrimary" id="btnGenerate">Generate first build</button>
-          <button class="btnGhost" id="btnReset">Reset</button>
-          <span class="hint" id="hintLine">Ready. Click “Generate first build”.</span>
+        <div class="placeholderBox" id="promptBox">
+          Generate a build to produce the locked prompt.
         </div>
+      </div>
 
-        <div style="height:10px"></div>
-
-        <div class="boundary">
-          <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
-          It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
+      <!-- Tab: Repo -->
+      <div class="deliverCard" id="tab-repo" style="display:none;">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Repo files (preview)</h3>
+          <button class="miniBtn" id="copyFilesBtn" disabled>Copy file list</button>
         </div>
-      </section>
-
-      <!-- Deliverables / Tabs -->
-      <section class="panel">
-        <div class="panelHead">
-          <h2 class="panelTitle">Deliverables</h2>
-          <div class="panelMeta" id="metaDeliverables">UI preview</div>
+        <div class="placeholderBox" id="repoBox">
+          Generate a build to preview the repository scaffold (UI-only).
         </div>
+      </div>
 
-        <div class="tabsRow" role="tablist" aria-label="Deliverables tabs">
-          <div class="tab" role="tab" tabindex="0" aria-selected="true" id="tabSystem">System Image</div>
-          <div class="tab" role="tab" tabindex="-1" aria-selected="false" id="tabRepo">Repo Files</div>
-          <div class="tab" role="tab" tabindex="-1" aria-selected="false" id="tabDownload">Download</div>
+      <!-- Tab: Download -->
+      <div class="deliverCard" id="tab-download" style="display:none;">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Download bundle</h3>
+          <button class="miniBtn" id="downloadZipBtn" disabled>Download ZIP</button>
         </div>
-
-        <div class="divider"></div>
-
-        <!-- Content: System Image -->
-        <div id="panelSystem" class="stack">
-          <div class="block">
-            <div class="blockHead">
-              <p class="blockTitle">System visualization (SVG)</p>
-              <button class="blockBtn" id="btnDownloadSvg" type="button">Download SVG</button>
-            </div>
-            <div class="placeholder">
-              <div class="mono" id="svgArea">Generate a build to preview the system visualization.</div>
-            </div>
-          </div>
-
-          <div class="block">
-            <div class="blockHead">
-              <p class="blockTitle">Canonical image prompt (SoT)</p>
-              <button class="blockBtn" id="btnCopyPrompt" type="button">Copy prompt</button>
-            </div>
-            <div class="placeholder">
-              <div class="mono" id="promptArea">Generate a build to produce the locked prompt.</div>
-            </div>
-          </div>
+        <div class="placeholderBox" id="downloadBox">
+          Generate a build to enable downloads.
         </div>
+      </div>
+    </section>
 
-        <!-- Content: Repo Files -->
-        <div id="panelRepo" class="stack" style="display:none">
-          <div class="block">
-            <div class="blockHead">
-              <p class="blockTitle">Repo scaffold (preview)</p>
-              <button class="blockBtn" id="btnCopyRepo" type="button">Copy tree</button>
-            </div>
-            <div class="placeholder">
-              <div class="mono" id="repoArea">Generate a build to preview the repo files list.</div>
-            </div>
-          </div>
-
-          <div class="block">
-            <div class="blockHead">
-              <p class="blockTitle">Notes</p>
-              <button class="blockBtn" id="btnCopyNotes" type="button">Copy notes</button>
-            </div>
-            <div class="placeholder">
-              <div class="mono" id="notesArea">Generate a build to produce setup notes.</div>
-            </div>
-          </div>
+    <!-- Footer -->
+    <footer class="footer">
+      <div>
+        <div class="footerBrand">Vibe Coded Studio</div>
+        <div class="footerMeta">
+          <span>Ownership First</span>
+          <span class="sep">·</span>
+          <span>Powered by Self-Defi</span>
+          <span class="sep">·</span>
+          <a href="https://github.com/Self-Defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE.md" target="_blank" rel="noopener">License</a>
         </div>
+      </div>
 
-        <!-- Content: Download -->
-        <div id="panelDownload" class="stack" style="display:none">
-          <div class="block">
-            <div class="blockHead">
-              <p class="blockTitle">Download</p>
-              <button class="blockBtn" id="btnDownloadZip" type="button">Download ZIP</button>
-            </div>
-            <div class="placeholder">
-              <div class="mono" id="dlArea">UI-only. No backend packaging is available on this page.</div>
-            </div>
-          </div>
+      <div class="footerRight">
+        <span>© <span id="yr"></span> Vibe Coded Studio</span>
+      </div>
+    </footer>
 
-          <p class="muted">
-            If you want real file generation, you’ll wire a build pipeline later (or export static templates).
-            This dashboard stays “ownership-first”: you control hosting and publishing.
-          </p>
-        </div>
-      </section>
-
-      <!-- Footer -->
-      <footer>
-        <div class="footerLeft">
-          <div class="footerBrand">Vibe Coded Studio</div>
-          <div class="footerMeta">
-            <span>Ownership First</span>
-            <span class="sep">·</span>
-            <span>Powered by Self-Defi</span>
-            <span class="sep">·</span>
-            <span>Digital Infrastructure Architect</span>
-            <span class="sep">·</span>
-            <a
-              href="https://github.com/Self-Defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE.md"
-              target="_blank" rel="noopener"
-            >License</a>
-          </div>
-        </div>
-
-        <div class="footerRight">
-          <span>© <span id="yr"></span> Vibe Coded Studio</span>
-        </div>
-      </footer>
-    </div>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite">Copied.</div>
-
   <script>
-    // Year
-    document.getElementById("yr").textContent = new Date().getFullYear();
+    // ===== Helpers
+    const $ = (id) => document.getElementById(id);
+
+    const thought = $("thought");
+    const systemType = $("systemType");
+    const actionType = $("actionType");
+    const generateBtn = $("generateBtn");
+    const resetBtn = $("resetBtn");
+    const statusText = $("statusText");
+
+    const svgBox = $("svgBox");
+    const promptBox = $("promptBox");
+    const repoBox = $("repoBox");
+    const downloadBox = $("downloadBox");
+
+    const downloadSvgBtn = $("downloadSvgBtn");
+    const copyPromptBtn = $("copyPromptBtn");
+    const copyFilesBtn = $("copyFilesBtn");
+    const downloadZipBtn = $("downloadZipBtn");
+
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const tabSystem = $("tab-system");
+    const tabRepo = $("tab-repo");
+    const tabDownload = $("tab-download");
+
+    const YEAR = new Date().getFullYear();
+    $("yr").textContent = YEAR;
+
+    // Persist last request (UI-only)
+    const KEY = "vcs_dashboard_last_request_v1";
+
+    function setGenerateEnabled(){
+      const hasThought = thought.value.trim().length > 0;
+      generateBtn.disabled = !hasThought;
+      statusText.textContent = hasThought
+        ? 'Ready. Click "Generate first build".'
+        : "Write the Thought first.";
+    }
+
+    thought.addEventListener("input", setGenerateEnabled);
+    setGenerateEnabled();
 
     // Tabs
-    const tabs = [
-      { tab: "tabSystem", panel: "panelSystem" },
-      { tab: "tabRepo", panel: "panelRepo" },
-      { tab: "tabDownload", panel: "panelDownload" },
-    ];
+    function showTab(which){
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === which));
+      tabSystem.style.display = which === "system" ? "block" : "none";
+      tabRepo.style.display = which === "repo" ? "block" : "none";
+      tabDownload.style.display = which === "download" ? "block" : "none";
+    }
+    tabs.forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
 
-    function setTab(activeId){
-      tabs.forEach(({tab, panel}) => {
-        const t = document.getElementById(tab);
-        const p = document.getElementById(panel);
-        const isActive = (tab === activeId);
-        t.setAttribute("aria-selected", isActive ? "true" : "false");
-        t.tabIndex = isActive ? 0 : -1;
-        p.style.display = isActive ? "" : "none";
-      });
+    // Fake build generation (UI-only)
+    function buildMock(){
+      const t = thought.value.trim();
+      const sys = systemType.value;
+      const act = actionType.value;
+
+      // Locked-ish prompt output
+      const canonicalPrompt =
+`SYSTEM: Vibe Coded Studio (UI-only)
+GOAL: Turn the user's written Thought into a starter scaffold: docs + static repo + simple system visualization.
+BOUNDARIES: No backend. No security claims. No guarantees.
+
+THOUGHT:
+"${t}"
+
+SYSTEM TYPE: ${sys}
+ACTION: ${act}
+
+DELIVERABLES:
+1) README outline (what it is, boundaries, how to publish)
+2) /index.html scaffold (static)
+3) /assets placeholders
+4) Simple SVG system diagram description
+`;
+
+      // SVG placeholder (simple inline SVG)
+      const safeText = (s) => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+      const short = t.length > 72 ? t.slice(0, 72) + "…" : t;
+
+      const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9468d" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#4f8cff" stop-opacity="0.20"/>
+    </linearGradient>
+  </defs>
+  <rect x="18" y="18" width="924" height="384" rx="22" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.14)"/>
+  <rect x="48" y="52" width="864" height="78" rx="18" fill="url(#g)" stroke="rgba(255,255,255,0.14)"/>
+  <text x="70" y="92" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="22" fill="rgba(255,255,255,0.92)" font-weight="800">THE THOUGHT</text>
+  <text x="70" y="118" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" fill="rgba(255,255,255,0.72)">${safeText(short)}</text>
+
+  <rect x="48" y="150" width="270" height="110" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)"/>
+  <text x="70" y="186" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">Docs</text>
+  <text x="70" y="210" font-family="system-ui" font-size="13" fill="rgba(255,255,255,0.65)">README + boundaries</text>
+
+  <rect x="345" y="150" width="270" height="110" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)"/>
+  <text x="367" y="186" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">Repo Scaffold</text>
+  <text x="367" y="210" font-family="system-ui" font-size="13" fill="rgba(255,255,255,0.65)">Static files only</text>
+
+  <rect x="642" y="150" width="270" height="110" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)"/>
+  <text x="664" y="186" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">Visualization</text>
+  <text x="664" y="210" font-family="system-ui" font-size="13" fill="rgba(255,255,255,0.65)">SVG preview</text>
+
+  <path d="M318 205 L345 205" stroke="rgba(217,70,141,0.9)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M615 205 L642 205" stroke="rgba(217,70,141,0.75)" stroke-width="3" stroke-linecap="round"/>
+
+  <rect x="48" y="284" width="864" height="92" rx="18" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.10)"/>
+  <text x="70" y="320" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">System type:</text>
+  <text x="170" y="320" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.72)">${safeText(sys)}</text>
+  <text x="70" y="348" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">Action:</text>
+  <text x="132" y="348" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.72)">${safeText(act)}</text>
+</svg>`;
+
+      // Repo files preview
+      const files =
+`/ (repo root)
+  index.html
+  README.md
+  /assets
+    vc-logo-transparent.png
+    vc-github-thumbnail.png
+  /docs
+    overview.md
+    boundaries.md
+  /diagrams
+    system.svg`;
+
+      return { canonicalPrompt, svg, files };
     }
 
-    tabs.forEach(({tab}) => {
-      const el = document.getElementById(tab);
-      el.addEventListener("click", () => setTab(tab));
-      el.addEventListener("keydown", (e) => {
-        if(e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab(tab); }
-      });
-    });
+    function setGeneratedUI(payload){
+      svgBox.innerHTML = payload.svg;
+      promptBox.textContent = payload.canonicalPrompt;
+      repoBox.textContent = payload.files;
+      downloadBox.textContent = "UI-only: Download bundle is enabled (preview).";
 
-    // Toast helper
-    const toast = document.getElementById("toast");
-    let toastTimer = null;
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove("show"), 1200);
+      downloadSvgBtn.disabled = false;
+      copyPromptBtn.disabled = false;
+      copyFilesBtn.disabled = false;
+      downloadZipBtn.disabled = false;
+
+      statusText.textContent = "Generated. You can now preview deliverables.";
     }
 
-    async function copyText(text){
+    function saveLastRequest(){
+      const data = {
+        thought: thought.value,
+        systemType: systemType.value,
+        actionType: actionType.value,
+        at: new Date().toISOString()
+      };
+      localStorage.setItem(KEY, JSON.stringify(data));
+    }
+
+    function loadLastRequest(){
       try{
-        await navigator.clipboard.writeText(text);
-        showToast("Copied.");
-      }catch{
-        showToast("Copy blocked.");
-      }
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        if(data.thought) thought.value = data.thought;
+        if(data.systemType) systemType.value = data.systemType;
+        if(data.actionType) actionType.value = data.actionType;
+        setGenerateEnabled();
+      }catch(e){}
     }
 
-    // UI-only "Generate"
-    const systemType = document.getElementById("systemType");
-    const actionType = document.getElementById("actionType");
-
-    const hintLine = document.getElementById("hintLine");
-    const metaLoaded = document.getElementById("metaLoaded");
-
-    const svgArea = document.getElementById("svgArea");
-    const promptArea = document.getElementById("promptArea");
-    const repoArea = document.getElementById("repoArea");
-    const notesArea = document.getElementById("notesArea");
-
-    function buildPrompt(){
-      return [
-        "Vibe Coded Studio — Canonical Image Prompt (SoT)",
-        "",
-        "Goal: Generate a clean, dark UI dashboard visual for a UI-only build generator.",
-        "Style: neon-accent (magenta/blue), subtle grid, glass panels, premium.",
-        "",
-        "Sections:",
-        `- System type: ${systemType.value}`,
-        `- Action: ${actionType.value}`,
-        "- Deliverables tabs: System Image / Repo Files / Download",
-        "- Cards: System visualization (SVG), Canonical image prompt (SoT)",
-        "",
-        "Constraints:",
-        "- No backend implied",
-        "- Ownership-first language",
-        "- Minimal, confident microcopy"
-      ].join("\\n");
-    }
-
-    function buildRepoTree(){
-      return [
-        "Suggested repo scaffold (UI-only):",
-        "",
-        "/",
-        "  index.html",
-        "  assets/",
-        "    vc-logo-transparent.png",
-        "    vc-github-thumbnail.png",
-        "  docs/",
-        "    README.md",
-        "    BOUNDARIES.md",
-        "  LICENSE.md",
-        "",
-        "Notes:",
-        "- Keep index.html at root for GitHub Pages",
-        "- Put social thumbnail at /vc-github-thumbnail.png",
-      ].join("\\n");
-    }
-
-    function buildNotes(){
-      const a = actionType.value;
-      const s = systemType.value;
-
-      return [
-        "Build notes (UI-only):",
-        "",
-        `System type: ${s}`,
-        `Action: ${a}`,
-        "",
-        "What this produces:",
-        "- A static UI shell that communicates deliverables and boundaries",
-        "- Placeholder visualization + copy buttons for export workflows",
-        "",
-        "What this does NOT produce:",
-        "- No file generation, no hosting, no automated publishing",
-        "- No security/compliance guarantees",
-      ].join("\\n");
-    }
-
-    function buildSvgStub(){
-      // SVG stub (not a real diagram generator)
-      return [
-        "<svg width=\\"800\\" height=\\"240\\" viewBox=\\"0 0 800 240\\" xmlns=\\"http://www.w3.org/2000/svg\\">",
-        "  <defs>",
-        "    <linearGradient id=\\"g\\" x1=\\"0\\" y1=\\"0\\" x2=\\"1\\" y2=\\"1\\">",
-        "      <stop offset=\\"0\\" stop-color=\\"#d9468d\\" stop-opacity=\\"0.9\\"/>",
-        "      <stop offset=\\"1\\" stop-color=\\"#508cff\\" stop-opacity=\\"0.9\\"/>",
-        "    </linearGradient>",
-        "  </defs>",
-        "  <rect x=\\"12\\" y=\\"12\\" width=\\"776\\" height=\\"216\\" rx=\\"18\\" fill=\\"rgba(255,255,255,0.04)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
-        "  <text x=\\"28\\" y=\\"56\\" fill=\\"rgba(255,255,255,0.92)\\" font-family=\\"system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial\\" font-size=\\"18\\" font-weight=\\"800\\">System Visualization (Stub)</text>",
-        `  <text x=\\"28\\" y=\\"88\\" fill=\\"rgba(255,255,255,0.68)\\" font-family=\\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New\\" font-size=\\"12\\">system: ${systemType.value}</text>`,
-        `  <text x=\\"28\\" y=\\"108\\" fill=\\"rgba(255,255,255,0.68)\\" font-family=\\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New\\" font-size=\\"12\\">action: ${actionType.value}</text>`,
-        "  <circle cx=\\"110\\" cy=\\"160\\" r=\\"28\\" fill=\\"url(#g)\\"/>",
-        "  <rect x=\\"170\\" y=\\"138\\" width=\\"160\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
-        "  <rect x=\\"360\\" y=\\"138\\" width=\\"160\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
-        "  <rect x=\\"550\\" y=\\"138\\" width=\\"210\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
-        "  <text x=\\"190\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Docs</text>",
-        "  <text x=\\"380\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Scaffold</text>",
-        "  <text x=\\"570\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Visualization</text>",
-        "</svg>"
-      ].join("\\n");
-    }
-
-    document.getElementById("btnGenerate").addEventListener("click", () => {
-      hintLine.textContent = "Generated. Review Deliverables.";
-      metaLoaded.textContent = "Generated just now";
-
-      // Fill placeholders
-      svgArea.textContent = buildSvgStub();
-      promptArea.textContent = buildPrompt();
-      repoArea.textContent = buildRepoTree();
-      notesArea.textContent = buildNotes();
-
-      showToast("Build generated.");
+    // Buttons
+    generateBtn.addEventListener("click", () => {
+      const payload = buildMock();
+      setGeneratedUI(payload);
+      saveLastRequest();
     });
 
-    document.getElementById("btnReset").addEventListener("click", () => {
+    resetBtn.addEventListener("click", () => {
+      thought.value = "";
       systemType.selectedIndex = 0;
       actionType.selectedIndex = 0;
 
-      hintLine.textContent = "Ready. Click “Generate first build”.";
-      metaLoaded.textContent = "Loaded last request";
+      svgBox.textContent = "Generate a build to preview the system visualization.";
+      promptBox.textContent = "Generate a build to produce the locked prompt.";
+      repoBox.textContent = "Generate a build to preview the repository scaffold (UI-only).";
+      downloadBox.textContent = "Generate a build to enable downloads.";
 
-      svgArea.textContent = "Generate a build to preview the system visualization.";
-      promptArea.textContent = "Generate a build to produce the locked prompt.";
-      repoArea.textContent = "Generate a build to preview the repo files list.";
-      notesArea.textContent = "Generate a build to produce setup notes.";
+      downloadSvgBtn.disabled = true;
+      copyPromptBtn.disabled = true;
+      copyFilesBtn.disabled = true;
+      downloadZipBtn.disabled = true;
 
-      showToast("Reset.");
+      localStorage.removeItem(KEY);
+      setGenerateEnabled();
     });
 
-    // Copy / download actions (UI-only)
-    document.getElementById("btnCopyPrompt").addEventListener("click", () => copyText(promptArea.textContent));
-    document.getElementById("btnCopyRepo").addEventListener("click", () => copyText(repoArea.textContent));
-    document.getElementById("btnCopyNotes").addEventListener("click", () => copyText(notesArea.textContent));
-
-    document.getElementById("btnDownloadSvg").addEventListener("click", () => {
-      const svg = svgArea.textContent;
-      if(!svg.trim().startsWith("<svg")){
-        showToast("Generate first.");
-        return;
-      }
-      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    // Download SVG
+    downloadSvgBtn.addEventListener("click", () => {
+      const svgEl = svgBox.querySelector("svg");
+      if(!svgEl) return;
+      const blob = new Blob([svgEl.outerHTML], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "vibe-coded-system.svg";
+      a.download = "system.svg";
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      showToast("SVG downloaded.");
     });
 
-    document.getElementById("btnDownloadZip").addEventListener("click", () => {
-      showToast("UI-only (no ZIP).");
-    });
-
-    // Keep the “Loaded last request” feeling
-    const metaDeliverables = document.getElementById("metaDeliverables");
-    function updateMeta(){
-      metaDeliverables.textContent = `Action: ${actionType.value}`;
+    // Copy prompt / files
+    async function copyText(txt){
+      try{
+        await navigator.clipboard.writeText(txt);
+        statusText.textContent = "Copied.";
+        setTimeout(() => setGenerateEnabled(), 900);
+      }catch(e){
+        statusText.textContent = "Copy blocked by browser.";
+        setTimeout(() => setGenerateEnabled(), 1200);
+      }
     }
-    actionType.addEventListener("change", updateMeta);
-    updateMeta();
+
+    copyPromptBtn.addEventListener("click", () => copyText(promptBox.textContent));
+    copyFilesBtn.addEventListener("click", () => copyText(repoBox.textContent));
+
+    // Download "ZIP" (UI-only fake — exports a .txt bundle to keep it honest)
+    downloadZipBtn.addEventListener("click", () => {
+      const payload = buildMock();
+      const bundle =
+`VIBE CODED STUDIO — UI-ONLY BUNDLE (NOT A REAL BUILD)
+====================================================
+
+THOUGHT
+------
+${thought.value.trim()}
+
+SYSTEM TYPE: ${systemType.value}
+ACTION: ${actionType.value}
+
+CANONICAL PROMPT
+---------------
+${payload.canonicalPrompt}
+
+REPO FILES
+---------
+${payload.files}
+
+SVG (inline)
+-----------
+${payload.svg}
+`;
+      const blob = new Blob([bundle], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vcs-ui-only-bundle.txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // Load last request on open
+    loadLastRequest();
   </script>
 </body>
 </html>
