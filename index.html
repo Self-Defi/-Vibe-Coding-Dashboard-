@@ -24,6 +24,13 @@
   <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
 
   <link rel="stylesheet" href="./styles.css" />
+
+  <!-- JSZip (real zip downloads) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <!-- App scripts -->
+  <script defer src="./templates.js"></script>
+  <script defer src="./app.js"></script>
 </head>
 
 <body>
@@ -50,17 +57,17 @@
       </div>
     </div>
 
-    <!-- HERO -->
+    <!-- Hero -->
     <div class="hero">
       <h1 class="heroTitle">Tell us what you want built.</h1>
       <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
     </div>
 
-    <!-- BUILD SETUP -->
+    <!-- Build Setup -->
     <section class="panel" id="build">
       <div class="panelHead">
         <h2 class="panelTitle">Build Setup</h2>
-        <div class="panelMeta" id="lastLoaded">Loaded last request</div>
+        <div class="panelMeta" id="lastLoaded">—</div>
       </div>
 
       <div class="fieldLabel">Your request</div>
@@ -88,7 +95,7 @@
         <span class="statusText" id="statusText">Write the Thought first.</span>
       </div>
 
-      <div style="height:12px"></div>
+      <div class="spacer12"></div>
 
       <div class="boundaries">
         <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
@@ -96,64 +103,81 @@
       </div>
     </section>
 
-    <!-- DELIVERABLES -->
+    <!-- Deliverables -->
     <section class="panel" id="deliverables">
       <div class="deliverHead">
         <h2 class="deliverTitle">Deliverables</h2>
         <div class="deliverMeta">
           <span>UI preview</span>
-          <span class="appVer" id="appVer">APP v2026-01-09.2</span>
+          <span class="appVer" id="appVer">APP v2026-01-09.3</span>
         </div>
       </div>
 
       <div class="tabs" role="tablist" aria-label="Deliverables tabs">
-        <div class="tab active" data-tab="system">System Image</div>
-        <div class="tab" data-tab="repo">Repo Files</div>
-        <div class="tab" data-tab="download">Download</div>
+        <button class="tab active" data-tab="system" type="button">System Image</button>
+        <button class="tab" data-tab="repo" type="button">Repo Files</button>
+        <button class="tab" data-tab="download" type="button">Download</button>
       </div>
 
       <!-- Tab: System -->
       <div class="deliverCard" id="tab-system">
         <div class="deliverCardHead">
-          <h3 class="deliverCardTitle">System visualization (SVG)</h3>
-          <button class="miniBtn" id="downloadSvgBtn" disabled>Download SVG</button>
-        </div>
-        <div class="placeholderBox" id="svgBox">
-          Generate a build to preview the system visualization.
+          <h3 class="deliverCardTitle">Canonical image prompt (SoT)</h3>
+          <div class="miniBtnRow">
+            <button class="miniBtn" id="copyPromptBtn" disabled type="button">Copy prompt</button>
+            <button class="miniBtn" id="copyNegBtn" disabled type="button">Copy negative</button>
+          </div>
         </div>
 
-        <div style="height:12px"></div>
+        <pre class="codeBox" id="promptBox">Generate a build to produce the locked prompt.</pre>
+
+        <div class="spacer12"></div>
 
         <div class="deliverCardHead">
-          <h3 class="deliverCardTitle">Canonical image prompt (SoT)</h3>
-          <button class="miniBtn" id="copyPromptBtn" disabled>Copy prompt</button>
+          <h3 class="deliverCardTitle">System visualization (SVG preview)</h3>
+          <button class="miniBtn" id="downloadSvgBtn" disabled type="button">Download SVG</button>
         </div>
-        <div class="placeholderBox" id="promptBox">
-          Generate a build to produce the locked prompt.
+
+        <div class="svgFrame" id="svgBox">
+          Generate a build to preview the system visualization.
         </div>
       </div>
 
       <!-- Tab: Repo -->
       <div class="deliverCard" id="tab-repo" style="display:none;">
         <div class="deliverCardHead">
-          <h3 class="deliverCardTitle">Repo files (generated)</h3>
-          <button class="miniBtn" id="copyFilesBtn" disabled>Copy all files</button>
+          <h3 class="deliverCardTitle">Generated repo output</h3>
+          <div class="miniBtnRow">
+            <button class="miniBtn" id="copyTreeBtn" disabled type="button">Copy tree</button>
+            <button class="miniBtn" id="copyFileBtn" disabled type="button">Copy selected file</button>
+          </div>
         </div>
-        <pre class="codeBox" id="repoBox">Generate a build to generate the repo scaffold.</pre>
+
+        <pre class="codeBox" id="treeBox">Generate a build to preview the repository scaffold.</pre>
+
+        <div class="spacer12"></div>
+
+        <div class="fileRow">
+          <label class="fileLabel" for="fileSelect">Preview file</label>
+          <select id="fileSelect" class="input" disabled></select>
+        </div>
+
+        <pre class="codeBox" id="fileBox">—</pre>
       </div>
 
       <!-- Tab: Download -->
       <div class="deliverCard" id="tab-download" style="display:none;">
         <div class="deliverCardHead">
           <h3 class="deliverCardTitle">Download bundle</h3>
-          <button class="miniBtn" id="downloadZipBtn" disabled>Download ZIP</button>
+          <button class="miniBtn" id="downloadZipBtn" disabled type="button">Download ZIP</button>
         </div>
-        <div class="help" id="downloadBox">
+        <div class="placeholderBox" id="downloadBox">
           Generate a build to enable downloads.
         </div>
       </div>
     </section>
 
+    <!-- Footer -->
     <footer class="footer">
       <div>
         <div class="footerBrand">Vibe Coded Studio</div>
@@ -172,12 +196,5 @@
     </footer>
 
   </div>
-
-  <!-- JSZip for real ZIP downloads (still UI-only) -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
-  <!-- App -->
-  <script src="./templates.js"></script>
-  <script src="./app.js"></script>
 </body>
 </html>
