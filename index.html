@@ -465,8 +465,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <!-- FIXED: dashboard repo uses vc-logo-transparent.png -->
-      <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio" class="brandLogo" onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='block';" />
+      <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio" class="brandLogo"
+           onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='block';" />
       <div id="brandFallback" style="display:none;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);box-shadow:0 10px 24px rgba(0,0,0,.35);"></div>
 
       <div class="brandText">
@@ -501,6 +501,21 @@
 
         <label class="label" for="thought">Your thought (one clear problem)</label>
         <textarea id="thought" class="textarea" placeholder="Example: A one-page landing page that explains my service and links to a booking page."></textarea>
+
+        <!-- ADDED BACK: Action drop-down -->
+        <div class="row">
+          <span class="smallLabel">Action category</span>
+          <select id="actionType" class="select">
+            <option value="ai-agent">AI Agent Builder</option>
+            <option value="workflow">Workflow Automations</option>
+            <option value="dao">DAO Governance</option>
+            <option value="wallet">Wallet Integration</option>
+            <option value="payments">Payments / Checkout</option>
+            <option value="analytics">Analytics / Tracking</option>
+            <option value="content">Content / Docs</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
 
         <div class="row">
           <span class="smallLabel">Output type</span>
@@ -697,7 +712,7 @@
     howModal.addEventListener("click", (e)=>{ if(e.target === howModal) closeHow(); });
     window.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && howModal.classList.contains("show")) closeHow(); });
 
-    // UI-only build (no backend): generate mock files + preview
+    // UI-only build
     const statusEl = document.getElementById("status");
     const previewBox = document.getElementById("previewBox");
     const fileList = document.getElementById("fileList");
@@ -709,7 +724,6 @@
     const btnCopyJson = document.getElementById("btnCopyJson");
 
     function safeHash(str){
-      // tiny deterministic hash for UI preview (not crypto)
       let h = 2166136261;
       for (let i=0;i<str.length;i++){
         h ^= str.charCodeAt(i);
@@ -718,9 +732,19 @@
       return ("00000000" + (h >>> 0).toString(16)).slice(-8);
     }
 
-    function makeFiles(thought, type){
+    function makeFiles(thought, type, action){
       const title = (thought || "Vibe Coded Studio").trim().slice(0, 60);
       const body = (thought || "Describe what you are building.").trim();
+      const actionLabel = {
+        "ai-agent":"AI Agent Builder",
+        "workflow":"Workflow Automations",
+        "dao":"DAO Governance",
+        "wallet":"Wallet Integration",
+        "payments":"Payments / Checkout",
+        "analytics":"Analytics / Tracking",
+        "content":"Content / Docs",
+        "other":"Other"
+      }[action] || "Other";
 
       const index = `<!doctype html>
 <html lang="en">
@@ -740,7 +764,8 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>${type === "docs" ? "Documentation" : "Landing Page"}</h1>
+      <h1>${type === "docs" ? "Documentation" : (type === "tool" ? "Mini Tool UI" : "Landing Page")}</h1>
+      <p><strong>Action:</strong> ${actionLabel}</p>
       <p>${body.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>
       <div class="pill">Built with Vibe Coded Studio</div>
     </div>
@@ -750,6 +775,7 @@
 
       const readme = `# ${title}
 
+**Action category:** ${actionLabel}  
 **One thought:** ${body}
 
 ## What you own
@@ -763,6 +789,7 @@ Settings → Pages → Deploy from branch → main /root → Save
 
       const cfg = {
         app: "Vibe Coded Studio",
+        action: actionLabel,
         type,
         title,
         thought: body,
@@ -807,7 +834,6 @@ Settings → Pages → Deploy from branch → main /root → Save
     }
 
     function renderPreview(files){
-      // show a simple HTML preview block (safe)
       const html = files.find(f=>f.name==="index.html")?.content || "";
       const escaped = html.replace(/</g,"&lt;").replace(/>/g,"&gt;");
       previewBox.innerHTML = `<pre class="code">${escaped}</pre>`;
@@ -820,8 +846,9 @@ Settings → Pages → Deploy from branch → main /root → Save
     document.getElementById("btnBuild").addEventListener("click", ()=>{
       const thought = document.getElementById("thought").value;
       const type = document.getElementById("template").value;
+      const action = document.getElementById("actionType").value;
 
-      const files = makeFiles(thought, type);
+      const files = makeFiles(thought, type, action);
       const hash = safeHash(JSON.stringify(files));
 
       statusEl.textContent = `Built (UI-only). Hash: ${hash}`;
@@ -850,7 +877,6 @@ Settings → Pages → Deploy from branch → main /root → Save
       };
 
       btnDownload.onclick = ()=>{
-        // UI-only placeholder (no zip generation)
         openHow();
         statusEl.textContent = "Download is UI-only right now. Publish via GitHub Pages.";
       };
@@ -858,6 +884,10 @@ Settings → Pages → Deploy from branch → main /root → Save
 
     document.getElementById("btnClear").addEventListener("click", ()=>{
       document.getElementById("thought").value = "";
+      document.getElementById("actionType").value = "ai-agent";
+      document.getElementById("template").value = "landing";
+      document.getElementById("publishTarget").value = "github";
+
       previewBox.innerHTML = `<div class="placeholder">Press <strong>BUILD</strong> to generate a UI-only sample output.</div>`;
       fileList.innerHTML = "";
       jsonBox.textContent = "{}";
