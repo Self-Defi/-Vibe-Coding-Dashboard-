@@ -4,21 +4,24 @@
   <meta charset="utf-8" />
   <title>Vibe Coded Studio — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Turn a thought into owned files. Build → Publish → Scale → Own." />
+  <meta name="description" content="Vibe Coded Studio Dashboard — generate a UI-only first build (docs + static scaffold + visualization). No backend." />
   <meta name="theme-color" content="#070b14" />
 
-  <!-- Social Preview -->
+  <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coded Studio" />
   <meta property="og:title" content="Vibe Coded Studio — Dashboard" />
-  <meta property="og:description" content="Generate real files from one clear thought. Ownership-first, GitHub-ready." />
+  <meta property="og:description" content="Generate a UI-only first build (docs + static scaffold + visualization). Ownership-first." />
   <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
+  <!-- IMPORTANT: file must exist at this exact path + name in the Dashboard repo -->
   <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+
+  <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Vibe Coded Studio — Dashboard" />
-  <meta name="twitter:description" content="Generate real files from one clear thought. Ownership-first, GitHub-ready." />
+  <meta name="twitter:description" content="Generate a UI-only first build (docs + static scaffold + visualization). Ownership-first." />
   <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
 
   <style>
@@ -31,11 +34,12 @@
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --muted2:rgba(255,255,255,.55);
-      --shadow:0 16px 48px rgba(0,0,0,.45);
+      --shadow: 0 16px 48px rgba(0,0,0,.45);
       --radius:16px;
       --radius2:22px;
       --pill:999px;
       --accent:#d9468d;
+      --accent2:#508cff;
       --ok:#16a34a;
       --warn:#f59e0b;
       --bad:#ef4444;
@@ -64,31 +68,43 @@
       pointer-events:none;
     }
 
-    .topbar{
+    .wrap{
       max-width:1160px;
       margin:0 auto;
-      padding:18px 18px 8px;
+      padding:16px 16px 48px;
+    }
+
+    /* Topbar */
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:18px;
+      gap:14px;
+      padding:14px 0 10px;
     }
 
-    .brand{display:flex; align-items:center; gap:12px}
+    .brand{display:flex; align-items:center; gap:12px; min-width: 240px}
     .brandLogo{
-      width:38px; height:38px;
+      width:40px; height:40px;
       border-radius:12px;
       box-shadow:0 10px 24px rgba(0,0,0,.35);
       object-fit:cover;
       display:block;
-      background:rgba(255,255,255,.04);
+      background: rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.10);
     }
-    .brandText{display:flex; flex-direction:column}
-    .brandText h1{margin:0; font-size:16px; font-weight:950; letter-spacing:.2px}
-    .brandText p{margin:2px 0 0; color:var(--muted2); font-size:12.5px}
+    .brandText{display:flex; flex-direction:column; line-height:1.1}
+    .brandName{font-weight:900; letter-spacing:.2px}
+    .brandTag{color:var(--muted2); font-size:12.5px; margin-top:4px}
 
-    .pillRow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .topbarRight{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
     .pill{
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.03);
@@ -97,189 +113,27 @@
       padding:10px 12px;
       font-size:13px;
       cursor:pointer;
-      text-decoration:none;
+      user-select:none;
       display:inline-flex;
       align-items:center;
       gap:8px;
-      white-space:nowrap;
     }
     .pill:hover{border-color:rgba(255,255,255,.20)}
-    .pill.primary{
-      border:0;
-      background:var(--accent);
-      color:white;
-      box-shadow:0 14px 34px rgba(217,70,141,.22);
-      font-weight:900;
-    }
-    .pill.primary:hover{filter:brightness(1.05)}
-    .pill:active{transform:translateY(1px)}
-
-    .wrap{
-      max-width:1160px;
-      margin:0 auto;
-      padding:18px 18px 64px;
+    .pillDot{
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(217,70,141,.95);
+      box-shadow:0 0 0 1px rgba(255,255,255,.08);
     }
 
-    .hero{padding:10px 0 6px}
-    .heroTitle{
-      margin:0;
-      font-size: clamp(28px, 4.0vw, 48px);
-      line-height:1.06;
-      letter-spacing:-.6px;
-    }
-    .heroSub{
-      margin:12px 0 0;
-      font-size: clamp(14.5px, 1.8vw, 18px);
-      color:var(--muted);
-      max-width: 78ch;
-    }
-
-    .grid{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns: 1fr 1.12fr;
-      gap:14px;
-      align-items:start;
-    }
-
-    .panel{
-      border-radius:22px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      box-shadow: var(--shadow);
-      padding:16px;
-    }
-
-    .panelHead{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .panelTitle{margin:0; font-size:16px; font-weight:950}
-    .panelMeta{color:var(--muted2); font-size:12.5px}
-
-    .label{display:block; font-weight:850; margin:10px 0 10px}
-    .textarea{
-      width:100%;
-      border-radius:18px;
-      padding:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(10,14,26,.55);
-      color:var(--text);
-      font-size:16px;
-      line-height:1.45;
-      outline:none;
-      resize: vertical;
-      min-height:150px;
-    }
-    .textarea:focus{border-color: rgba(217,70,141,.55); box-shadow:0 0 0 4px rgba(217,70,141,.14)}
-    .row{margin-top:12px}
-    .smallLabel{display:block; color:var(--muted2); font-size:12.5px; margin-bottom:8px}
-    .select{
-      width:100%;
-      border-radius:14px;
-      padding:12px 12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      color:var(--text);
-      outline:none;
-    }
-    .select:focus{border-color: rgba(217,70,141,.55); box-shadow:0 0 0 4px rgba(217,70,141,.12)}
-
-    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
     .btnPrimary{
       border:0;
-      padding:13px 16px;
+      padding:10px 14px;
       border-radius: var(--pill);
-      font-weight:950;
-      font-size:15px;
+      font-weight:900;
+      font-size:14px;
       background: var(--accent);
       color:white;
       box-shadow:0 14px 34px rgba(217,70,141,.22);
-      cursor:pointer;
-    }
-    .btnPrimary:hover{filter:brightness(1.05)}
-    .btnPrimary:active{transform:translateY(1px)}
-    .btnGhost{
-      border:1px solid rgba(255,255,255,.14);
-      padding:13px 16px;
-      border-radius: var(--pill);
-      font-weight:900;
-      font-size:15px;
-      background: rgba(255,255,255,.03);
-      color:var(--text);
-      cursor:pointer;
-    }
-    .btnGhost:hover{border-color: rgba(255,255,255,.22)}
-    .btnGhost:active{transform:translateY(1px)}
-
-    .status{
-      margin-top:12px;
-      color:var(--muted);
-      font-size:13.5px;
-      min-height:18px;
-    }
-
-    .note{
-      margin-top:14px;
-      padding:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      color:var(--muted);
-      line-height:1.45;
-    }
-
-    .tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin:8px 0 12px;
-    }
-    .tab{
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      color:var(--text);
-      border-radius: var(--pill);
-      padding:10px 12px;
-      font-weight:900;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .tab.active{
-      border-color: rgba(217,70,141,.50);
-      box-shadow:0 0 0 4px rgba(217,70,141,.12);
-    }
-
-    .tabPanel{display:none}
-    .tabPanel.show{display:block}
-
-    .card{
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      padding:14px;
-      margin-bottom:12px;
-    }
-    .cardHead{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-    .cardTitle{font-weight:950}
-    .cardActions{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .btnSmall{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      color:var(--text);
-      border-radius: var(--pill);
-      padding:9px 12px;
-      font-weight:900;
-      font-size:13px;
       cursor:pointer;
       text-decoration:none;
       display:inline-flex;
@@ -287,72 +141,208 @@
       justify-content:center;
       white-space:nowrap;
     }
-    .btnSmall:disabled{opacity:.55; cursor:not-allowed}
-
-    .preview{
-      border-radius:16px;
-      border:1px dashed rgba(255,255,255,.18);
-      background: rgba(0,0,0,.18);
-      padding:12px;
-      min-height:220px;
-      overflow:hidden;
+    .btnPrimary:hover{filter:brightness(1.05)}
+    .btnPrimary:active{transform:translateY(1px)}
+    .btnGhost{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding:10px 14px;
+      border-radius: var(--pill);
+      font-weight:850;
+      font-size:14px;
+      cursor:pointer;
     }
-    .placeholder{color:var(--muted2); line-height:1.45}
+    .btnGhost:hover{border-color:rgba(255,255,255,.22)}
+    .btnGhost:active{transform:translateY(1px)}
 
-    .code{
+    /* Hero */
+    .hero{padding:10px 0 12px}
+    .heroTitle{
       margin:0;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      padding:12px;
-      color: rgba(255,255,255,.82);
-      font-size:12.5px;
-      line-height:1.45;
-      overflow:auto;
-      white-space:pre-wrap;
+      font-size: clamp(28px, 4.0vw, 44px);
+      line-height:1.08;
+      letter-spacing:-.6px;
+    }
+    .heroSub{
+      margin:10px 0 0;
+      font-size: clamp(14px, 1.8vw, 18px);
+      color:var(--muted);
+      max-width: 78ch;
+      line-height:1.5;
     }
 
-    .fileList{display:grid; gap:10px}
-    .fileItem{
-      border-radius:16px;
+    /* Panels */
+    .panel{
+      border-radius: var(--radius2);
       border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      padding:12px;
+      background: rgba(0,0,0,.16);
+      box-shadow: var(--shadow);
+      padding:16px;
     }
-    .fileTop{
+    .stack{display:grid; gap:14px}
+
+    .panelHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .panelTitle{margin:0; font-size:16px}
+    .panelMeta{color:var(--muted2); font-size:12.5px}
+
+    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
+
+    /* Form */
+    .formGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin-top:8px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .label{
+      color:var(--muted2);
+      font-size:12.5px;
+      letter-spacing:.2px;
+    }
+    .select, .input{
+      width:100%;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .select:focus, .input:focus{
+      border-color: rgba(217,70,141,.55);
+      box-shadow: 0 0 0 3px rgba(217,70,141,.12);
+    }
+
+    .rowActions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .hint{
+      color:var(--muted2);
+      font-size:12.6px;
+      line-height:1.45;
+    }
+
+    .boundary{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding:12px 12px;
+      color: var(--muted);
+      line-height:1.5;
+    }
+    .boundary strong{color: rgba(255,255,255,.86)}
+    .boundary em{color: rgba(255,255,255,.80); font-style:italic}
+
+    /* Tabs */
+    .tabsRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .tab{
+      border-radius: var(--pill);
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      padding:10px 12px;
+      font-weight:850;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab[aria-selected="true"]{
+      border-color: rgba(217,70,141,.55);
+      box-shadow: 0 0 0 3px rgba(217,70,141,.12);
+    }
+
+    .kpiRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .muted{color:var(--muted); margin:0; line-height:1.55}
+
+    /* Output blocks */
+    .block{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding:14px;
+    }
+    .blockHead{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
-    .fileName{font-weight:950}
-    .fileBtns{display:flex; gap:8px; flex-wrap:wrap}
-    .fileBody{
-      margin:0;
-      color: rgba(255,255,255,.78);
-      font-size:12.5px;
+    .blockTitle{margin:0; font-weight:900}
+    .blockBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding:9px 12px;
+      border-radius: var(--pill);
+      font-weight:850;
+      cursor:pointer;
+    }
+    .blockBtn:hover{border-color:rgba(255,255,255,.22)}
+    .placeholder{
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius: 16px;
+      padding:14px;
+      color: rgba(255,255,255,.55);
+      min-height: 150px;
+      display:flex;
+      align-items:flex-start;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
       line-height:1.45;
       white-space:pre-wrap;
-      overflow:auto;
-      max-height: 240px;
     }
 
-    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
-
-    .footer{
-      margin-top:22px;
-      padding-top:18px;
+    /* Footer */
+    footer{
+      margin-top:16px;
+      padding-top:16px;
       border-top:1px solid rgba(255,255,255,.10);
       display:flex;
       align-items:flex-end;
       justify-content:space-between;
-      gap:14px;
+      gap:12px;
       flex-wrap:wrap;
     }
-
-    .footerLeft{min-width: 260px}
-    .footerBrand{font-weight:950; font-size:16px; letter-spacing:.2px; margin-bottom:6px}
+    .footerLeft{
+      min-width: 260px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .footerBrand{font-weight:900; font-size:16px; letter-spacing:.2px}
     .footerMeta{
       color:var(--muted2);
       font-size:12.8px;
@@ -362,11 +352,11 @@
       gap:10px;
       align-items:center;
     }
-    .footerMeta .sep{opacity:.45}
+    .sep{opacity:.45}
     .footerMeta a{
       color: rgba(255,255,255,.86);
       text-decoration:none;
-      border-bottom:1px dashed rgba(255,255,255,.22);
+      border-bottom: 1px dashed rgba(255,255,255,.22);
     }
     .footerMeta a:hover{
       border-bottom-color: rgba(217,70,141,.65);
@@ -378,83 +368,35 @@
       display:flex;
       align-items:center;
       gap:10px;
-      margin-left:auto;
       white-space:nowrap;
+      margin-left:auto;
     }
 
-    /* ===== Modal ===== */
-    .modal{
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: none;
-      place-items: center;
-      padding: 24px;
-      background: rgba(7,11,20,0.72);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.92);
+      padding:10px 12px;
+      border-radius: 999px;
+      box-shadow: 0 16px 44px rgba(0,0,0,.55);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index:9999;
+      font-size:13.5px;
     }
-    .modal.show{ display: grid; }
-
-    .modal-card{
-      width: min(620px, 100%);
-      border-radius: 18px;
-      padding: 22px 22px 20px;
-      background:
-        radial-gradient(700px 420px at 50% 0%, rgba(11,18,32,0.92) 0%, rgba(7,11,20,0.96) 70%),
-        rgba(7,11,20,0.92);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-      text-align: left;
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(-2px);
     }
-
-    .modal-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-    }
-    .modal-card h2{
-      margin:0;
-      font-size:1.15rem;
-      font-weight:950;
-    }
-    .icon-btn{
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-    .modal-list{
-      margin: 16px 0 14px;
-      padding-left: 18px;
-      color: rgba(255,255,255,0.78);
-    }
-    .modal-list li{ margin: 10px 0; }
-    .modal-list strong{
-      display:block;
-      color:var(--text);
-      margin-bottom:3px;
-    }
-    .modal-note{
-      margin: 10px 0 16px;
-      color: rgba(255,255,255,0.55);
-      font-size:0.92rem;
-    }
-    .modal-actions{
-      display:flex;
-      gap:12px;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-    }
-    body.modal-open{ overflow:hidden; }
 
     @media (max-width: 980px){
-      .grid{grid-template-columns:1fr;}
-      .footer{align-items:flex-start}
+      .formGrid{grid-template-columns:1fr}
       .footerRight{margin-left:0}
     }
   </style>
@@ -463,400 +405,406 @@
 <body>
   <div class="bgGrid" aria-hidden="true"></div>
 
-  <div class="topbar">
-    <div class="brand">
-      <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio" class="brandLogo"
-           onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='block';" />
-      <div id="brandFallback" style="display:none;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);box-shadow:0 10px 24px rgba(0,0,0,.35);"></div>
+  <div class="wrap">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="brand">
+        <!-- If your Dashboard repo uses a different filename, update ONLY this line -->
+        <img
+          src="./vc-logo-transparent.png"
+          onerror="this.onerror=null;this.src='./vc-logo.png';"
+          alt="Vibe Coded Studio logo"
+          class="brandLogo"
+        />
+        <div class="brandText">
+          <div class="brandName">Vibe Coded Studio</div>
+          <div class="brandTag">Dashboard · UI-only build generator</div>
+        </div>
+      </div>
 
-      <div class="brandText">
-        <h1>Vibe Coded Studio</h1>
-        <p>Build · Publish · Scale · Own</p>
+      <div class="topbarRight">
+        <div class="pill" id="pillStatus" title="UI-only mode">
+          <span class="pillDot" aria-hidden="true"></span>
+          Non-custodial · No backend
+        </div>
+        <a class="btnPrimary" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">
+          Tutorial
+        </a>
       </div>
     </div>
 
-    <div class="pillRow">
-      <a class="pill" href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-      <a class="pill" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">Ownership Tutorial</a>
-      <a class="pill primary" href="https://cal.com/selfdeficonsultant/15min" target="_blank" rel="noopener">Book SD Advisory</a>
-    </div>
-  </div>
-
-  <div class="wrap">
+    <!-- Hero -->
     <div class="hero">
-      <h2 class="heroTitle">Turn one thought into owned files.</h2>
+      <h1 class="heroTitle">Dashboard</h1>
       <p class="heroSub">
-        This dashboard is UI-only. It models the workflow: describe what you want → generate files → publish on GitHub Pages.
-        Ownership is the point.
+        Generate a clean starting point (docs + static scaffold + visualization). This page is UI-only — it does not
+        generate real files server-side. It’s meant to communicate structure, boundaries, and deliverables.
       </p>
     </div>
 
-    <div class="grid">
-      <!-- LEFT: Build -->
-      <section class="panel" aria-label="Build panel">
+    <div class="stack">
+      <!-- Generator Panel -->
+      <section class="panel">
         <div class="panelHead">
-          <h3 class="panelTitle">Build</h3>
-          <div class="panelMeta">UI-only · no backend</div>
+          <h2 class="panelTitle">Build Setup</h2>
+          <div class="panelMeta" id="metaLoaded">Loaded last request</div>
         </div>
 
-        <label class="label" for="thought">Your thought (one clear problem)</label>
-        <textarea id="thought" class="textarea" placeholder="Example: A one-page landing page that explains my service and links to a booking page."></textarea>
+        <div class="formGrid">
+          <div class="field">
+            <div class="label">System type</div>
+            <select class="select" id="systemType">
+              <option>Non-custodial custody workflow</option>
+              <option>DAO treasury dashboard</option>
+              <option>Tokenized RWA vault overview</option>
+              <option>Micro-school transparency hub</option>
+              <option>Personal knowledge base (docs-first)</option>
+            </select>
+          </div>
 
-        <!-- Action drop-down ONLY (kept) -->
-        <div class="row">
-          <span class="smallLabel">Action</span>
-          <select id="actionType" class="select">
-            <option value="ai-agent">AI Agent Builder</option>
-            <option value="workflow">Workflow Automations</option>
-            <option value="dao">DAO Governance</option>
-            <option value="wallet">Wallet Integration</option>
-            <option value="payments">Payments / Checkout</option>
-            <option value="analytics">Analytics / Tracking</option>
-            <option value="content">Content / Docs</option>
-            <option value="other">Other</option>
-          </select>
+          <div class="field">
+            <div class="label">Action</div>
+            <select class="select" id="actionType">
+              <option>AI Agent Builder</option>
+              <option>Workflow Automations</option>
+              <option>DAO Governance</option>
+              <option>Wallet Integration</option>
+              <option>Landing Page Builder</option>
+              <option>Docs Pack Generator</option>
+              <option>Brand Kit Scaffold</option>
+            </select>
+          </div>
         </div>
 
-        <div class="actions">
-          <button class="btnPrimary" id="btnBuild">BUILD</button>
-          <button class="btnGhost" id="btnClear">CLEAR</button>
-          <button class="btnGhost" id="btnHow">HOW TO PUBLISH</button>
+        <div class="rowActions">
+          <button class="btnPrimary" id="btnGenerate">Generate first build</button>
+          <button class="btnGhost" id="btnReset">Reset</button>
+          <span class="hint" id="hintLine">Ready. Click “Generate first build”.</span>
         </div>
 
-        <div class="status" id="status">Ready.</div>
+        <div style="height:10px"></div>
 
-        <div class="note">
-          <strong>Reminder:</strong> BUILD does not auto-publish.
-          You own the repo and you publish the files yourself.
+        <div class="boundary">
+          <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
+          It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
         </div>
       </section>
 
-      <!-- RIGHT: Deliverables -->
-      <section class="panel" aria-label="Deliverables panel">
+      <!-- Deliverables / Tabs -->
+      <section class="panel">
         <div class="panelHead">
-          <h3 class="panelTitle">Deliverables</h3>
-          <div class="panelMeta">Preview · Files · JSON</div>
+          <h2 class="panelTitle">Deliverables</h2>
+          <div class="panelMeta" id="metaDeliverables">UI preview</div>
         </div>
 
-        <div class="tabs" role="tablist">
-          <button class="tab active" data-tab="preview" role="tab" aria-selected="true">Preview</button>
-          <button class="tab" data-tab="files" role="tab" aria-selected="false">Files</button>
-          <button class="tab" data-tab="json" role="tab" aria-selected="false">Config JSON</button>
-        </div>
-
-        <div id="panel-preview" class="tabPanel show" role="tabpanel">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">Visual preview (placeholder)</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="btnCopyHash" disabled>Copy hash</button>
-                <button class="btnSmall" id="btnDownload" disabled>Download .zip</button>
-              </div>
-            </div>
-            <div class="preview" id="previewBox">
-              <div class="placeholder">
-                Press <strong>BUILD</strong> to generate a UI-only sample output.
-                <br><br>
-                When you connect a backend later, this panel becomes a real renderer.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div id="panel-files" class="tabPanel" role="tabpanel">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">Generated files (UI-only demo)</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="btnCopyFiles" disabled>Copy files</button>
-              </div>
-            </div>
-            <div class="fileList" id="fileList"></div>
-          </div>
-        </div>
-
-        <div id="panel-json" class="tabPanel" role="tabpanel">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">Project config JSON</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="btnCopyJson" disabled>Copy JSON</button>
-              </div>
-            </div>
-            <pre class="code" id="jsonBox">{}</pre>
-          </div>
+        <div class="tabsRow" role="tablist" aria-label="Deliverables tabs">
+          <div class="tab" role="tab" tabindex="0" aria-selected="true" id="tabSystem">System Image</div>
+          <div class="tab" role="tab" tabindex="-1" aria-selected="false" id="tabRepo">Repo Files</div>
+          <div class="tab" role="tab" tabindex="-1" aria-selected="false" id="tabDownload">Download</div>
         </div>
 
         <div class="divider"></div>
 
-        <div class="card">
-          <div class="cardHead">
-            <div class="cardTitle">Next step</div>
-            <div class="cardActions">
-              <a class="btnSmall" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">Open tutorial</a>
-              <a class="btnSmall" href="https://github.com/new" target="_blank" rel="noopener">New repo</a>
+        <!-- Content: System Image -->
+        <div id="panelSystem" class="stack">
+          <div class="block">
+            <div class="blockHead">
+              <p class="blockTitle">System visualization (SVG)</p>
+              <button class="blockBtn" id="btnDownloadSvg" type="button">Download SVG</button>
+            </div>
+            <div class="placeholder">
+              <div class="mono" id="svgArea">Generate a build to preview the system visualization.</div>
             </div>
           </div>
-          <p class="muted" style="margin:0">
-            Create a repo → upload files → enable Pages. That’s the ownership loop.
+
+          <div class="block">
+            <div class="blockHead">
+              <p class="blockTitle">Canonical image prompt (SoT)</p>
+              <button class="blockBtn" id="btnCopyPrompt" type="button">Copy prompt</button>
+            </div>
+            <div class="placeholder">
+              <div class="mono" id="promptArea">Generate a build to produce the locked prompt.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content: Repo Files -->
+        <div id="panelRepo" class="stack" style="display:none">
+          <div class="block">
+            <div class="blockHead">
+              <p class="blockTitle">Repo scaffold (preview)</p>
+              <button class="blockBtn" id="btnCopyRepo" type="button">Copy tree</button>
+            </div>
+            <div class="placeholder">
+              <div class="mono" id="repoArea">Generate a build to preview the repo files list.</div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="blockHead">
+              <p class="blockTitle">Notes</p>
+              <button class="blockBtn" id="btnCopyNotes" type="button">Copy notes</button>
+            </div>
+            <div class="placeholder">
+              <div class="mono" id="notesArea">Generate a build to produce setup notes.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content: Download -->
+        <div id="panelDownload" class="stack" style="display:none">
+          <div class="block">
+            <div class="blockHead">
+              <p class="blockTitle">Download</p>
+              <button class="blockBtn" id="btnDownloadZip" type="button">Download ZIP</button>
+            </div>
+            <div class="placeholder">
+              <div class="mono" id="dlArea">UI-only. No backend packaging is available on this page.</div>
+            </div>
+          </div>
+
+          <p class="muted">
+            If you want real file generation, you’ll wire a build pipeline later (or export static templates).
+            This dashboard stays “ownership-first”: you control hosting and publishing.
           </p>
         </div>
       </section>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footerLeft">
-        <div class="footerBrand">Vibe Coded Studio</div>
-        <div class="footerMeta">
-          <span>Ownership First</span>
-          <span class="sep">·</span>
-          <span>Powered by Self-Defi</span>
-          <span class="sep">·</span>
-          <a href="https://github.com/Self-Defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+      <!-- Footer -->
+      <footer>
+        <div class="footerLeft">
+          <div class="footerBrand">Vibe Coded Studio</div>
+          <div class="footerMeta">
+            <span>Ownership First</span>
+            <span class="sep">·</span>
+            <span>Powered by Self-Defi</span>
+            <span class="sep">·</span>
+            <span>Digital Infrastructure Architect</span>
+            <span class="sep">·</span>
+            <a
+              href="https://github.com/Self-Defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE.md"
+              target="_blank" rel="noopener"
+            >License</a>
+          </div>
         </div>
-      </div>
-      <div class="footerRight">
-        <span>© <span id="yr"></span> Vibe Coded Studio</span>
-      </div>
-    </footer>
-  </div>
 
-  <!-- Modal: How to publish -->
-  <div class="modal" id="howModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="howTitle">
-      <div class="modal-head">
-        <h2 id="howTitle">Quick Publish (GitHub Pages)</h2>
-        <button class="icon-btn" id="howClose" aria-label="Close">✕</button>
-      </div>
-
-      <ol class="modal-list">
-        <li><strong>Create a repo</strong><span>GitHub → New repository → Public → Create.</span></li>
-        <li><strong>Upload files</strong><span>Upload generated files. <em>index.html must be at repo root.</em></span></li>
-        <li><strong>Enable Pages</strong><span>Settings → Pages → Deploy from branch → main /root → Save.</span></li>
-        <li><strong>Share the URL</strong><span>Open the Pages link GitHub provides. That is your hosted asset.</span></li>
-      </ol>
-
-      <div class="modal-note">BUILD does not auto-publish. That responsibility is intentional.</div>
-
-      <div class="modal-actions">
-        <a class="pill" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">Open full tutorial</a>
-        <button class="pill primary" id="howOk">Got it</button>
-      </div>
+        <div class="footerRight">
+          <span>© <span id="yr"></span> Vibe Coded Studio</span>
+        </div>
+      </footer>
     </div>
   </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Copied.</div>
 
   <script>
     // Year
     document.getElementById("yr").textContent = new Date().getFullYear();
 
     // Tabs
-    const tabs = Array.from(document.querySelectorAll(".tab"));
-    const panels = {
-      preview: document.getElementById("panel-preview"),
-      files: document.getElementById("panel-files"),
-      json: document.getElementById("panel-json")
-    };
-    function setTab(name){
-      tabs.forEach(t=>{
-        const active = t.dataset.tab === name;
-        t.classList.toggle("active", active);
-        t.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      Object.keys(panels).forEach(k=>{
-        panels[k].classList.toggle("show", k === name);
+    const tabs = [
+      { tab: "tabSystem", panel: "panelSystem" },
+      { tab: "tabRepo", panel: "panelRepo" },
+      { tab: "tabDownload", panel: "panelDownload" },
+    ];
+
+    function setTab(activeId){
+      tabs.forEach(({tab, panel}) => {
+        const t = document.getElementById(tab);
+        const p = document.getElementById(panel);
+        const isActive = (tab === activeId);
+        t.setAttribute("aria-selected", isActive ? "true" : "false");
+        t.tabIndex = isActive ? 0 : -1;
+        p.style.display = isActive ? "" : "none";
       });
     }
-    tabs.forEach(t=>t.addEventListener("click", ()=>setTab(t.dataset.tab)));
 
-    // Modal
-    const howModal = document.getElementById("howModal");
-    const openHow = ()=>{ howModal.classList.add("show"); document.body.classList.add("modal-open"); };
-    const closeHow = ()=>{ howModal.classList.remove("show"); document.body.classList.remove("modal-open"); };
+    tabs.forEach(({tab}) => {
+      const el = document.getElementById(tab);
+      el.addEventListener("click", () => setTab(tab));
+      el.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab(tab); }
+      });
+    });
 
-    document.getElementById("btnHow").addEventListener("click", openHow);
-    document.getElementById("howClose").addEventListener("click", closeHow);
-    document.getElementById("howOk").addEventListener("click", closeHow);
-    howModal.addEventListener("click", (e)=>{ if(e.target === howModal) closeHow(); });
-    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && howModal.classList.contains("show")) closeHow(); });
+    // Toast helper
+    const toast = document.getElementById("toast");
+    let toastTimer = null;
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1200);
+    }
 
-    // UI-only build
-    const statusEl = document.getElementById("status");
-    const previewBox = document.getElementById("previewBox");
-    const fileList = document.getElementById("fileList");
-    const jsonBox = document.getElementById("jsonBox");
-
-    const btnCopyHash = document.getElementById("btnCopyHash");
-    const btnDownload = document.getElementById("btnDownload");
-    const btnCopyFiles = document.getElementById("btnCopyFiles");
-    const btnCopyJson = document.getElementById("btnCopyJson");
-
-    function safeHash(str){
-      let h = 2166136261;
-      for (let i=0;i<str.length;i++){
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("Copied.");
+      }catch{
+        showToast("Copy blocked.");
       }
-      return ("00000000" + (h >>> 0).toString(16)).slice(-8);
     }
 
-    function makeFiles(thought, action){
-      const title = (thought || "Vibe Coded Studio").trim().slice(0, 60);
-      const body = (thought || "Describe what you are building.").trim();
-      const actionLabel = {
-        "ai-agent":"AI Agent Builder",
-        "workflow":"Workflow Automations",
-        "dao":"DAO Governance",
-        "wallet":"Wallet Integration",
-        "payments":"Payments / Checkout",
-        "analytics":"Analytics / Tracking",
-        "content":"Content / Docs",
-        "other":"Other"
-      }[action] || "Other";
+    // UI-only "Generate"
+    const systemType = document.getElementById("systemType");
+    const actionType = document.getElementById("actionType");
 
-      const index = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>${title}</title>
-  <style>
-    body{margin:0;font-family:system-ui;background:#070b14;color:rgba(255,255,255,.92)}
-    .wrap{max-width:900px;margin:0 auto;padding:42px 18px}
-    .card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:18px;padding:18px}
-    h1{margin:0 0 10px}
-    p{color:rgba(255,255,255,.72);line-height:1.55}
-    .pill{display:inline-block;margin-top:12px;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:10px 12px;color:rgba(255,255,255,.92)}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Landing Page</h1>
-      <p><strong>Action:</strong> ${actionLabel}</p>
-      <p>${body.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>
-      <div class="pill">Built with Vibe Coded Studio</div>
-    </div>
-  </div>
-</body>
-</html>`;
+    const hintLine = document.getElementById("hintLine");
+    const metaLoaded = document.getElementById("metaLoaded");
 
-      const readme = `# ${title}
+    const svgArea = document.getElementById("svgArea");
+    const promptArea = document.getElementById("promptArea");
+    const repoArea = document.getElementById("repoArea");
+    const notesArea = document.getElementById("notesArea");
 
-**Action:** ${actionLabel}  
-**One thought:** ${body}
+    function buildPrompt(){
+      return [
+        "Vibe Coded Studio — Canonical Image Prompt (SoT)",
+        "",
+        "Goal: Generate a clean, dark UI dashboard visual for a UI-only build generator.",
+        "Style: neon-accent (magenta/blue), subtle grid, glass panels, premium.",
+        "",
+        "Sections:",
+        `- System type: ${systemType.value}`,
+        `- Action: ${actionType.value}`,
+        "- Deliverables tabs: System Image / Repo Files / Download",
+        "- Cards: System visualization (SVG), Canonical image prompt (SoT)",
+        "",
+        "Constraints:",
+        "- No backend implied",
+        "- Ownership-first language",
+        "- Minimal, confident microcopy"
+      ].join("\\n");
+    }
 
-## Publish (GitHub Pages)
-Settings → Pages → Deploy from branch → main /root → Save
-`;
+    function buildRepoTree(){
+      return [
+        "Suggested repo scaffold (UI-only):",
+        "",
+        "/",
+        "  index.html",
+        "  assets/",
+        "    vc-logo-transparent.png",
+        "    vc-github-thumbnail.png",
+        "  docs/",
+        "    README.md",
+        "    BOUNDARIES.md",
+        "  LICENSE.md",
+        "",
+        "Notes:",
+        "- Keep index.html at root for GitHub Pages",
+        "- Put social thumbnail at /vc-github-thumbnail.png",
+      ].join("\\n");
+    }
 
-      const cfg = {
-        app: "Vibe Coded Studio",
-        action: actionLabel,
-        title,
-        thought: body,
-        createdAt: new Date().toISOString()
-      };
+    function buildNotes(){
+      const a = actionType.value;
+      const s = systemType.value;
 
       return [
-        { name:"index.html", content:index },
-        { name:"README.md", content:readme },
-        { name:"vcs.config.json", content:JSON.stringify(cfg, null, 2) }
-      ];
+        "Build notes (UI-only):",
+        "",
+        `System type: ${s}`,
+        `Action: ${a}`,
+        "",
+        "What this produces:",
+        "- A static UI shell that communicates deliverables and boundaries",
+        "- Placeholder visualization + copy buttons for export workflows",
+        "",
+        "What this does NOT produce:",
+        "- No file generation, no hosting, no automated publishing",
+        "- No security/compliance guarantees",
+      ].join("\\n");
     }
 
-    function renderFiles(files){
-      fileList.innerHTML = "";
-      files.forEach(f=>{
-        const item = document.createElement("div");
-        item.className = "fileItem";
-        item.innerHTML = `
-          <div class="fileTop">
-            <div class="fileName">${f.name}</div>
-            <div class="fileBtns">
-              <button class="btnSmall" data-copy="${encodeURIComponent(f.content)}">Copy</button>
-            </div>
-          </div>
-          <pre class="fileBody">${f.content.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>
-        `;
-        fileList.appendChild(item);
-      });
-
-      fileList.querySelectorAll("button[data-copy]").forEach(btn=>{
-        btn.addEventListener("click", async ()=>{
-          const txt = decodeURIComponent(btn.getAttribute("data-copy"));
-          try{
-            await navigator.clipboard.writeText(txt);
-            statusEl.textContent = "Copied file content.";
-          }catch{
-            statusEl.textContent = "Copy blocked by browser. Select text manually.";
-          }
-        });
-      });
+    function buildSvgStub(){
+      // SVG stub (not a real diagram generator)
+      return [
+        "<svg width=\\"800\\" height=\\"240\\" viewBox=\\"0 0 800 240\\" xmlns=\\"http://www.w3.org/2000/svg\\">",
+        "  <defs>",
+        "    <linearGradient id=\\"g\\" x1=\\"0\\" y1=\\"0\\" x2=\\"1\\" y2=\\"1\\">",
+        "      <stop offset=\\"0\\" stop-color=\\"#d9468d\\" stop-opacity=\\"0.9\\"/>",
+        "      <stop offset=\\"1\\" stop-color=\\"#508cff\\" stop-opacity=\\"0.9\\"/>",
+        "    </linearGradient>",
+        "  </defs>",
+        "  <rect x=\\"12\\" y=\\"12\\" width=\\"776\\" height=\\"216\\" rx=\\"18\\" fill=\\"rgba(255,255,255,0.04)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
+        "  <text x=\\"28\\" y=\\"56\\" fill=\\"rgba(255,255,255,0.92)\\" font-family=\\"system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial\\" font-size=\\"18\\" font-weight=\\"800\\">System Visualization (Stub)</text>",
+        `  <text x=\\"28\\" y=\\"88\\" fill=\\"rgba(255,255,255,0.68)\\" font-family=\\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New\\" font-size=\\"12\\">system: ${systemType.value}</text>`,
+        `  <text x=\\"28\\" y=\\"108\\" fill=\\"rgba(255,255,255,0.68)\\" font-family=\\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New\\" font-size=\\"12\\">action: ${actionType.value}</text>`,
+        "  <circle cx=\\"110\\" cy=\\"160\\" r=\\"28\\" fill=\\"url(#g)\\"/>",
+        "  <rect x=\\"170\\" y=\\"138\\" width=\\"160\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
+        "  <rect x=\\"360\\" y=\\"138\\" width=\\"160\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
+        "  <rect x=\\"550\\" y=\\"138\\" width=\\"210\\" height=\\"44\\" rx=\\"14\\" fill=\\"rgba(0,0,0,0.25)\\" stroke=\\"rgba(255,255,255,0.14)\\"/>",
+        "  <text x=\\"190\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Docs</text>",
+        "  <text x=\\"380\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Scaffold</text>",
+        "  <text x=\\"570\\" y=\\"166\\" fill=\\"rgba(255,255,255,0.86)\\" font-size=\\"12\\" font-weight=\\"800\\" font-family=\\"system-ui, -apple-system\\">Visualization</text>",
+        "</svg>"
+      ].join("\\n");
     }
 
-    function renderPreview(files){
-      const html = files.find(f=>f.name==="index.html")?.content || "";
-      const escaped = html.replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      previewBox.innerHTML = `<pre class="code">${escaped}</pre>`;
-    }
+    document.getElementById("btnGenerate").addEventListener("click", () => {
+      hintLine.textContent = "Generated. Review Deliverables.";
+      metaLoaded.textContent = "Generated just now";
 
-    function enableActions(enabled){
-      [btnCopyHash, btnDownload, btnCopyFiles, btnCopyJson].forEach(b=>b.disabled = !enabled);
-    }
+      // Fill placeholders
+      svgArea.textContent = buildSvgStub();
+      promptArea.textContent = buildPrompt();
+      repoArea.textContent = buildRepoTree();
+      notesArea.textContent = buildNotes();
 
-    document.getElementById("btnBuild").addEventListener("click", ()=>{
-      const thought = document.getElementById("thought").value;
-      const action = document.getElementById("actionType").value;
-
-      const files = makeFiles(thought, action);
-      const hash = safeHash(JSON.stringify(files));
-
-      statusEl.textContent = `Built (UI-only). Hash: ${hash}`;
-      renderPreview(files);
-      renderFiles(files);
-
-      const cfgFile = files.find(f=>f.name==="vcs.config.json");
-      jsonBox.textContent = cfgFile ? cfgFile.content : "{}";
-
-      enableActions(true);
-
-      btnCopyHash.onclick = async ()=>{
-        try{ await navigator.clipboard.writeText(hash); statusEl.textContent="Hash copied."; }
-        catch{ statusEl.textContent="Copy blocked by browser."; }
-      };
-
-      btnCopyJson.onclick = async ()=>{
-        try{ await navigator.clipboard.writeText(jsonBox.textContent); statusEl.textContent="JSON copied."; }
-        catch{ statusEl.textContent="Copy blocked by browser."; }
-      };
-
-      btnCopyFiles.onclick = async ()=>{
-        const bundle = files.map(f=>`// ===== ${f.name} =====\n${f.content}\n`).join("\n");
-        try{ await navigator.clipboard.writeText(bundle); statusEl.textContent="All files copied."; }
-        catch{ statusEl.textContent="Copy blocked by browser."; }
-      };
-
-      btnDownload.onclick = ()=>{
-        openHow();
-        statusEl.textContent = "Download is UI-only right now. Publish via GitHub Pages.";
-      };
+      showToast("Build generated.");
     });
 
-    document.getElementById("btnClear").addEventListener("click", ()=>{
-      document.getElementById("thought").value = "";
-      document.getElementById("actionType").value = "ai-agent";
+    document.getElementById("btnReset").addEventListener("click", () => {
+      systemType.selectedIndex = 0;
+      actionType.selectedIndex = 0;
 
-      previewBox.innerHTML = `<div class="placeholder">Press <strong>BUILD</strong> to generate a UI-only sample output.</div>`;
-      fileList.innerHTML = "";
-      jsonBox.textContent = "{}";
-      statusEl.textContent = "Cleared.";
-      enableActions(false);
-      setTab("preview");
+      hintLine.textContent = "Ready. Click “Generate first build”.";
+      metaLoaded.textContent = "Loaded last request";
+
+      svgArea.textContent = "Generate a build to preview the system visualization.";
+      promptArea.textContent = "Generate a build to produce the locked prompt.";
+      repoArea.textContent = "Generate a build to preview the repo files list.";
+      notesArea.textContent = "Generate a build to produce setup notes.";
+
+      showToast("Reset.");
     });
 
-    // Default
-    enableActions(false);
+    // Copy / download actions (UI-only)
+    document.getElementById("btnCopyPrompt").addEventListener("click", () => copyText(promptArea.textContent));
+    document.getElementById("btnCopyRepo").addEventListener("click", () => copyText(repoArea.textContent));
+    document.getElementById("btnCopyNotes").addEventListener("click", () => copyText(notesArea.textContent));
+
+    document.getElementById("btnDownloadSvg").addEventListener("click", () => {
+      const svg = svgArea.textContent;
+      if(!svg.trim().startsWith("<svg")){
+        showToast("Generate first.");
+        return;
+      }
+      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vibe-coded-system.svg";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("SVG downloaded.");
+    });
+
+    document.getElementById("btnDownloadZip").addEventListener("click", () => {
+      showToast("UI-only (no ZIP).");
+    });
+
+    // Keep the “Loaded last request” feeling
+    const metaDeliverables = document.getElementById("metaDeliverables");
+    function updateMeta(){
+      metaDeliverables.textContent = `Action: ${actionType.value}`;
+    }
+    actionType.addEventListener("change", updateMeta);
+    updateMeta();
   </script>
 </body>
 </html>
