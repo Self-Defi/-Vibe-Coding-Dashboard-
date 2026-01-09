@@ -1,258 +1,279 @@
-/* templates.js — Vibe Coded Studio (UI-only)
-   Purpose: deterministic first-build artifacts (docs + static scaffold + diagram)
-   Boundaries: no backend, no security claims, no guarantees
+/* templates.js
+   Generates:
+   - Canonical image prompt (SoT) consistent with original architecture images
+   - Negative prompt (anti-drift)
+   - System SVG preview
+   - Real repo artifacts (README.md, index.html, styles.css) for the user's generated build
 */
 
 (function () {
-  function escapeHtml(s) {
-    return String(s || "").replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+  function escXml(s) {
+    return String(s).replace(/[<>&"]/g, c => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;" }[c]));
   }
 
-  function canonicalPrompt(systemType, thought) {
-    const sys = String(systemType || "").trim();
-    const t = String(thought || "").trim();
+  // ===== Canonical Prompt (matches your original pics: grid HUD, 4 lanes, icons, minimal labels, deterministic)
+  function buildCanonicalPrompt({ thought, systemType }) {
+    const t = thought.trim();
+    const sys = systemType.trim();
 
-    // IMPORTANT: This prompt is intentionally detailed to produce consistent architecture visuals.
-    // Variable injection only: systemType + thought. No extra “creative” branches.
-    return `A high-fidelity system architecture visualization of a ${sys} designed to solve:
+    const prompt = `A high-fidelity system architecture visualization of a "${sys}" designed to solve:
 "${t}"
 
-The image shows clearly defined components arranged in a structured flow, including:
-- Input layer
-- Processing / logic layer
-- Automation or decision layer
-- Output layer
-- Optional data storage or infrastructure layer
+STYLE (locked):
+- Dark technical HUD interface on a subtle square grid background (like an ops / infrastructure diagram)
+- Clean metallic panels with soft inner shadows, faint neon edge glow
+- High contrast, low saturation, engineered and deterministic (NOT artistic)
+- Minimal color accents only: cool blue/cyan + optional small amber indicators
+- Crisp typography, sharp lines, professional documentation-grade
 
-Visual style:
-Dark technical interface with a subtle grid background.
-Modern infrastructure dashboard aesthetic.
-Muted neon accents (blue, cyan, green, or amber).
-High contrast, low saturation.
-Clean, professional, engineered, deterministic.
+LAYOUT (locked):
+- 16:9 landscape
+- Title centered at top (short, technical)
+- Four vertical lanes (left-to-right), each with a header bar:
+  1) INPUTS
+  2) PROCESSING & LOGIC
+  3) AUTOMATION
+  4) OUTPUTS
+- Boxes stacked within lanes, connected with clear arrows (left-to-right flow)
+- Optional bottom band: "Databases" or "On-Chain / Storage" with 3–4 small database icons
 
-Composition rules:
-Left-to-right flow with clear directional logic.
-Boxed components with minimal labels (1–3 words max).
-Consistent spacing, consistent box sizing, consistent arrow styling.
-No abstract art. No illustrations. No people.
-No branding, logos, marketing language, or UI mockups.
+CONTENT RULES (locked):
+- Each box label is 1–3 words max (e.g., "Lead Enrichment", "Workflow Automation")
+- Use simple monochrome line icons inside some boxes (email, web, shield, database, charts)
+- No people, no characters, no scenery, no abstract art
+- No branding, no logos, no marketing copy, no UI mockups/screenshots
+- This is an architecture diagram suitable for a GitHub README / technical documentation
 
-This is a system visualization, not concept art.
-The image must look suitable for:
-- A technical architecture review
-- A GitHub README
-- Infrastructure or DAO documentation.`;
+RENDERING:
+- Photorealistic lighting is NOT required; it should look like a premium digital infographic / architecture plate.
+- Keep it consistent and repeatable across different thoughts.`;
+
+    const negative = `Avoid:
+- White backgrounds, colorful cartoons, hand-drawn sketches
+- 3D scenes, people, mascots, faces
+- Marketing posters, product UI mockups, website screenshots
+- Abstract concept art, messy layouts, cluttered text paragraphs
+- Overly saturated neon rainbow palettes
+- Long labels, dense sentences in boxes`;
+
+    return { prompt, negative };
   }
 
-  function systemSvg(systemType, thought) {
-    const sys = escapeHtml(systemType);
-    const t = escapeHtml(thought);
-    const short = t.length > 90 ? t.slice(0, 90) + "…" : t;
+  // ===== Simple deterministic SVG preview (not the final “image”; this is for the dashboard preview only)
+  function buildSystemSvg({ thought, systemType }) {
+    const t = thought.trim();
+    const sys = systemType.trim();
+    const title = sys.length > 38 ? sys.slice(0, 38) + "…" : sys;
+    const short = t.length > 64 ? t.slice(0, 64) + "…" : t;
 
-    // 4-lane diagram style (Inputs / Processing / Automation / Outputs) + Databases bar
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="788" viewBox="0 0 1400 788">
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#070b14"/>
       <stop offset="1" stop-color="#0b1220"/>
     </linearGradient>
     <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
-      <path d="M 56 0 L 0 0 0 56" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <path d="M56 0H0V56" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
     </pattern>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="rgba(0,0,0,0.55)"/>
-    </filter>
   </defs>
 
-  <rect width="1400" height="788" fill="url(#bg)"/>
-  <rect width="1400" height="788" fill="url(#grid)" opacity="0.75"/>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)" opacity="0.35"/>
 
-  <text x="700" y="86" text-anchor="middle" font-family="system-ui" font-size="34"
-        fill="rgba(255,255,255,0.88)" font-weight="800">${sys}</text>
-  <text x="700" y="118" text-anchor="middle" font-family="system-ui" font-size="16"
-        fill="rgba(255,255,255,0.62)">${short}</text>
+  <text x="600" y="70" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="34" fill="rgba(255,255,255,0.82)" font-weight="800">${escXml(title)}</text>
+  <text x="600" y="105" text-anchor="middle" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.62)">${escXml(short)}</text>
 
-  ${colHeader(95, 160, "INPUTS")}
-  ${colHeader(415, 160, "PROCESSING & LOGIC")}
-  ${colHeader(735, 160, "AUTOMATION")}
-  ${colHeader(1055, 160, "OUTPUTS")}
+  ${lane(70, 150, "INPUTS")}
+  ${lane(340, 150, "PROCESSING & LOGIC")}
+  ${lane(640, 150, "AUTOMATION")}
+  ${lane(910, 150, "OUTPUTS")}
 
-  ${nodeBox(95, 230, "Web / Pages")}
-  ${nodeBox(95, 318, "Social")}
-  ${nodeBox(95, 406, "Email")}
-  ${nodeBox(95, 494, "Sources")}
+  ${box(95, 235, "Web / Forms")}
+  ${box(95, 315, "Email")}
+  ${box(95, 395, "External Sources")}
 
-  ${nodeBox(415, 250, "Collection")}
-  ${nodeBox(415, 338, "Enrichment")}
-  ${nodeBox(415, 426, "Scoring")}
-  ${nodeBox(415, 514, "Dedup / Filter")}
+  ${box(365, 235, "Collection")}
+  ${box(365, 315, "Enrichment")}
+  ${box(365, 395, "Scoring")}
+  ${box(365, 475, "Deduplication")}
 
-  ${nodeBox(735, 272, "Assignment")}
-  ${nodeBox(735, 380, "Workflow")}
+  ${box(665, 255, "Routing")}
+  ${box(665, 335, "Workflows")}
+  ${box(665, 415, "Notifications")}
 
-  ${nodeBox(1055, 250, "CRM")}
-  ${nodeBox(1055, 338, "Notifications")}
-  ${nodeBox(1055, 426, "Reporting")}
+  ${box(935, 255, "CRM Sync")}
+  ${box(935, 335, "Alerts")}
+  ${box(935, 415, "Analytics")}
 
-  ${arrow(335, 274, 415, 274)}
-  ${arrow(335, 362, 415, 362)}
-  ${arrow(335, 450, 415, 450)}
-  ${arrow(335, 538, 415, 538)}
+  <!-- arrows -->
+  ${arrow(260, 275, 340, 275)}
+  ${arrow(260, 355, 340, 355)}
+  ${arrow(260, 435, 340, 435)}
+  ${arrow(600, 315, 640, 315)}
+  ${arrow(600, 395, 640, 395)}
+  ${arrow(860, 315, 910, 315)}
+  ${arrow(860, 395, 910, 395)}
 
-  ${arrow(655, 274, 735, 274)}
-  ${arrow(655, 362, 735, 362)}
-  ${arrow(655, 450, 735, 450)}
-
-  ${arrow(975, 274, 1055, 274)}
-  ${arrow(975, 362, 1055, 362)}
-  ${arrow(975, 450, 1055, 450)}
-
-  <g filter="url(#soft)">
-    <rect x="95" y="620" width="1235" height="90" rx="18"
-          fill="rgba(0,0,0,0.26)" stroke="rgba(255,255,255,0.14)"/>
-    <text x="712" y="675" text-anchor="middle" font-family="system-ui" font-size="22"
-          fill="rgba(255,255,255,0.86)" font-weight="800">Databases</text>
-  </g>
+  <!-- bottom band -->
+  <rect x="70" y="575" width="1060" height="60" rx="14" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.16)"/>
+  <text x="600" y="612" text-anchor="middle" font-family="system-ui" font-size="18" fill="rgba(255,255,255,0.75)" font-weight="800">Databases / Storage</text>
 </svg>`;
 
-    function colHeader(x, y, label) {
-      return `<g filter="url(#soft)">
-        <rect x="${x}" y="${y}" width="280" height="46" rx="12"
-              fill="rgba(0,0,0,0.26)" stroke="rgba(255,255,255,0.14)"/>
-        <text x="${x + 140}" y="${y + 30}" text-anchor="middle"
-              font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.82)" font-weight="800">${label}</text>
-      </g>`;
+    function lane(x, y, label) {
+      return `<rect x="${x}" y="${y}" width="250" height="36" rx="10" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.16)"/>
+      <text x="${x + 125}" y="${y + 25}" text-anchor="middle" font-family="system-ui" font-size="14" fill="rgba(255,255,255,0.75)" font-weight="800">${label}</text>`;
     }
-
-    function nodeBox(x, y, label) {
-      return `<g filter="url(#soft)">
-        <rect x="${x}" y="${y}" width="280" height="68" rx="14"
-              fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)"/>
-        <text x="${x + 140}" y="${y + 42}" text-anchor="middle"
-              font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.80)" font-weight="700">${escapeHtml(label)}</text>
-      </g>`;
+    function box(x, y, label) {
+      return `<rect x="${x}" y="${y}" width="200" height="54" rx="12" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.16)"/>
+      <text x="${x + 100}" y="${y + 34}" text-anchor="middle" font-family="system-ui" font-size="14" fill="rgba(255,255,255,0.78)" font-weight="700">${label}</text>`;
     }
-
     function arrow(x1, y1, x2, y2) {
-      return `<g>
-        <line x1="${x1}" y1="${y1}" x2="${x2 - 14}" y2="${y2}"
-              stroke="rgba(217,70,141,0.65)" stroke-width="3" stroke-linecap="round"/>
-        <polygon points="${x2 - 14},${y2 - 7} ${x2 - 14},${y2 + 7} ${x2},${y2}"
-                 fill="rgba(217,70,141,0.75)"/>
-      </g>`;
+      return `<path d="M${x1} ${y1} L${x2 - 10} ${y2}" stroke="rgba(217,70,141,0.70)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M${x2 - 10} ${y2 - 6} L${x2} ${y2} L${x2 - 10} ${y2 + 6}" fill="none" stroke="rgba(217,70,141,0.70)" stroke-width="3" stroke-linecap="round"/>`;
     }
   }
 
-  function readme(systemType, thought, promptText) {
-    return `# Vibe Coded Studio — First Build (UI-only scaffold)
+  // ===== User Repo Artifacts (what the user actually “gets”)
+  function buildUserRepoFiles({ thought, systemType }) {
+    const { prompt, negative } = buildCanonicalPrompt({ thought, systemType });
+
+    const userReadme = `# First Build — ${systemType}
+
+This repo was generated from a single written Thought.
 
 ## Thought
-${String(thought || "").trim()}
+> ${thought}
 
-## System type
-${String(systemType || "").trim()}
+## What you get
+- A static landing page (index.html + styles.css)
+- A locked image prompt (SoT) to generate consistent system images
+- A simple SVG preview diagram (diagrams/system.svg)
 
-## What this is
-A bounded starter scaffold (docs + static repo + visualization). It is a starting point only.
-
-## Boundaries
-- No backend
-- No persistence
-- No security guarantees
-- No production claims
-- No compliance guarantees
-
-## Canonical image prompt (SoT)
-${promptText}
-`;
-  }
-
-  function boundariesMd() {
-    return `# Boundaries (UI-only)
-
-This output is a *starter scaffold* only:
-- No backend services are provided
-- No data storage is provided
-- No authentication is provided
-- No security claims or guarantees
+## Boundaries (non-negotiable)
 - No production readiness implied
+- No security claims
+- No compliance claims
+- No guarantees
+
+## Canonical Image Prompt (SoT)
+Copy into your image generator:
+
+${prompt}
+
+### Negative prompt (anti-drift)
+${negative}
 `;
-  }
 
-  function overviewMd(systemType, thought) {
-    return `# Overview
-
-**System type:** ${String(systemType || "").trim()}
-
-**Goal / pain point:** ${String(thought || "").trim()}
-
-## Components
-- Inputs
-- Processing & Logic
-- Automation
-- Outputs
-- Databases (optional)
-
-## Notes
-This is a conceptual, UI-only scaffold designed to be readable and editable.
-`;
-  }
-
-  function scaffoldIndexHtml(systemType, thought) {
-    // This is the “starter repo” index.html inside the ZIP (NOT the dashboard)
-    return `<!doctype html>
+    const userIndex = `<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Starter Scaffold — ${escapeHtml(systemType)}</title>
-  <meta name="description" content="Static scaffold generated from a single Thought."/>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;padding:28px;background:#070b14;color:rgba(255,255,255,.92)}
-    .card{max-width:980px;margin:0 auto;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:18px;padding:18px}
-    h1{margin:0 0 10px;font-size:28px}
-    p{color:rgba(255,255,255,.72);line-height:1.6}
-    .mono{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;color:rgba(255,255,255,.78)}
-    a{color:rgba(255,255,255,.88)}
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>First Build — ${systemType}</title>
+  <meta name="description" content="Generated from a single thought into a first-build scaffold." />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="card">
-    <h1>${escapeHtml(systemType)}</h1>
-    <p><strong>Thought:</strong> ${escapeHtml(thought)}</p>
-    <p>This is a static starter scaffold (docs + diagram). No backend. No guarantees.</p>
-    <p>See <a href="./docs/overview.md">docs/overview.md</a> and <a href="./diagrams/system.svg">diagrams/system.svg</a>.</p>
-    <div class="mono">
-Repo contents:
-- README.md
-- docs/overview.md
-- docs/boundaries.md
-- diagrams/system.svg
-    </div>
-  </div>
+  <main class="wrap">
+    <header class="hero">
+      <h1>First Build — ${systemType}</h1>
+      <p class="muted">Generated from a single Thought into an inspectable starting point.</p>
+    </header>
+
+    <section class="card">
+      <h2>The Thought</h2>
+      <p>${escapeHtml(thought)}</p>
+    </section>
+
+    <section class="card">
+      <h2>Canonical Image Prompt (SoT)</h2>
+      <pre>${escapeHtml(prompt)}</pre>
+      <h3>Negative Prompt</h3>
+      <pre>${escapeHtml(negative)}</pre>
+    </section>
+
+    <footer class="foot">
+      <span>Ownership First · Powered by Self-Defi</span>
+    </footer>
+  </main>
 </body>
 </html>`;
-  }
 
-  function buildFileMap(systemType, thought) {
-    const promptText = canonicalPrompt(systemType, thought);
-    const svg = systemSvg(systemType, thought);
+    const userCss = `:root{
+  --bg:#070b14;
+  --bg2:#0b1220;
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.70);
+  --card:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  color:var(--text);
+  background: radial-gradient(900px 700px at 10% 10%, rgba(80,140,255,.14), transparent 55%),
+              radial-gradient(1200px 900px at 50% -10%, rgba(217,70,141,.18), transparent 60%),
+              linear-gradient(180deg, var(--bg), var(--bg2));
+}
+.wrap{max-width:980px; margin:0 auto; padding:28px 18px 60px;}
+.hero{padding:10px 0 16px; border-bottom:1px solid rgba(255,255,255,.10); margin-bottom:18px;}
+.muted{color:var(--muted)}
+.card{
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.16);
+  border-radius:18px;
+  padding:16px;
+  margin-top:14px;
+}
+pre{
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+  padding:12px;
+  overflow:auto;
+  white-space:pre-wrap;
+  line-height:1.5;
+}
+.foot{
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.10);
+  color:var(--muted);
+}`;
 
     return {
-      "README.md": readme(systemType, thought, promptText),
-      "index.html": scaffoldIndexHtml(systemType, thought),
-      "docs/overview.md": overviewMd(systemType, thought),
-      "docs/boundaries.md": boundariesMd(),
-      "diagrams/system.svg": svg
-      // NOTE: assets placeholders can be added later, but we don't fake image files.
+      tree: [
+        "/ (repo root)",
+        "  README.md",
+        "  index.html",
+        "  styles.css",
+        "  prompt.txt",
+        "  negative.txt",
+        "  /diagrams",
+        "    system.svg"
+      ].join("\n"),
+      files: {
+        "README.md": userReadme,
+        "index.html": userIndex,
+        "styles.css": userCss,
+        "prompt.txt": prompt,
+        "negative.txt": negative,
+        "diagrams/system.svg": buildSystemSvg({ thought, systemType })
+      }
     };
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
+    }
   }
 
-  // Export
+  // expose globally
   window.VC_TEMPLATES = {
-    canonicalPrompt,
-    systemSvg,
-    buildFileMap
+    buildCanonicalPrompt,
+    buildSystemSvg,
+    buildUserRepoFiles
   };
 })();
