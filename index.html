@@ -502,9 +502,9 @@
         <label class="label" for="thought">Your thought (one clear problem)</label>
         <textarea id="thought" class="textarea" placeholder="Example: A one-page landing page that explains my service and links to a booking page."></textarea>
 
-        <!-- ADDED BACK: Action drop-down -->
+        <!-- Action drop-down ONLY (kept) -->
         <div class="row">
-          <span class="smallLabel">Action category</span>
+          <span class="smallLabel">Action</span>
           <select id="actionType" class="select">
             <option value="ai-agent">AI Agent Builder</option>
             <option value="workflow">Workflow Automations</option>
@@ -514,24 +514,6 @@
             <option value="analytics">Analytics / Tracking</option>
             <option value="content">Content / Docs</option>
             <option value="other">Other</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <span class="smallLabel">Output type</span>
-          <select id="template" class="select">
-            <option value="landing">Landing Page (single page)</option>
-            <option value="tool">Mini Tool (single page UI)</option>
-            <option value="docs">Docs Page (structured steps)</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <span class="smallLabel">Publishing target</span>
-          <select id="publishTarget" class="select">
-            <option value="github">GitHub Pages (recommended)</option>
-            <option value="ipfs">IPFS (later)</option>
-            <option value="other">Other host (manual)</option>
           </select>
         </div>
 
@@ -649,27 +631,13 @@
       </div>
 
       <ol class="modal-list">
-        <li>
-          <strong>Create a repo</strong>
-          <span>GitHub → New repository → Public → Create.</span>
-        </li>
-        <li>
-          <strong>Upload files</strong>
-          <span>Upload generated files. <em>index.html must be at repo root.</em></span>
-        </li>
-        <li>
-          <strong>Enable Pages</strong>
-          <span>Settings → Pages → Deploy from branch → main /root → Save.</span>
-        </li>
-        <li>
-          <strong>Share the URL</strong>
-          <span>Open the Pages link GitHub provides. That is your hosted asset.</span>
-        </li>
+        <li><strong>Create a repo</strong><span>GitHub → New repository → Public → Create.</span></li>
+        <li><strong>Upload files</strong><span>Upload generated files. <em>index.html must be at repo root.</em></span></li>
+        <li><strong>Enable Pages</strong><span>Settings → Pages → Deploy from branch → main /root → Save.</span></li>
+        <li><strong>Share the URL</strong><span>Open the Pages link GitHub provides. That is your hosted asset.</span></li>
       </ol>
 
-      <div class="modal-note">
-        BUILD does not auto-publish. That responsibility is intentional.
-      </div>
+      <div class="modal-note">BUILD does not auto-publish. That responsibility is intentional.</div>
 
       <div class="modal-actions">
         <a class="pill" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">Open full tutorial</a>
@@ -732,7 +700,7 @@
       return ("00000000" + (h >>> 0).toString(16)).slice(-8);
     }
 
-    function makeFiles(thought, type, action){
+    function makeFiles(thought, action){
       const title = (thought || "Vibe Coded Studio").trim().slice(0, 60);
       const body = (thought || "Describe what you are building.").trim();
       const actionLabel = {
@@ -764,7 +732,7 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>${type === "docs" ? "Documentation" : (type === "tool" ? "Mini Tool UI" : "Landing Page")}</h1>
+      <h1>Landing Page</h1>
       <p><strong>Action:</strong> ${actionLabel}</p>
       <p>${body.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>
       <div class="pill">Built with Vibe Coded Studio</div>
@@ -775,13 +743,8 @@
 
       const readme = `# ${title}
 
-**Action category:** ${actionLabel}  
+**Action:** ${actionLabel}  
 **One thought:** ${body}
-
-## What you own
-- \`index.html\` (your asset)
-- Git history (your proof)
-- Publish path (your responsibility)
 
 ## Publish (GitHub Pages)
 Settings → Pages → Deploy from branch → main /root → Save
@@ -790,7 +753,6 @@ Settings → Pages → Deploy from branch → main /root → Save
       const cfg = {
         app: "Vibe Coded Studio",
         action: actionLabel,
-        type,
         title,
         thought: body,
         createdAt: new Date().toISOString()
@@ -845,10 +807,9 @@ Settings → Pages → Deploy from branch → main /root → Save
 
     document.getElementById("btnBuild").addEventListener("click", ()=>{
       const thought = document.getElementById("thought").value;
-      const type = document.getElementById("template").value;
       const action = document.getElementById("actionType").value;
 
-      const files = makeFiles(thought, type, action);
+      const files = makeFiles(thought, action);
       const hash = safeHash(JSON.stringify(files));
 
       statusEl.textContent = `Built (UI-only). Hash: ${hash}`;
@@ -885,8 +846,6 @@ Settings → Pages → Deploy from branch → main /root → Save
     document.getElementById("btnClear").addEventListener("click", ()=>{
       document.getElementById("thought").value = "";
       document.getElementById("actionType").value = "ai-agent";
-      document.getElementById("template").value = "landing";
-      document.getElementById("publishTarget").value = "github";
 
       previewBox.innerHTML = `<div class="placeholder">Press <strong>BUILD</strong> to generate a UI-only sample output.</div>`;
       fileList.innerHTML = "";
