@@ -2,240 +2,503 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Vibe Coded Studio — Dashboard</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-  <!-- Retail trigger (LOCKED) -->
-  <meta name="description" content="It turns a written idea into something you can see, share, and build on." />
+  <title>Ownership Tutorial — Vibe Coded Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Ownership Tutorial for Vibe Coded Studio — Build, Publish, Scale, Own." />
   <meta name="theme-color" content="#070b14" />
 
-  <!-- Social -->
+  <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Vibe Coded Studio" />
-  <meta property="og:title" content="Vibe Coded Studio — Dashboard" />
-  <meta property="og:description" content="It turns a written idea into something you can see, share, and build on." />
-  <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
+  <meta property="og:title" content="Ownership Tutorial — Vibe Coded Studio" />
+  <meta property="og:description" content="Build. Publish. Scale. Own. Learn how to turn a single thought into owned infrastructure." />
+  <meta property="og:url" content="https://self-defi.github.io/Ownership-Tutorial-/" />
+  <meta property="og:image" content="https://self-defi.github.io/Ownership-Tutorial-/vc-github-thumbnail.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
-  <!-- OG Image — upload the new logo as vc-logo-transparent.png -->
-  <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-logo-transparent.png" />
+  <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ownership Tutorial — Vibe Coded Studio" />
+  <meta name="twitter:description" content="Build. Publish. Scale. Own. Learn how to turn a single thought into owned infrastructure." />
+  <meta name="twitter:image" content="https://self-defi.github.io/Ownership-Tutorial-/vc-github-thumbnail.png" />
 
-  <!-- ZIP packaging -->
-  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    :root{
+      --bg0:#070b14;
+      --bg1:#0b1220;
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.70);
+      --muted2:rgba(255,255,255,.55);
+      --shadow:0 16px 48px rgba(0,0,0,.45);
+      --pill:999px;
+      --accent:#d9468d;
+    }
 
-  <link rel="stylesheet" href="./styles.css" />
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 900px at 50% -10%, rgba(217,70,141,.22), transparent 60%),
+        radial-gradient(900px 700px at 10% 10%, rgba(80,140,255,.16), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+
+    /* subtle grid */
+    .bgGrid{
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity:.18;
+      pointer-events:none;
+    }
+
+    .topbar{
+      max-width:1160px;
+      margin:0 auto;
+      padding:18px 18px 8px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .brand{display:flex; align-items:center; gap:12px}
+    .brandLogo{
+      width:38px; height:38px;
+      border-radius:12px;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      object-fit:cover;
+      display:block;
+    }
+    .brandText{display:flex; flex-direction:column}
+    .brandName{font-weight:900; letter-spacing:.2px}
+    .brandTag{color:var(--muted2); font-size:12.5px; margin-top:2px}
+
+    .topbarRight{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+    .wrap{
+      max-width:1160px;
+      margin:0 auto;
+      padding:18px 18px 64px;
+    }
+
+    .hero{padding:18px 0 10px}
+    .heroTitle{
+      margin:0;
+      font-size: clamp(30px, 4.2vw, 52px);
+      line-height:1.06;
+      letter-spacing:-.6px;
+    }
+    .heroSub{
+      margin:12px 0 0;
+      font-size: clamp(15px, 1.9vw, 18px);
+      color:var(--muted);
+      max-width: 70ch;
+    }
+
+    .panel{
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+
+    .panelHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .panelTitle{margin:0; font-size:16px}
+    .panelMeta{color:var(--muted2); font-size:12.5px}
+
+    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
+
+    .bullets{margin:0; padding-left:18px; color:var(--muted)}
+    .bullets li{margin:6px 0}
+
+    .btnPrimary{
+      border:0;
+      padding:13px 16px;
+      border-radius: var(--pill);
+      font-weight:900;
+      font-size:15px;
+      background: var(--accent);
+      color:white;
+      box-shadow:0 14px 34px rgba(217,70,141,.22);
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+    }
+    .btnPrimary:hover{filter:brightness(1.05)}
+    .btnPrimary:active{transform:translateY(1px)}
+
+    .topbar .btnPrimary{
+      padding:10px 14px;
+      font-size:14px;
+    }
+
+    .muted{color:var(--muted); margin:0; line-height:1.55}
+
+    /* === Tutorial-specific helpers (styled to dashboard) === */
+    .stack{display:grid; gap:14px; margin-top:14px}
+
+    .phaseRow{
+      display:grid;
+      grid-template-columns: 6px 1fr;
+      gap:12px;
+      align-items:start;
+      padding:10px 0;
+    }
+    .phaseRail{
+      width:6px;
+      border-radius:999px;
+      background: rgba(217,70,141,.95);
+      box-shadow:0 0 0 1px rgba(255,255,255,.06);
+    }
+    .phaseName{margin:0; font-weight:900}
+    .phaseDesc{margin:6px 0 0; color:var(--muted)}
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin-top:10px;
+    }
+
+    .stepCard{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      padding:14px;
+    }
+    .stepTitle{margin:0; font-weight:900}
+    .stepBody{margin:8px 0 0; color:var(--muted); line-height:1.45}
+
+    .kbd{
+      display:inline-block;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      border-radius:999px;
+      padding:4px 10px;
+      font-weight:850;
+      font-size:13px;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    /* Link style */
+    a.link{
+      color: rgba(255,255,255,.90);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255,255,255,.22);
+    }
+    a.link:hover{
+      border-bottom-color: rgba(217,70,141,.65);
+      color: rgba(255,255,255,.98);
+    }
+    a.link:active{ opacity:.9; }
+
+    .ctaRow{
+      display:flex;
+      justify-content:center;
+      margin-top:12px;
+    }
+
+    /* ===== Footer (fixed to look right) ===== */
+    .footer{
+      margin-top:22px;
+      padding-top:18px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .footerLeft{min-width: 260px}
+    .footerBrand{
+      font-weight:900;
+      font-size:16px;
+      letter-spacing:.2px;
+      margin-bottom:6px;
+    }
+
+    .footerMeta{
+      color:var(--muted2);
+      font-size:12.8px;
+      line-height:1.55;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+
+    .footerMeta .sep{opacity:.45}
+
+    .footerMeta a{
+      color: rgba(255,255,255,.86);
+      text-decoration:none;
+      border-bottom: 1px dashed rgba(255,255,255,.22);
+    }
+    .footerMeta a:hover{
+      border-bottom-color: rgba(217,70,141,.65);
+      color: rgba(255,255,255,.98);
+    }
+
+    .footerRight{
+      color:var(--muted2);
+      font-size:12.8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-left:auto;
+      white-space:nowrap;
+    }
+
+    @media (max-width: 980px){
+      .twoCol{grid-template-columns:1fr}
+      .footer{align-items:flex-start}
+      .footerRight{margin-left:0}
+    }
+  </style>
 </head>
 
 <body>
   <div class="bgGrid" aria-hidden="true"></div>
 
-  <header class="topbar">
+  <!-- Topbar -->
+  <div class="topbar">
     <div class="brand">
-      <img class="brandLogo"
-           src="./vc-logo-transparent.png"
-           alt="Vibe Coded Studio logo"
-           onerror="this.style.display='none'"/>
+      <img src="./vc-logo.png" alt="Vibe Coded Studio logo" class="brandLogo" />
       <div class="brandText">
         <div class="brandName">Vibe Coded Studio</div>
-        <div class="brandTag">Write the pain point. Get a first build.</div>
+        <div class="brandTag">Ownership Tutorial · Publish what you built</div>
       </div>
     </div>
 
     <div class="topbarRight">
-      <button class="pill" id="copyLinkBtn" type="button">Copy share link</button>
-      <button class="pill" id="openHelpBtn" type="button">What do I get?</button>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <!-- HERO -->
-    <section class="hero">
-      <h1 class="heroTitle">Tell us what you want built.</h1>
-      <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
-    </section>
-
-    <section class="grid">
-      <!-- LEFT: INPUT -->
-      <section class="panel">
-        <div class="panelHead">
-          <h2 class="panelTitle">Your request</h2>
-          <div class="panelMeta" id="buildStamp"></div>
-        </div>
-
-        <label class="label" for="painInput">Explain the pain point you want solved.</label>
-        <textarea
-          id="painInput"
-          class="textarea"
-          rows="7"
-          maxlength="900"
-          placeholder="Example: I want a system that automatically finds leads and follows up for me."
-        ></textarea>
-
-        <div class="row">
-          <label class="smallLabel" for="systemType">System type</label>
-          <select id="systemType" class="select">
-            <option>AI automation system</option>
-            <option>Lead generation pipeline</option>
-            <option>Workflow automation</option>
-            <option>Data intake + processing system</option>
-            <option>DAO governance system</option>
-            <option>Non-custodial custody workflow</option>
-          </select>
-        </div>
-
-        <div class="actions">
-          <button class="btnPrimary" id="generateBtn" type="button">Generate first build</button>
-          <button class="btnGhost" id="resetBtn" type="button">Reset</button>
-        </div>
-
-        <div class="status" id="status" role="status" aria-live="polite"></div>
-
-        <div class="note">
-          <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
-          It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
-        </div>
-      </section>
-
-      <!-- RIGHT: OUTPUTS -->
-      <section class="panel">
-        <div class="panelHead">
-          <h2 class="panelTitle">Deliverables</h2>
-          <div class="panelMeta" id="paramStatus"></div>
-        </div>
-
-        <div class="tabs" role="tablist" aria-label="Deliverables tabs">
-          <button class="tab active" id="tabPreview" type="button" role="tab" aria-selected="true">System Image</button>
-          <button class="tab" id="tabFiles" type="button" role="tab" aria-selected="false">Repo Files</button>
-          <button class="tab" id="tabZip" type="button" role="tab" aria-selected="false">Download</button>
-        </div>
-
-        <!-- TAB: PREVIEW -->
-        <div class="tabPanel show" id="panelPreview" role="tabpanel" aria-labelledby="tabPreview">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">System visualization (SVG)</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="downloadSvgBtn" type="button" disabled>Download SVG</button>
-              </div>
-            </div>
-            <div class="preview" id="svgPreview">
-              <div class="placeholder">Generate a build to preview the system visualization.</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">Canonical image prompt (SoT)</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="copyPromptBtn" type="button" disabled>Copy prompt</button>
-              </div>
-            </div>
-            <pre class="code" id="promptOut">Generate a build to produce the locked prompt.</pre>
-          </div>
-        </div>
-
-        <!-- TAB: FILES -->
-        <div class="tabPanel" id="panelFiles" role="tabpanel" aria-labelledby="tabFiles">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">Generated repo files</div>
-              <div class="cardActions">
-                <button class="btnSmall" id="copyAllBtn" type="button" disabled>Copy all</button>
-              </div>
-            </div>
-
-            <div class="fileList" id="fileList">
-              <div class="placeholder">Generate a build to populate repo files.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB: ZIP -->
-        <div class="tabPanel" id="panelZip" role="tabpanel" aria-labelledby="tabZip">
-          <div class="card">
-            <div class="cardHead">
-              <div class="cardTitle">ZIP bundle</div>
-              <div class="cardActions">
-                <button class="btnPrimary" id="downloadZipBtn" type="button" disabled>Download repo (.zip)</button>
-              </div>
-            </div>
-
-            <p class="muted">
-              ZIP includes README.md, architecture.md, assumptions.md, DISCLAIMER.md, a static scaffold, the system SVG,
-              and the canonical prompt file.
-            </p>
-
-            <div class="divider"></div>
-
-            <div class="standards">
-              <div class="standardsTitle">Explicit meaning</div>
-              <ul class="bullets">
-                <li>Starting point only — not production readiness</li>
-                <li>No security validation implied</li>
-                <li>No compliance guarantees implied</li>
-                <li>Anything not stated is unknown</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-      </section>
-    </section>
-
-   <div class="footer">
-  <div>
-    <div class="footerBrand">Vibe Coded Studio</div>
-    <div class="footerSmall">
-      Ownership First · Powered by Self-Defi | Digital Infrastructure Architect
-      <a
-        class="link"
-        href="https://github.com/Self-Defi/Ownership-Tutorial-/blob/main/LICENSE"
-        target="_blank"
-        rel="noopener"
-      >
-        License
+      <a class="btnPrimary"
+         href="https://self-defi.github.io/-Vibe-Coding-Dashboard-/"
+         target="_blank"
+         rel="noopener">
+        Go To App
       </a>
     </div>
   </div>
-  <div class="footerSmall">© <span id="yr"></span> Vibe Coded Studio</div>
-</div>
-    </footer>
-  </main>
 
-  <!-- HELP MODAL -->
-  <div class="modal" id="helpModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="What do I get?">
-    <div class="modal-card" role="document">
-      <div class="modal-head">
-        <h2>What do I get?</h2>
-        <button class="icon-btn" type="button" id="closeHelpBtn" aria-label="Close">✕</button>
-      </div>
-
-      <ol class="modal-list">
-        <li>
-          <strong>System image</strong>
-          <span>A technical architecture visualization (no marketing fluff).</span>
-        </li>
-        <li>
-          <strong>Repo files</strong>
-          <span>README + architecture + assumptions + static scaffold for a clean starting point.</span>
-        </li>
-        <li>
-          <strong>Clear boundaries</strong>
-          <span>No implied production readiness, security, or compliance.</span>
-        </li>
-      </ol>
-
-      <p class="modal-note">
-        Everything is generated locally in your browser. Download your repo bundle when ready.
+  <div class="wrap">
+    <div class="hero">
+      <h1 class="heroTitle">Ownership Tutorial</h1>
+      <p class="heroSub">
+        Vibe Coded Studio is not about convenience. It is about owning the thought that mattered enough to build.
       </p>
+    </div>
 
-      <div class="modal-actions">
-        <button class="btnPrimary" type="button" id="closeHelpBtn2">Got it</button>
-      </div>
+    <div class="stack">
+
+      <!-- What this is -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">What This App Is</h2>
+          <div class="panelMeta">Ownership first</div>
+        </div>
+        <p class="muted">
+          Vibe Coded Studio turns a single clear thought into real files — structure you control and assets you own.
+        </p>
+        <div class="divider"></div>
+        <p class="muted">
+          It does not publish for you. It does not host for you. That responsibility is intentional.
+        </p>
+      </section>
+
+      <!-- The path -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">The Path</h2>
+          <div class="panelMeta">Three phases</div>
+        </div>
+
+        <div class="phaseRow">
+          <div class="phaseRail" aria-hidden="true"></div>
+          <div>
+            <p class="phaseName">Phase 1 — Build &amp; Publish</p>
+            <p class="phaseDesc">You generate files and make them public yourself.</p>
+          </div>
+        </div>
+
+        <div class="phaseRow">
+          <div class="phaseRail" aria-hidden="true" style="opacity:.80"></div>
+          <div>
+            <p class="phaseName">Phase 2 — Scale with LLMs</p>
+            <p class="phaseDesc">You use AI to scale public assets.</p>
+          </div>
+        </div>
+
+        <div class="phaseRow">
+          <div class="phaseRail" aria-hidden="true" style="opacity:.65"></div>
+          <div>
+            <p class="phaseName">Phase 3 — From Repo to Revenue</p>
+            <p class="phaseDesc">You convert owned infrastructure into repeatable income.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why GitHub -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Why GitHub — Not an App Store</h2>
+          <div class="panelMeta">Control vs convenience</div>
+        </div>
+
+        <div class="twoCol">
+          <div class="stepCard">
+            <p class="stepTitle">App stores</p>
+            <p class="stepBody">Optimize for speed and abstraction.</p>
+            <ul class="bullets">
+              <li>You publish into their system</li>
+              <li>They control distribution and rules</li>
+              <li>Access can be changed or removed</li>
+            </ul>
+          </div>
+
+          <div class="stepCard">
+            <p class="stepTitle">GitHub</p>
+            <p class="stepBody">Is neutral infrastructure.</p>
+            <ul class="bullets">
+              <li>You own the files</li>
+              <li>You control version history</li>
+              <li>You can leave at any time</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="muted">
+          This app chooses ownership over convenience — on purpose.
+        </p>
+      </section>
+
+      <!-- Quick publish -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Phase 1 — Quick Publish (5–10 Minutes)</h2>
+          <div class="panelMeta">No CLI</div>
+        </div>
+
+        <div class="stepCard">
+          <p class="stepTitle">Step 1 — Create a Repository</p>
+          <p class="stepBody">
+            Go to <a class="link" href="https://github.com" target="_blank" rel="noopener">github.com</a> →
+            <span class="kbd">New repository</span> →
+            <span class="kbd">Public</span> →
+            <span class="kbd">Create</span>.
+            This is your asset container.
+          </p>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="stepCard">
+          <p class="stepTitle">Step 2 — Upload Your Files</p>
+          <p class="stepBody">
+            Upload all generated files directly into the repo.
+            <strong>index.html must be at the root.</strong>
+          </p>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="stepCard">
+          <p class="stepTitle">Step 3 — Enable GitHub Pages</p>
+          <p class="stepBody">
+            <span class="kbd">Settings</span> →
+            <span class="kbd">Pages</span> →
+            <span class="kbd">Deploy from branch</span> →
+            <span class="kbd">main</span> <span class="kbd">/root</span> →
+            <span class="kbd">Save</span>.
+          </p>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="stepCard">
+          <p class="stepTitle">Step 4 — Verify</p>
+          <p class="stepBody">
+            Open the URL GitHub provides. If it loads, you published successfully.
+          </p>
+        </div>
+      </section>
+
+      <!-- Common mistakes -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Common Mistakes</h2>
+          <div class="panelMeta">Avoid the loop</div>
+        </div>
+        <ul class="bullets">
+          <li>Uploading a ZIP instead of files</li>
+          <li>Missing index.html at root</li>
+          <li>Forgetting to enable Pages</li>
+          <li>Expecting BUILD to auto-publish</li>
+        </ul>
+      </section>
+
+      <!-- Advisory -->
+      <section class="panel">
+        <div class="panelHead">
+          <h2 class="panelTitle">Advisory Boundary</h2>
+          <div class="panelMeta">When to escalate</div>
+        </div>
+        <p class="muted">
+          If you want help scaling repos, structuring systems, or designing revenue paths — that is advisory work.
+        </p>
+        <div class="ctaRow">
+          <a class="btnPrimary" href="https://cal.com/selfdeficonsultant/15min" target="_blank" rel="noopener">
+            Book SD Advisory
+          </a>
+        </div>
+      </section>
+
+      <!-- Footer (clean + aligned) -->
+      <footer class="footer">
+        <div class="footerLeft">
+          <div class="footerBrand">Vibe Coded Studio</div>
+          <div class="footerMeta">
+            <span>Ownership First</span>
+            <span class="sep">·</span>
+            <span>Powered by Self-Defi</span>
+            <span class="sep">·</span>
+            <span>Digital Infrastructure Architect</span>
+            <span class="sep">·</span>
+            <!-- NOTE: This points to the GitHub file (works even if you don't publish it on Pages) -->
+            <a href="https://github.com/Self-Defi/Ownership-Tutorial-/blob/main/LICENSE"
+               target="_blank" rel="noopener">License</a>
+          </div>
+        </div>
+
+        <div class="footerRight">
+          <span>© <span id="yr"></span> Vibe Coded Studio</span>
+        </div>
+      </footer>
+
     </div>
   </div>
 
-  <script defer src="./templates.js"></script>
-  <script defer src="./app.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
