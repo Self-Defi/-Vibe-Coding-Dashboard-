@@ -1,195 +1,200 @@
-/* app.js — Vibe Coded Studio Dashboard (UI-only)
-   Uses templates.js (VC_TEMPLATES) + JSZip (CDN) for real ZIP download.
-*/
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Vibe Coded Studio — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Vibe Coded Studio Dashboard — UI-only build generator. Everything starts with the Thought." />
+  <meta name="theme-color" content="#070b14" />
 
-(() => {
-  const $ = (id) => document.getElementById(id);
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Vibe Coded Studio" />
+  <meta property="og:title" content="Vibe Coded Studio — Dashboard" />
+  <meta property="og:description" content="It turns a written idea into something you can see, share, and build on." />
+  <meta property="og:url" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/" />
+  <meta property="og:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
-  const thought = $("thought");
-  const systemType = $("systemType");
-  const generateBtn = $("generateBtn");
-  const resetBtn = $("resetBtn");
-  const statusText = $("statusText");
-  const lastLoaded = $("lastLoaded");
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vibe Coded Studio — Dashboard" />
+  <meta name="twitter:description" content="It turns a written idea into something you can see, share, and build on." />
+  <meta name="twitter:image" content="https://self-defi.github.io/-Vibe-Coding-Dashboard-/vc-github-thumbnail.png" />
 
-  const svgBox = $("svgBox");
-  const promptBox = $("promptBox");
-  const repoBox = $("repoBox");
-  const downloadBox = $("downloadBox");
+  <link rel="stylesheet" href="./styles.css" />
 
-  const downloadSvgBtn = $("downloadSvgBtn");
-  const copyPromptBtn = $("copyPromptBtn");
-  const copyFilesBtn = $("copyFilesBtn");
-  const downloadZipBtn = $("downloadZipBtn");
+  <!-- JSZip (real zip downloads) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  const tabs = Array.from(document.querySelectorAll(".tab"));
-  const tabSystem = $("tab-system");
-  const tabRepo = $("tab-repo");
-  const tabDownload = $("tab-download");
+  <!-- App scripts -->
+  <script defer src="./templates.js"></script>
+  <script defer src="./app.js"></script>
+</head>
 
-  $("yr").textContent = new Date().getFullYear();
+<body>
+  <div class="bgGrid" aria-hidden="true"></div>
 
-  const KEY = "vcs_dashboard_last_request_v2";
+  <div class="wrap">
 
-  function setGenerateEnabled() {
-    const hasThought = thought.value.trim().length > 0;
-    generateBtn.disabled = !hasThought;
-    statusText.textContent = hasThought ? 'Ready. Click "Generate first build".' : "Write the Thought first.";
-  }
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="brand">
+        <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio logo" class="brandLogo"
+             onerror="this.style.display='none';" />
+        <div class="brandText">
+          <div class="brandName">Vibe Coded Studio</div>
+          <div class="brandTag">Dashboard · UI-only build generator</div>
+        </div>
+      </div>
 
-  function showTab(which) {
-    tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === which));
-    tabSystem.style.display = which === "system" ? "block" : "none";
-    tabRepo.style.display = which === "repo" ? "block" : "none";
-    tabDownload.style.display = which === "download" ? "block" : "none";
-  }
+      <div class="topbarRight">
+        <div class="pill"><span class="pillDot"></span> Non-custodial · No backend</div>
+        <a class="btnPrimary" href="https://self-defi.github.io/Ownership-Tutorial-/" target="_blank" rel="noopener">
+          Tutorial
+        </a>
+      </div>
+    </div>
 
-  tabs.forEach((t) => t.addEventListener("click", () => showTab(t.dataset.tab)));
-  thought.addEventListener("input", setGenerateEnabled);
+    <!-- Hero -->
+    <div class="hero">
+      <h1 class="heroTitle">Tell us what you want built.</h1>
+      <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
+    </div>
 
-  function saveLastRequest() {
-    localStorage.setItem(KEY, JSON.stringify({
-      thought: thought.value,
-      systemType: systemType.value,
-      at: new Date().toISOString()
-    }));
-  }
+    <!-- Build Setup -->
+    <section class="panel" id="build">
+      <div class="panelHead">
+        <h2 class="panelTitle">Build Setup</h2>
+        <div class="panelMeta" id="lastLoaded">—</div>
+      </div>
 
-  function loadLastRequest() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (data.thought) thought.value = data.thought;
-      if (data.systemType) systemType.value = data.systemType;
-      lastLoaded.textContent = "Loaded last request";
-    } catch (e) {}
-  }
+      <div class="fieldLabel">Your request</div>
+      <p class="subLabel">Explain the pain point you want solved.</p>
+      <textarea
+        id="thought"
+        class="input"
+        placeholder="Example: I want a system that handles lead capture and nurture."
+      ></textarea>
 
-  async function copyText(txt) {
-    try {
-      await navigator.clipboard.writeText(txt);
-      statusText.textContent = "Copied.";
-      setTimeout(setGenerateEnabled, 900);
-    } catch (e) {
-      statusText.textContent = "Copy blocked by browser.";
-      setTimeout(setGenerateEnabled, 1200);
-    }
-  }
+      <div class="fieldLabel">System type</div>
+      <select id="systemType" class="input">
+        <option>AI automation system</option>
+        <option>Non-custodial custody workflow</option>
+        <option>DAO governance workflow</option>
+        <option>Wallet integration + onboarding</option>
+        <option>Content + IPFS publishing pipeline</option>
+        <option>Lead gen + follow-up engine</option>
+        <option>Internal ops / control tower</option>
+      </select>
 
-  function downloadFile(filename, content, mime = "text/plain;charset=utf-8") {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+      <div class="btnRow">
+        <button id="generateBtn" class="btnPrimary" disabled>Generate first build</button>
+        <button id="resetBtn" class="btnSecondary" type="button">Reset</button>
+        <span class="statusText" id="statusText">Write the Thought first.</span>
+      </div>
 
-  function build() {
-    const t = thought.value.trim();
-    const sys = systemType.value;
+      <div class="spacer12"></div>
 
-    const prompt = window.VC_TEMPLATES.canonicalPrompt(sys, t);
-    const svg = window.VC_TEMPLATES.systemSvg(sys, t);
-    const fileMap = window.VC_TEMPLATES.buildFileMap(sys, t);
+      <div class="boundaries">
+        <strong>Boundaries:</strong> This generates a starting point (docs + static scaffold + visualization).
+        It does <em>not</em> imply production readiness, security validation, compliance, or guarantees.
+      </div>
+    </section>
 
-    return { t, sys, prompt, svg, fileMap };
-  }
+    <!-- Deliverables -->
+    <section class="panel" id="deliverables">
+      <div class="deliverHead">
+        <h2 class="deliverTitle">Deliverables</h2>
+        <div class="deliverMeta">
+          <span>UI preview</span>
+          <span class="appVer" id="appVer">APP v2026-01-09.3</span>
+        </div>
+      </div>
 
-  function renderRepoBundle(fileMap) {
-    // Show actual file contents (not just file names)
-    const paths = Object.keys(fileMap).sort();
-    let out = "";
-    for (const p of paths) {
-      out += `// ===============================\n// ${p}\n// ===============================\n`;
-      out += `${fileMap[p]}\n\n`;
-    }
-    return out.trim();
-  }
+      <div class="tabs" role="tablist" aria-label="Deliverables tabs">
+        <button class="tab active" data-tab="system" type="button">System Image</button>
+        <button class="tab" data-tab="repo" type="button">Repo Files</button>
+        <button class="tab" data-tab="download" type="button">Download</button>
+      </div>
 
-  function setGeneratedUI(payload) {
-    svgBox.innerHTML = payload.svg;
-    promptBox.textContent = payload.prompt;
+      <!-- Tab: System -->
+      <div class="deliverCard" id="tab-system">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Canonical image prompt (SoT)</h3>
+          <div class="miniBtnRow">
+            <button class="miniBtn" id="copyPromptBtn" disabled type="button">Copy prompt</button>
+            <button class="miniBtn" id="copyNegBtn" disabled type="button">Copy negative</button>
+          </div>
+        </div>
 
-    repoBox.textContent = renderRepoBundle(payload.fileMap);
-    downloadBox.textContent = "ZIP bundle ready: README + docs + diagram + scaffold index.html";
+        <pre class="codeBox" id="promptBox">Generate a build to produce the locked prompt.</pre>
 
-    downloadSvgBtn.disabled = false;
-    copyPromptBtn.disabled = false;
-    copyFilesBtn.disabled = false;
-    downloadZipBtn.disabled = false;
+        <div class="spacer12"></div>
 
-    statusText.textContent = "Generated. Preview + ZIP export ready.";
-  }
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">System visualization (SVG preview)</h3>
+          <button class="miniBtn" id="downloadSvgBtn" disabled type="button">Download SVG</button>
+        </div>
 
-  async function downloadZip(fileMap) {
-    if (!window.JSZip) {
-      statusText.textContent = "JSZip failed to load. Refresh page and try again.";
-      return;
-    }
+        <div class="svgFrame" id="svgBox">
+          Generate a build to preview the system visualization.
+        </div>
+      </div>
 
-    const zip = new JSZip();
-    for (const [path, content] of Object.entries(fileMap)) {
-      zip.file(path, content);
-    }
+      <!-- Tab: Repo -->
+      <div class="deliverCard" id="tab-repo" style="display:none;">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Generated repo output</h3>
+          <div class="miniBtnRow">
+            <button class="miniBtn" id="copyTreeBtn" disabled type="button">Copy tree</button>
+            <button class="miniBtn" id="copyFileBtn" disabled type="button">Copy selected file</button>
+          </div>
+        </div>
 
-    statusText.textContent = "Building ZIP…";
-    const blob = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(blob);
+        <pre class="codeBox" id="treeBox">Generate a build to preview the repository scaffold.</pre>
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vcs-first-build.zip";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+        <div class="spacer12"></div>
 
-    URL.revokeObjectURL(url);
-    statusText.textContent = "ZIP downloaded.";
-    setTimeout(setGenerateEnabled, 1000);
-  }
+        <div class="fileRow">
+          <label class="fileLabel" for="fileSelect">Preview file</label>
+          <select id="fileSelect" class="input" disabled></select>
+        </div>
 
-  // Actions
-  generateBtn.addEventListener("click", () => {
-    const payload = build();
-    setGeneratedUI(payload);
-    saveLastRequest();
-  });
+        <pre class="codeBox" id="fileBox">—</pre>
+      </div>
 
-  resetBtn.addEventListener("click", () => {
-    thought.value = "";
-    systemType.selectedIndex = 0;
+      <!-- Tab: Download -->
+      <div class="deliverCard" id="tab-download" style="display:none;">
+        <div class="deliverCardHead">
+          <h3 class="deliverCardTitle">Download bundle</h3>
+          <button class="miniBtn" id="downloadZipBtn" disabled type="button">Download ZIP</button>
+        </div>
+        <div class="placeholderBox" id="downloadBox">
+          Generate a build to enable downloads.
+        </div>
+      </div>
+    </section>
 
-    svgBox.textContent = "Generate a build to preview the system visualization.";
-    promptBox.textContent = "Generate a build to produce the locked prompt.";
-    repoBox.textContent = "Generate a build to generate the repo scaffold.";
-    downloadBox.textContent = "Generate a build to enable downloads.";
+    <!-- Footer -->
+    <footer class="footer">
+      <div>
+        <div class="footerBrand">Vibe Coded Studio</div>
+        <div class="footerMeta">
+          <span>Ownership First</span>
+          <span class="sep">·</span>
+          <span>Powered by Self-Defi</span>
+          <span class="sep">·</span>
+          <a href="https://github.com/Self-Defi/-Vibe-Coding-Dashboard-/blob/main/LICENSE.md" target="_blank" rel="noopener">License</a>
+        </div>
+      </div>
 
-    downloadSvgBtn.disabled = true;
-    copyPromptBtn.disabled = true;
-    copyFilesBtn.disabled = true;
-    downloadZipBtn.disabled = true;
+      <div class="footerRight">
+        <span>© <span id="yr"></span> Vibe Coded Studio</span>
+      </div>
+    </footer>
 
-    localStorage.removeItem(KEY);
-    setGenerateEnabled();
-  });
-
-  downloadSvgBtn.addEventListener("click", () => {
-    const svgEl = svgBox.querySelector("svg");
-    if (!svgEl) return;
-    downloadFile("system.svg", svgEl.outerHTML, "image/svg+xml;charset=utf-8");
-  });
-
-  copyPromptBtn.addEventListener("click", () => copyText(promptBox.textContent));
-  copyFilesBtn.addEventListener("click", () => copyText(repoBox.textContent));
-  downloadZipBtn.addEventListener("click", () => downloadZip(build().fileMap));
-
-  // Boot
-  loadLastRequest();
-  setGenerateEnabled();
-  showTab("system");
-})();
+  </div>
+</body>
+</html>
