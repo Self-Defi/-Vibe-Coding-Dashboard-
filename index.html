@@ -177,7 +177,6 @@
       box-shadow: var(--shadow);
       padding:16px;
     }
-
     .panel + .panel{ margin-top:14px; }
 
     .panelHead{
@@ -199,7 +198,6 @@
       white-space:nowrap;
       margin-top:2px;
     }
-    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0}
 
     /* Fields */
     .fieldLabel{
@@ -246,13 +244,6 @@
         0 0;
       background-size:5px 5px, 5px 5px, 2.5em 2.5em;
       background-repeat:no-repeat;
-    }
-
-    .help{
-      color:var(--muted2);
-      font-size:12.6px;
-      margin-top:8px;
-      line-height:1.55;
     }
 
     .btnRow{
@@ -456,7 +447,6 @@
     <!-- Topbar -->
     <div class="topbar">
       <div class="brand">
-        <!-- Put your dashboard repo logo filename here -->
         <img src="./vc-logo-transparent.png" alt="Vibe Coded Studio logo" class="brandLogo"
              onerror="this.style.display='none';" />
         <div class="brandText">
@@ -473,7 +463,7 @@
       </div>
     </div>
 
-    <!-- HERO (your exact copy) -->
+    <!-- HERO -->
     <div class="hero">
       <h1 class="heroTitle">Tell us what you want built.</h1>
       <p class="heroSub">It turns a written idea into something you can see, share, and build on.</p>
@@ -607,7 +597,6 @@
 
     const thought = $("thought");
     const systemType = $("systemType");
-    const actionType = $("actionType");
     const generateBtn = $("generateBtn");
     const resetBtn = $("resetBtn");
     const statusText = $("statusText");
@@ -627,8 +616,7 @@
     const tabRepo = $("tab-repo");
     const tabDownload = $("tab-download");
 
-    const YEAR = new Date().getFullYear();
-    $("yr").textContent = YEAR;
+    $("yr").textContent = new Date().getFullYear();
 
     // Persist last request (UI-only)
     const KEY = "vcs_dashboard_last_request_v1";
@@ -657,9 +645,7 @@
     function buildMock(){
       const t = thought.value.trim();
       const sys = systemType.value;
-      const act = actionType.value;
 
-      // Locked-ish prompt output
       const canonicalPrompt =
 `SYSTEM: Vibe Coded Studio (UI-only)
 GOAL: Turn the user's written Thought into a starter scaffold: docs + static repo + simple system visualization.
@@ -669,7 +655,6 @@ THOUGHT:
 "${t}"
 
 SYSTEM TYPE: ${sys}
-ACTION: ${act}
 
 DELIVERABLES:
 1) README outline (what it is, boundaries, how to publish)
@@ -678,7 +663,6 @@ DELIVERABLES:
 4) Simple SVG system diagram description
 `;
 
-      // SVG placeholder (simple inline SVG)
       const safeText = (s) => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
       const short = t.length > 72 ? t.slice(0, 72) + "…" : t;
 
@@ -713,11 +697,8 @@ DELIVERABLES:
   <rect x="48" y="284" width="864" height="92" rx="18" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.10)"/>
   <text x="70" y="320" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">System type:</text>
   <text x="170" y="320" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.72)">${safeText(sys)}</text>
-  <text x="70" y="348" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.90)" font-weight="800">Action:</text>
-  <text x="132" y="348" font-family="system-ui" font-size="16" fill="rgba(255,255,255,0.72)">${safeText(act)}</text>
 </svg>`;
 
-      // Repo files preview
       const files =
 `/ (repo root)
   index.html
@@ -752,7 +733,6 @@ DELIVERABLES:
       const data = {
         thought: thought.value,
         systemType: systemType.value,
-        actionType: actionType.value,
         at: new Date().toISOString()
       };
       localStorage.setItem(KEY, JSON.stringify(data));
@@ -765,7 +745,6 @@ DELIVERABLES:
         const data = JSON.parse(raw);
         if(data.thought) thought.value = data.thought;
         if(data.systemType) systemType.value = data.systemType;
-        if(data.actionType) actionType.value = data.actionType;
         setGenerateEnabled();
       }catch(e){}
     }
@@ -780,7 +759,6 @@ DELIVERABLES:
     resetBtn.addEventListener("click", () => {
       thought.value = "";
       systemType.selectedIndex = 0;
-      actionType.selectedIndex = 0;
 
       svgBox.textContent = "Generate a build to preview the system visualization.";
       promptBox.textContent = "Generate a build to produce the locked prompt.";
@@ -838,7 +816,6 @@ THOUGHT
 ${thought.value.trim()}
 
 SYSTEM TYPE: ${systemType.value}
-ACTION: ${actionType.value}
 
 CANONICAL PROMPT
 ---------------
