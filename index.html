@@ -646,21 +646,35 @@
       const t = thought.value.trim();
       const sys = systemType.value;
 
-      const canonicalPrompt =
-`SYSTEM: Vibe Coded Studio (UI-only)
-GOAL: Turn the user's written Thought into a starter scaffold: docs + static repo + simple system visualization.
-BOUNDARIES: No backend. No security claims. No guarantees.
-
-THOUGHT:
+ const canonicalPrompt =
+`A high-fidelity system architecture visualization of a ${sys} designed to solve:
 "${t}"
 
-SYSTEM TYPE: ${sys}
+The image shows clearly defined components arranged in a structured flow, including:
+- Input layer
+- Processing / logic layer
+- Automation or decision layer
+- Output layer
+- Optional data storage or infrastructure layer
 
-DELIVERABLES:
-1) README outline (what it is, boundaries, how to publish)
-2) /index.html scaffold (static)
-3) /assets placeholders
-4) Simple SVG system diagram description
+Visual style:
+Dark technical interface with a subtle grid background.
+Modern infrastructure dashboard aesthetic.
+Muted neon accents (blue, cyan, green, or amber).
+High contrast, low saturation.
+Clean, professional, engineered, deterministic.
+
+Composition rules:
+Left-to-right or top-to-bottom flow with clear directional logic.
+Boxed components with minimal labels (1–3 words max).
+No abstract art. No illustrations. No people.
+No branding, logos, marketing language, or UI mockups.
+
+This is a system visualization, not concept art.
+The image must look suitable for:
+- A technical architecture review
+- A GitHub README
+- Infrastructure or DAO documentation.
 `;
 
       const safeText = (s) => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
